@@ -133,6 +133,8 @@ class ConnectBase(QgsProcessingAlgorithm):
         self.EXTENT,
         context
         )
+        if not extensao:
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.EXTENT))
 
         option = self.parameterAsEnum(parameters, self.WFS, context)
         layer = self.mapping[option]
@@ -151,7 +153,6 @@ class ConnectBase(QgsProcessingAlgorithm):
                  uri_default = uri_default.replace('name_',name)
                  uri_default = uri_default.replace('link',link)
                  uri_default = uri_default.replace('xx',feat['SIGLA_UF'])
-                 print(uri_default)
                  uris.append(uri_default)
 
         source = QgsVectorLayer(uris[0], "my wfs layer", "WFS")
