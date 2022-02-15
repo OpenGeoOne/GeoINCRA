@@ -125,12 +125,10 @@ class ConnectBase(QgsProcessingAlgorithm):
         self.EXTENT,
         context
         )
-        aux = self.parameterAsEnum(parameters, self.WFS, context)
-        print(aux)
 
         layer = self.mapping[self.parameterAsEnum(parameters, self.WFS, context)]
-        link = links[layer]
-
+        link = self.links[layer]
+        
         path = os.path.dirname(__file__) + "/shp" + "/BR_UF_2020.shp"
         estado = QgsVectorLayer(path, "Brasil", "ogr")
 
