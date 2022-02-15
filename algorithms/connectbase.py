@@ -77,6 +77,14 @@ class ConnectBase(QgsProcessingAlgorithm):
                5:'Quilombolas'
             }
 
+    layer_name ={    0: 'ms:certificada_sigef_particular_xx',
+               1: 'ms:certificada_sigef_publico_xx', 
+               2: 'ms:imoveiscertificados_privado_xx',
+               3: 'ms:imoveiscertificados_publico_xx',
+               4: 'ms:assentamentos_xx',
+               5:'ms:quilombolas_xx'
+            }
+
     links = {     'imóveis Certificados Sigeb - Particular': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_particular_xx',
                   'imóveis Certificados Sigeb - Público': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_publico_xx',
                   'imóveis Certificados SNCI - Privado': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_privado_xx',
@@ -126,7 +134,9 @@ class ConnectBase(QgsProcessingAlgorithm):
         context
         )
 
-        layer = self.mapping[self.parameterAsEnum(parameters, self.WFS, context)]
+        option = self.parameterAsEnum(parameters, self.WFS, context)
+        layer = self.mapping[option]
+        name = self.layer_name[option]
         link = self.links[layer]
         
         path = os.path.dirname(__file__) + "/shp" + "/BR_UF_2020.shp"
@@ -137,9 +147,11 @@ class ConnectBase(QgsProcessingAlgorithm):
         for feat in estado.getFeatures():
              if feat.geometry().intersects(extensao):
                  #uri_default="""pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4326' typename='ms:certificada_sigef_particular_xx' url='http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_particular_xx' version='auto'"""
-                 uri_default="""pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4326'  url=xx"""
-                 uri_default = uri_default.replace('xx',link)
+                 uri_default="""pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1'  srsname='EPSG:4326' typename='name_' url='link' version='auto'"""
+                 uri_default = uri_default.replace('name_',name)
+                 uri_default = uri_default.replace('link',link)
                  uri_default = uri_default.replace('xx',feat['SIGLA_UF'])
+                 print(uri_default)
                  uris.append(uri_default)
 
         source = QgsVectorLayer(uris[0], "my wfs layer", "WFS")
