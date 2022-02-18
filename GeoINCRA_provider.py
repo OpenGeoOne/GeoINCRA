@@ -34,7 +34,7 @@ from qgis.core import QgsProcessingProvider
 from .algorithms.connectbase import ConnectBase
 
 
-class GeoRuralProvider(QgsProcessingProvider):
+class GeoINCRAProvider(QgsProcessingProvider):
 
     def __init__(self):
         """
