@@ -72,7 +72,7 @@ class GeoINCRAProvider(QgsProcessingProvider):
 
         This string should be short (e.g. "Lastools") and localised.
         """
-        return self.tr('GeoRural')
+        return self.tr('GeoINCRA')
 
     def icon(self):
         """
