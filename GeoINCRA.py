@@ -35,7 +35,7 @@ import sys
 import inspect
 
 from qgis.core import QgsProcessingAlgorithm, QgsApplication
-from .GeoRural_provider import GeoRuralProvider
+from .GeoINCRA_provider import GeoINCRAProvider
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 
@@ -50,7 +50,7 @@ class GeoRuralPlugin(object):
 
     def initProcessing(self):
         """Init Processing provider for QGIS >= 3.8."""
-        self.provider = GeoRuralProvider()
+        self.provider = GeoINCRAProvider()
         QgsApplication.processingRegistry().addProvider(self.provider)
 
     def initGui(self):
