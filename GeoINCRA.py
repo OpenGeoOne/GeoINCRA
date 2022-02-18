@@ -43,7 +43,7 @@ if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)
 
 
-class GeoRuralPlugin(object):
+class GeoINCRAPlugin(object):
 
     def __init__(self):
         self.provider = None
