@@ -35,7 +35,9 @@ from qgis.core import (QgsProcessing,
                        QgsProject,
                        QgsFeatureRequest,
                        QgsVectorLayer,
+                       QgsCoordinateTransform,
                        QgsProcessingParameterExtent,
+                       QgsCoordinateReferenceSystem,
                        QgsRectangle,
                        QgsProcessingParameterEnum,
                        QgsFeatureSink,
@@ -135,6 +137,11 @@ class ConnectBase(QgsProcessingAlgorithm):
         )
         if not extensao:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.EXTENT))
+
+        crsSrc = QgsCoordinateReferenceSystem(QgsProject().instance().crs()) 
+        crsDest = QgsCoordinateReferenceSystem(4326)
+        proj2geo = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
+        extensao = proj2geo.transform(extensao)
 
         option = self.parameterAsEnum(parameters, self.WFS, context)
         layer = self.mapping[option]
