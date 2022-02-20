@@ -71,8 +71,8 @@ class ConnectBase(QgsProcessingAlgorithm):
     EXTENT = 'EXTENT'
     WFS = 'WFS'
 
-    mapping ={ 0: 'imóveis Certificados Sigeb - Particular',
-               1: 'imóveis Certificados Sigeb - Público',
+    mapping ={ 0: 'imóveis Certificados Sigef - Particular',
+               1: 'imóveis Certificados Sigef - Público',
                2: 'imóveis Certificados SNCI - Privado',
                3: 'imóveis Certificados SNCI - Público',
                4: 'Assentamentos',
@@ -87,8 +87,8 @@ class ConnectBase(QgsProcessingAlgorithm):
                5:'ms:quilombolas_xx'
             }
 
-    links = {     'imóveis Certificados Sigeb - Particular': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_particular_xx',
-                  'imóveis Certificados Sigeb - Público': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_publico_xx',
+    links = {     'imóveis Certificados Sigef - Particular': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_particular_xx',
+                  'imóveis Certificados Sigef - Público': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_publico_xx',
                   'imóveis Certificados SNCI - Privado': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_privado_xx',
                   'imóveis Certificados SNCI - Público': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_publico_xx',
                   'Assentamentos':'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=assentamentos_xx',
@@ -138,7 +138,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         if not extensao:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.EXTENT))
 
-        crsSrc = QgsCoordinateReferenceSystem(QgsProject().instance().crs()) 
+        crsSrc = QgsCoordinateReferenceSystem(QgsProject().instance().crs())
         crsDest = QgsCoordinateReferenceSystem(4326)
         proj2geo = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
         extensao = proj2geo.transform(extensao)
