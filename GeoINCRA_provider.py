@@ -31,6 +31,9 @@ __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 __revision__ = '$Format:%H$'
 
 from qgis.core import QgsProcessingProvider
+from qgis.PyQt.QtGui import QIcon
+import os
+
 from .algorithms.connectbase import ConnectBase
 
 
@@ -75,11 +78,7 @@ class GeoINCRAProvider(QgsProcessingProvider):
         return self.tr('GeoINCRA')
 
     def icon(self):
-        """
-        Should return a QIcon which is used for your provider inside
-        the Processing toolbox.
-        """
-        return QgsProcessingProvider.icon(self)
+        return QIcon(os.path.dirname(__file__) + '/images/geoincra.png')
 
     def longName(self):
         """
