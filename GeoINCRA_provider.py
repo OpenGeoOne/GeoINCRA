@@ -35,6 +35,7 @@ from qgis.PyQt.QtGui import QIcon
 import os
 
 from .algorithms.connectbase import ConnectBase
+from .algorithms.createGeopackage import createGeopackage
 
 
 class GeoINCRAProvider(QgsProcessingProvider):
@@ -57,6 +58,7 @@ class GeoINCRAProvider(QgsProcessingProvider):
         Loads all algorithms belonging to this provider.
         """
         self.addAlgorithm(ConnectBase())
+        self.addAlgorithm(createGeopackage())
         # add additional algorithms here
         # self.addAlgorithm(MyOtherAlgorithm())
 
