@@ -30,15 +30,18 @@ __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, QVariant
 from qgis.core import (QgsProcessing,
                        QgsProject,
                        QgsFeatureRequest,
                        QgsVectorLayer,
+                       QgsField,
                        QgsCoordinateTransform,
                        QgsProcessingParameterExtent,
+                       QgsEditorWidgetSetup,
                        QgsCoordinateReferenceSystem,
                        QgsRectangle,
+                       QgsProcessingUtils,
                        QgsProcessingParameterEnum,
                        QgsFeatureSink,
                        QgsProcessingAlgorithm,
@@ -175,7 +178,7 @@ class ConnectBase(QgsProcessingAlgorithm):
             raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
 
         for uri in uris:
-            vlayer = QgsVectorLayer(uri, "my wfs layer", "WFS")
+            vlayer = QgsVectorLayer(uri, "wfs_layer", "WFS")
 
             request = QgsFeatureRequest().setFilterRect(extensao)
 
@@ -187,7 +190,42 @@ class ConnectBase(QgsProcessingAlgorithm):
                 # Add a feature in the sink
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
-        return {self.OUTPUT: dest_id}
+
+        layer = QgsProcessingUtils.mapLayerFromString(dest_id, context)
+        self.addField(layer)
+
+        return {self.OUTPUT: self.addField(layer)}
+
+
+    def addField(self, layer):
+    	config = {'IsMultiline': True, 'UseHtml': True}
+    	field_type = 'TextEdit'
+    	widget_setup = QgsEditorWidgetSetup(field_type,config) 
+    	layer.setEditorWidgetSetup(layer.fields().indexOf('base_INCRA'), widget_setup)
+    	field= QgsField( 'base_INCRA', QVariant.String)
+    	layer.addExpressionField(
+'''replace('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+			<html>
+			<head>
+				<meta content="text/html; charset=ISO-8859-1"
+				http-equiv="content-type">
+				<title>base_INCRA</title>
+			</head>
+			<body>
+			<a
+			 href="https://sigef.incra.gov.br/geo/exportar/vertice/shp/[ID]/">Clique
+			aqui para baixar v&eacute;rtices (pontos)</a><br>
+			<a
+			 href="https://sigef.incra.gov.br/geo/exportar/limite/shp/[ID]/">Clique
+			aqui para baixar limites (linhas)</a><br>
+			<a
+			 href="https://sigef.incra.gov.br/geo/exportar/parcela/shp/[ID]/">Clique
+			aqui para baixar parcela (&aacute;rea)</a>
+			</body>
+			</html>','[ID]',  "parcela_codigo" )''', field
+			)
+
+    	return layer
 
     def name(self):
         """
