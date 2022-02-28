@@ -22,7 +22,7 @@ import os
 import shutil
 
 
-class createGeopackage(QgsProcessingAlgorithm):
+class getSpreadsheet(QgsProcessingAlgorithm):
   
     OUTPUT = 'OUTPUT'
 
@@ -33,7 +33,7 @@ class createGeopackage(QgsProcessingAlgorithm):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return createGeopackage()
+        return getSpreadsheet()
 
     def name(self):
         """
@@ -43,14 +43,14 @@ class createGeopackage(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'createGeopackage'
+        return 'modeloplanilha'
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr('Create GeoPackage')
+        return self.tr('Planilha modelo SIGEF')
 
     def group(self):
         """
@@ -86,8 +86,8 @@ class createGeopackage(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFileDestination(
                 self.OUTPUT,
-                self.tr('Destination GeoPackage'),
-                self.tr('GeoPackage files (*.gpkg)')
+                self.tr('Destination Planilha Modelo'),
+                self.tr('OpenDocument files (*.ods)')
             )
         )
 
@@ -103,9 +103,8 @@ class createGeopackage(QgsProcessingAlgorithm):
         if not output:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
         
-        
-        #path_to_gpkg = os.path.dirname(__file__) + "/shp" + "/seed.gpkg"
-        fonte = os.path.dirname(__file__) + "/shp" + "/seed.gpkg"
+
+        fonte = os.path.dirname(__file__) + "/shp" + "/planilha_modelo.ods"
         shutil.copy(fonte, output)
         
         # Check for cancelation

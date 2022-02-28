@@ -225,6 +225,10 @@ class ConnectBase(QgsProcessingAlgorithm):
 			</html>','[ID]',  "parcela_codigo" )''', field
 			)
 
+    #field = layer.fields()[1]
+	#field.editorWidgetSetup().type()
+	#field.editorWidgetSetup().config()
+
     	return layer
 
     def name(self):
@@ -242,7 +246,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr('Conecta Base INCRA')
+        return self.tr('Base INCRA')
 
     def group(self):
         """
