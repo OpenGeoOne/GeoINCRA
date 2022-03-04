@@ -26,18 +26,21 @@ __author__ = 'Tiago Prudencio e Leandro França'
 __date__ = '2022-02-13'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication,QVariant
 from qgis.core import (QgsProcessing,
                        QgsFeatureSink,
                        QgsProcessingException,
                        QgsFeature,
+                       QgsField,
+                       QgsVectorLayer,
                        QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterVectorLayer)
+                       QgsProcessingParameterFile,
+                       QgsProcessingParameterFileDestination)
 from qgis import processing
+import pandas as pd
 
 
-class addFeat(QgsProcessingAlgorithm):
+class createTemplate(QgsProcessingAlgorithm):
 
     INPUT = 'INPUT'
     OUTPUT = 'OUTPUT'
@@ -49,7 +52,7 @@ class addFeat(QgsProcessingAlgorithm):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return addFeat()
+        return createTemplate()
 
     def name(self):
         """
@@ -59,14 +62,14 @@ class addFeat(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'addFeat'
+        return 'createtemplate'
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr('Adicionar Vertices SIGEF')
+        return self.tr('Criar Arquivo ')
 
     def group(self):
         """
@@ -99,24 +102,22 @@ class addFeat(QgsProcessingAlgorithm):
         with some other properties.
         """
 
-        # We add the input vector features source. It can have any kind of
-        # geometry.
         self.addParameter(
-            QgsProcessingParameterFeatureSource(
-                self.INPUT,
-                self.tr('Camada SIGEF'),
-                [QgsProcessing.TypeVectorPoint]
-            )
+        QgsProcessingParameterFile(
+            self.INPUT,
+            self.tr('Arquivo Geopackage Modelo'),
+            fileFilter= 'Geopackager (*.gpkg)'
         )
+    )
 
         # We add a feature sink in which to store our processed features (this
         # usually takes the form of a newly created vector layer when the
         # algorithm is run in QGIS).
         self.addParameter(
-            QgsProcessingParameterVectorLayer(
+            QgsProcessingParameterFileDestination(
                 self.OUTPUT,
-                self.tr('Camada para Adicionar Dado'),
-                [QgsProcessing.TypeVectorPoint]
+                self.tr('Destination Arquivo'),
+                self.tr('Documento de Texto (*.txt)')
             )
         )
 
@@ -128,46 +129,95 @@ class addFeat(QgsProcessingAlgorithm):
         # Retrieve the feature source and sink. The 'dest_id' variable is used
         # to uniquely identify the feature sink, and must be included in the
         # dictionary returned by the processAlgorithm function.
-        source_in = self.parameterAsSource(
+        my_gpkg = self.parameterAsString(
             parameters,
             self.INPUT,
             context
         )
-        if not source_in:
+        if not my_gpkg:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
+
+        vertice = QgsVectorLayer(my_gpkg + "|layername=" + 'vertice', 'vertice', 'ogr')
+        self.limite = QgsVectorLayer(my_gpkg + "|layername=" + 'limite', 'limite', 'ogr')
         
-            
-        source_out = self.parameterAsVectorLayer(
+        layers = [vertice,self.limite]
+        for vlayer in layers:
+            if not vlayer.isValid():
+                print("Layer failed to load!")
+            else:
+                print('layer loading')
+
+
+
+        output_path = self.parameterAsString(
             parameters,
             self.OUTPUT,
             context
         )
-        if not source_out:
+        if not output_path:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
+
+        field= QgsField( 'long', QVariant.String)
+        vertice.addExpressionField('''to_dms($x ,'x',3)''', field)
+        field= QgsField( 'lat', QVariant.String)
+        vertice.addExpressionField('''to_dms($y ,'y',3)''',field)
         
-        total = 100.0 / source_in.featureCount() if source_in.featureCount() else 0
-        
-        for current, feature in enumerate(source_in.getFeatures()):
-            feat = QgsFeature(source_out.fields())
-            feat.setAttribute('sigma_x', float(feature['sigma_x']))
-            feat.setAttribute('sigma_y', float(feature['sigma_y']))
-            feat.setAttribute('sigma_z', float(feature['sigma_z']))
-            feat.setAttribute('metodo_pos',feature['metodo_pos'])
-            feat.setAttribute('vertice',feature['vertice'])
-            feat.setAttribute('tipo_verti',feature['tipo_verti'])
-            feat.setAttribute('qrcode',feature['qrcode'])
-            feat.setGeometry(feature.geometry())
-            (res, outFeats) = source_out.dataProvider().addFeatures([feat])
-            feedback.setProgress(int(current * total))
-        
-        i=0
-        for feature in source_out.getFeatures():
-            i+=1
-            attrs = { 0 : i}
-            source_out.dataProvider().changeAttributeValues({ feature.id() : attrs })
-        
-        source_out.triggerRepaint()
-        
-        
-            
+        linhas = list()
+        for feat in vertice.getFeatures():
+            linha = list()
+            linha.append(feat['vertice'])
+            linha.append(self.fixcoord(feat['long'], 'long'))
+            linha.append(str(feat['sigma_x']))
+            linha.append(self.fixcoord(feat['lat'],'lat'))
+            linha.append(str(feat['sigma_y']))
+            linha.append(self.getZ(feat))
+            linha.append(str(feat['sigma_z']))
+            linha.append(feat['metodo_pos'])
+            att = self.getAtt(feat)
+            linha.append(att['tipo'])
+            linha.append(att['cns'])
+            linha.append(att['matricula'])
+            linhas.append(linha)
+    
+        vertice.removeExpressionField(vertice.fields().indexOf('long'))
+        vertice.removeExpressionField(vertice.fields().indexOf('lat'))
+
+        head_line = ['vertice','long', 'sigma_x','lat', 'sigma_y','h', 'sigma_z','metodo_pos','tipo_limite','cns','Matrícula']
+        df = pd.DataFrame(linhas, columns = head_line)
+        with open(output_path,'w') as outfile:
+            df.to_string(outfile, index=False, decimal=',',justify='center')
+
         return {}
+
+    def fixcoord(self,coord,suf):
+        coord = coord.replace("°",' ')
+        coord = coord.replace(r"′",' ')
+        coord = coord.replace(".",',')
+        coord = coord.replace(r'″',' ')
+        if suf == 'long':
+            coord = coord.replace('-',' ')
+            coord += 'W'
+        elif suf == 'lat':
+            try:
+                coord = coord.replace('-',' ')
+                coord += 'S'
+            except:
+                coord = coord.replace('+',' ')
+                coord += 'N'
+        return coord
+
+    def getZ(self,feat):
+        try:
+            return feat.geometry().asPoint().z()
+        except:
+            return '0'
+
+    def getAtt (self,feat):
+        att = dict()
+        for feature in self.limite.getFeatures():
+            if feature.geometry().asPolyline()[0] == feat.geometry().asPoint():
+                att['tipo'] =  feature['tipo']
+                att['cns'] = str(feature['cns'])
+                att['matricula'] = str(feature['matricula'])
+                break
+        return(att)

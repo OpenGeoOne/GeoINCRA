@@ -37,6 +37,7 @@ import os
 from .algorithms.connectbase import ConnectBase
 from .algorithms.getSpreadsheet import getSpreadsheet
 from .algorithms.addFeat import addFeat
+from .algorithms.createTemplate import createTemplate
 
 class GeoINCRAProvider(QgsProcessingProvider):
 
@@ -60,8 +61,8 @@ class GeoINCRAProvider(QgsProcessingProvider):
         self.addAlgorithm(ConnectBase())
         self.addAlgorithm(getSpreadsheet())
         self.addAlgorithm(addFeat())
-        # add additional algorithms here
-        # self.addAlgorithm(MyOtherAlgorithm())
+        self.addAlgorithm(createTemplate())
+
 
     def id(self):
         """
