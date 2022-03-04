@@ -33,6 +33,7 @@ from qgis.core import (QgsProcessing,
                        QgsFeature,
                        QgsField,
                        QgsVectorLayer,
+                       QgsProcessingParameterFeatureSource,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterFileDestination)
@@ -42,7 +43,9 @@ import pandas as pd
 
 class createTemplate(QgsProcessingAlgorithm):
 
-    INPUT = 'INPUT'
+    VERTICE = 'VERTICE'
+    LIMITE  = 'LIMITE'
+    PARCELA  ='PARCELA'
     OUTPUT = 'OUTPUT'
 
     def tr(self, string):
@@ -103,12 +106,28 @@ class createTemplate(QgsProcessingAlgorithm):
         """
 
         self.addParameter(
-        QgsProcessingParameterFile(
-            self.INPUT,
-            self.tr('Arquivo Geopackage Modelo'),
-            fileFilter= 'Geopackager (*.gpkg)'
+            QgsProcessingParameterFeatureSource(
+                self.VERTICE,
+                self.tr('ICamada Vertice'),
+                [QgsProcessing.TypeVectorPoint]
+            )
         )
-    )
+
+        self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                self.LIMITE,
+                self.tr('Camada Limite'),
+                [QgsProcessing.TypeVectorLine]
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                self.PARCELA,
+                self.tr('Camada Parcela'),
+                [QgsProcessing.TypeVectorPolygon]
+            )
+        )
 
         # We add a feature sink in which to store our processed features (this
         # usually takes the form of a newly created vector layer when the
@@ -122,13 +141,7 @@ class createTemplate(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        """
-        Here is where the processing itself takes place.
-        """
-
-        # Retrieve the feature source and sink. The 'dest_id' variable is used
-        # to uniquely identify the feature sink, and must be included in the
-        # dictionary returned by the processAlgorithm function.
+        '''
         my_gpkg = self.parameterAsString(
             parameters,
             self.INPUT,
@@ -143,10 +156,36 @@ class createTemplate(QgsProcessingAlgorithm):
         layers = [vertice,self.limite]
         for vlayer in layers:
             if not vlayer.isValid():
-                print("Layer failed to load!")
+                feedback.pushInfo("Layer failed to load!")
             else:
-                print('layer loading')
+                feedback.pushInfo('layer loading')
+		'''
+        vertice = self.parameterAsVectorLayer(
+            parameters,
+            self.VERTICE,
+            context
+        )
 
+        if vertice is None:
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.VERTICE))
+
+        self.limite = self.parameterAsVectorLayer(
+            parameters,
+            self.LIMITE,
+            context
+        )
+
+        if self.limite is None:
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.LIMITE))
+
+        self.parcela = self.parameterAsVectorLayer(
+            parameters,
+            self.PARCELA,
+            context
+        )
+
+        if self.parcela is None:
+            raise QgsProcessingException(self.invalidSourceError(parameters, self.PARCELA))
 
 
         output_path = self.parameterAsString(
@@ -156,6 +195,10 @@ class createTemplate(QgsProcessingAlgorithm):
         )
         if not output_path:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
+
+        arq =  open(output_path,'w')
+        self.writeHead(arq)
+
 
         field= QgsField( 'long', QVariant.String)
         vertice.addExpressionField('''to_dms($x ,'x',3)''', field)
@@ -177,6 +220,7 @@ class createTemplate(QgsProcessingAlgorithm):
             linha.append(att['tipo'])
             linha.append(att['cns'])
             linha.append(att['matricula'])
+            linha = self.listaExchange(linha)
             linhas.append(linha)
     
         vertice.removeExpressionField(vertice.fields().indexOf('long'))
@@ -184,8 +228,11 @@ class createTemplate(QgsProcessingAlgorithm):
 
         head_line = ['vertice','long', 'sigma_x','lat', 'sigma_y','h', 'sigma_z','metodo_pos','tipo_limite','cns','Matrícula']
         df = pd.DataFrame(linhas, columns = head_line)
-        with open(output_path,'w') as outfile:
-            df.to_string(outfile, index=False, decimal=',',justify='center')
+        df = df.to_csv(sep = '\t',header=None, index=False).strip('\n').split('\n')
+        df_string = ''.join(df)
+        
+        arq.writelines(df_string)
+        arq.close
 
         return {}
 
@@ -215,9 +262,31 @@ class createTemplate(QgsProcessingAlgorithm):
     def getAtt (self,feat):
         att = dict()
         for feature in self.limite.getFeatures():
-            if feature.geometry().asPolyline()[0] == feat.geometry().asPoint():
+            if feature.geometry().intersects(feat.geometry()):
                 att['tipo'] =  feature['tipo']
-                att['cns'] = str(feature['cns'])
-                att['matricula'] = str(feature['matricula'])
+                att['cns'] = feature['cns']
+                att['matricula'] = feature['matricula']
                 break
         return(att)
+
+    def listaExchange(self,strings):
+    	new_strings  = list()
+    	for string in strings:
+    		new_string = str(string).replace("NULL", "")
+    		new_strings.append(new_string)
+    	return new_strings
+
+    def writeHead(self,arq):
+    	for feat in self.parcela.getFeatures():
+	    	arq.write('Natureza do Serviço:'+ str(feat['nat_serv'])+ '\n')
+	    	arq.write('Tipo Pessoa:'+ str(feat['pessoa'])+ '\n')
+	    	arq.write('nome:'+ str(feat['nome'])+ '\n')
+	    	arq.write('cpf:'+ str(feat['cpf_cnpj'])+ '\n')
+	    	arq.write('denominação:'+ str(feat['denominacao'])+ '\n')
+	    	arq.write('situação:'+ str(feat['situacao'])+ '\n')
+	    	arq.write('Código do Imóvel (SNCR/INCRA):'+ str(feat['sncr'])+ '\n')
+	    	arq.write('Código do cartório (CNS):'+ str(feat['cod_cartorio'])+ '\n')
+	    	arq.write('Matricula:'+ str(feat['matricula'])+ '\n')
+	    	arq.write('Município:'+ str(feat['municipio'])+ '\n')
+	    	arq.write('UF:'+ str(feat['uf'])+ '\n')
+	    	arq.write('\n\n')
