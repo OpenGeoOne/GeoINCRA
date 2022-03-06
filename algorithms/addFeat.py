@@ -28,6 +28,7 @@ __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessing,
+                       QgsProcessingParameterField,
                        QgsFeatureSink,
                        QgsProcessingException,
                        QgsFeature,
@@ -35,6 +36,9 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterVectorLayer)
 from qgis import processing
+from qgis.PyQt.QtGui import QIcon
+from GeoINCRA.images.Imgs import *
+import os
 
 
 class addFeat(QgsProcessingAlgorithm):
@@ -43,91 +47,134 @@ class addFeat(QgsProcessingAlgorithm):
     OUTPUT = 'OUTPUT'
 
     def tr(self, string):
-        """
-        Returns a translatable string with the self.tr() function.
-        """
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
         return addFeat()
 
     def name(self):
-        """
-        Returns the algorithm name, used for identifying the algorithm. This
-        string should be fixed for the algorithm, and must not be localised.
-        The name should be unique within each provider. Names should contain
-        lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
         return 'addFeat'
 
     def displayName(self):
-        """
-        Returns the translated algorithm name, which should be used for any
-        user-visible display of the algorithm name.
-        """
-        return self.tr('Adicionar Vertices SIGEF')
+        return self.tr('Alimentar camada "vértice"')
 
     def group(self):
-        """
-        Returns the name of the group this algorithm belongs to. This string
-        should be localised.
-        """
         return self.tr(self.groupId())
 
     def groupId(self):
-        """
-        Returns the unique ID of the group this algorithm belongs to. This
-        string should be fixed for the algorithm, and must not be localised.
-        The group id should be unique within each provider. Group id should
-        contain lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
         return ''
 
+    def icon(self):
+        return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+
     def shortHelpString(self):
-        """
-        Returns a localised short helper string for the algorithm. This string
-        should provide a basic description about what the algorithm does and the
-        parameters and outputs associated with it..
-        """
-        return self.tr("Example algorithm short description")
+        txt = 'Esta ferramenta carrega as feições selecionadas de uma camada de pontos para dentro da camada vértices do banco de dados GeoRural.'
+
+        footer = '''<div>
+                      <div align="center">
+                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      </div>
+                      <div align="right">
+                      <p align="right">
+                      <a href="https://geoone.com.br/"><span style="font-weight: bold;">Clique aqui para conhecer o modelo GeoRural da GeoOne</span></a><br>
+                      </p>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne"</i></p>
+                      </div>
+                    </div>'''
+        return txt + footer
+
+    sigma_x = 'sigma_x'
+    sigma_y = 'sigma_y'
+    sigma_z = 'sigma_z'
+    metodo_pos = 'metodo_pos'
+    vertice = 'vertice'
+    tipo_verti = 'tipo_verti'
+    qrcode = 'qrcode'
 
     def initAlgorithm(self, config=None):
-        """
-        Here we define the inputs and output of the algorithm, along
-        with some other properties.
-        """
 
-        # We add the input vector features source. It can have any kind of
-        # geometry.
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.INPUT,
-                self.tr('Camada SIGEF'),
+                self.tr('Camada de pontos a serem carregados'),
                 [QgsProcessing.TypeVectorPoint]
             )
         )
 
-        # We add a feature sink in which to store our processed features (this
-        # usually takes the form of a newly created vector layer when the
-        # algorithm is run in QGIS).
         self.addParameter(
             QgsProcessingParameterVectorLayer(
                 self.OUTPUT,
-                self.tr('Camada para Adicionar Dado'),
+                self.tr('Camada de vértices do banco de dados GeoRural'),
                 [QgsProcessing.TypeVectorPoint]
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.sigma_x,
+                self.tr('Precisão em X'),
+                parentLayerParameterName=self.INPUT,
+                optional = True
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.sigma_y,
+                self.tr('Precisão em Y'),
+                parentLayerParameterName=self.INPUT,
+                optional = True
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.sigma_z,
+                self.tr('Precisão em Z'),
+                parentLayerParameterName=self.INPUT,
+                optional = True
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.metodo_pos,
+                self.tr('Método de posicionamento'),
+                parentLayerParameterName=self.INPUT,
+                optional = True
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.vertice,
+                self.tr('Código do vértice'),
+                parentLayerParameterName=self.INPUT,
+                optional = True
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.tipo_verti,
+                self.tr('Tipo de Vértice (M,P ou V)'),
+                parentLayerParameterName=self.INPUT,
+                optional = True
+            )
+        )
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.qrcode,
+                self.tr('qrcode'),
+                parentLayerParameterName=self.INPUT,
+                optional = True
             )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        """
-        Here is where the processing itself takes place.
-        """
 
-        # Retrieve the feature source and sink. The 'dest_id' variable is used
-        # to uniquely identify the feature sink, and must be included in the
-        # dictionary returned by the processAlgorithm function.
         source_in = self.parameterAsSource(
             parameters,
             self.INPUT,
@@ -135,8 +182,15 @@ class addFeat(QgsProcessingAlgorithm):
         )
         if not source_in:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
-        
-            
+
+        sigma_x = self.parameterAsFields(parameters, self.sigma_x, context)
+        sigma_y = self.parameterAsFields(parameters, self.sigma_y, context)
+        sigma_z = self.parameterAsFields(parameters, self.sigma_z, context)
+        metodo_pos = self.parameterAsFields(parameters, self.metodo_pos, context)
+        vertice = self.parameterAsFields(parameters, self.vertice, context)
+        tipo_verti = self.parameterAsFields(parameters, self.tipo_verti, context)
+        qrcode = self.parameterAsFields(parameters, self.qrcode, context)
+
         source_out = self.parameterAsVectorLayer(
             parameters,
             self.OUTPUT,
@@ -144,30 +198,36 @@ class addFeat(QgsProcessingAlgorithm):
         )
         if not source_out:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
-        
+
         total = 100.0 / source_in.featureCount() if source_in.featureCount() else 0
-        
+
         for current, feature in enumerate(source_in.getFeatures()):
             feat = QgsFeature(source_out.fields())
-            feat.setAttribute('sigma_x', float(feature['sigma_x']))
-            feat.setAttribute('sigma_y', float(feature['sigma_y']))
-            feat.setAttribute('sigma_z', float(feature['sigma_z']))
-            feat.setAttribute('metodo_pos',feature['metodo_pos'])
-            feat.setAttribute('vertice',feature['vertice'])
-            feat.setAttribute('tipo_verti',feature['tipo_verti'])
-            feat.setAttribute('qrcode',feature['qrcode'])
-            feat.setGeometry(feature.geometry())
+            if sigma_x:
+                feat.setAttribute('sigma_x', float(feature[sigma_x]))
+            if sigma_y:
+                feat.setAttribute('sigma_y', float(feature[sigma_y]))
+            if sigma_z:
+                feat.setAttribute('sigma_z', float(feature[sigma_z]))
+            if metodo_pos:
+                feat.setAttribute('metodo_pos',feature[metodo_pos])
+            if vertice:
+                feat.setAttribute('vertice',feature[vertice])
+            if tipo_verti:
+                feat.setAttribute('tipo_verti',feature[tipo_verti])
+            if qrcode:
+                feat.setAttribute('qrcode',feature[qrcode])
+
+            feat.setGeometry(feature.geometry()) # VERIFICAR SE AS CAMADAS ESTÃO NO MESMO SRC!!!!
             (res, outFeats) = source_out.dataProvider().addFeatures([feat])
             feedback.setProgress(int(current * total))
-        
+
         i=0
         for feature in source_out.getFeatures():
             i+=1
             attrs = { 0 : i}
             source_out.dataProvider().changeAttributeValues({ feature.id() : attrs })
-        
+
         source_out.triggerRepaint()
-        
-        
-            
+
         return {}

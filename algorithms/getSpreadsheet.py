@@ -33,75 +33,60 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterFileDestination)
 from qgis import processing
+from qgis.PyQt.QtGui import QIcon
+from GeoINCRA.images.Imgs import *
 import os
 import shutil
 
 
 class getSpreadsheet(QgsProcessingAlgorithm):
-  
+
     OUTPUT = 'OUTPUT'
 
     def tr(self, string):
-        """
-        Returns a translatable string with the self.tr() function.
-        """
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
         return getSpreadsheet()
 
     def name(self):
-        """
-        Returns the algorithm name, used for identifying the algorithm. This
-        string should be fixed for the algorithm, and must not be localised.
-        The name should be unique within each provider. Names should contain
-        lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
         return 'modeloplanilha'
 
     def displayName(self):
-        """
-        Returns the translated algorithm name, which should be used for any
-        user-visible display of the algorithm name.
-        """
-        return self.tr('Planilha Modelo SIGEF')
+        return self.tr('Baixar planilha ODS do SIGEF')
 
     def group(self):
-        """
-        Returns the name of the group this algorithm belongs to. This string
-        should be localised.
-        """
         return self.tr(self.groupId())
 
     def groupId(self):
-        """
-        Returns the unique ID of the group this algorithm belongs to. This
-        string should be fixed for the algorithm, and must not be localised.
-        The group id should be unique within each provider. Group id should
-        contain lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
         return ''
 
+    def icon(self):
+        return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+
     def shortHelpString(self):
-        """
-        Returns a localised short helper string for the algorithm. This string
-        should provide a basic description about what the algorithm does and the
-        parameters and outputs associated with it..
-        """
-        return self.tr("Example algorithm short description")
+        txt = "Gera uma planilha ODS vazia para preenchimento com os dados gerados no TXT."
+
+        footer = '''<div>
+                      <div align="center">
+                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      </div>
+                      <div align="right">
+                      <p align="right">
+                      <a href="https://geoone.com.br/"><span style="font-weight: bold;">Clique aqui para conhecer o modelo GeoRural da GeoOne</span></a><br>
+                      </p>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne"</i></p>
+                      </div>
+                    </div>'''
+        return txt + footer
 
     def initAlgorithm(self, config=None):
-        """
-        Here we define the inputs and output of the algorithm, along
-        with some other properties.
-        """
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
                 self.OUTPUT,
-                self.tr('Destination Planilha Modelo'),
+                self.tr('Caminho para salvar a planilha ODS'),
                 self.tr('OpenDocument files (*.ods)')
             )
         )
@@ -112,19 +97,18 @@ class getSpreadsheet(QgsProcessingAlgorithm):
         Here is where the processing itself takes place.
         """
         output = self.parameterAsOutputLayer(
-            parameters, 
-            self.OUTPUT, 
+            parameters,
+            self.OUTPUT,
             context)
         if not output:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
-        
+
 
         fonte = os.path.dirname(__file__) + "/shp" + "/planilha_modelo.ods"
         shutil.copy(fonte, output)
-        
+
         # Check for cancelation
         if feedback.isCanceled():
             return {}
-        
+
         return {self.OUTPUT: output}
-    

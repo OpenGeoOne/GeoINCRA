@@ -39,6 +39,9 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFileDestination)
 from qgis import processing
 import pandas as pd
+from qgis.PyQt.QtGui import QIcon
+from GeoINCRA.images.Imgs import *
+import os
 
 
 class createTemplate(QgsProcessingAlgorithm):
@@ -49,66 +52,49 @@ class createTemplate(QgsProcessingAlgorithm):
     OUTPUT = 'OUTPUT'
 
     def tr(self, string):
-        """
-        Returns a translatable string with the self.tr() function.
-        """
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
         return createTemplate()
 
     def name(self):
-        """
-        Returns the algorithm name, used for identifying the algorithm. This
-        string should be fixed for the algorithm, and must not be localised.
-        The name should be unique within each provider. Names should contain
-        lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
         return 'createtemplate'
 
     def displayName(self):
-        """
-        Returns the translated algorithm name, which should be used for any
-        user-visible display of the algorithm name.
-        """
-        return self.tr('Criar Arquivo ')
+        return self.tr('Gerar TXT para Planilha ODS')
 
     def group(self):
-        """
-        Returns the name of the group this algorithm belongs to. This string
-        should be localised.
-        """
         return self.tr(self.groupId())
 
     def groupId(self):
-        """
-        Returns the unique ID of the group this algorithm belongs to. This
-        string should be fixed for the algorithm, and must not be localised.
-        The group id should be unique within each provider. Group id should
-        contain lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
         return ''
 
+    def icon(self):
+        return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+
     def shortHelpString(self):
-        """
-        Returns a localised short helper string for the algorithm. This string
-        should provide a basic description about what the algorithm does and the
-        parameters and outputs associated with it..
-        """
-        return self.tr("Example algorithm short description")
+        txt = "Cria um arquivo de Texto (TXT) com todas os dados necessários para preencher a planilha ODS do SIGEF."
+
+        footer = '''<div>
+                      <div align="center">
+                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      </div>
+                      <div align="right">
+                      <p align="right">
+                      <a href="https://geoone.com.br/"><span style="font-weight: bold;">Clique aqui para conhecer o modelo GeoRural da GeoOne</span></a><br>
+                      </p>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne"</i></p>
+                      </div>
+                    </div>'''
+        return txt + footer
 
     def initAlgorithm(self, config=None):
-        """
-        Here we define the inputs and output of the algorithm, along
-        with some other properties.
-        """
 
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.VERTICE,
-                self.tr('ICamada Vertice'),
+                self.tr('Camada Vertice'),
                 [QgsProcessing.TypeVectorPoint]
             )
         )
@@ -129,37 +115,16 @@ class createTemplate(QgsProcessingAlgorithm):
             )
         )
 
-        # We add a feature sink in which to store our processed features (this
-        # usually takes the form of a newly created vector layer when the
-        # algorithm is run in QGIS).
         self.addParameter(
             QgsProcessingParameterFileDestination(
                 self.OUTPUT,
-                self.tr('Destination Arquivo'),
-                self.tr('Documento de Texto (*.txt)')
+                self.tr('TXT de dados da Planilha ODS'),
+                self.tr('Texto (*.txt)')
             )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        '''
-        my_gpkg = self.parameterAsString(
-            parameters,
-            self.INPUT,
-            context
-        )
-        if not my_gpkg:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
 
-        vertice = QgsVectorLayer(my_gpkg + "|layername=" + 'vertice', 'vertice', 'ogr')
-        self.limite = QgsVectorLayer(my_gpkg + "|layername=" + 'limite', 'limite', 'ogr')
-        
-        layers = [vertice,self.limite]
-        for vlayer in layers:
-            if not vlayer.isValid():
-                feedback.pushInfo("Layer failed to load!")
-            else:
-                feedback.pushInfo('layer loading')
-		'''
         vertice = self.parameterAsVectorLayer(
             parameters,
             self.VERTICE,
@@ -199,12 +164,11 @@ class createTemplate(QgsProcessingAlgorithm):
         arq =  open(output_path,'w')
         self.writeHead(arq)
 
-
         field= QgsField( 'long', QVariant.String)
         vertice.addExpressionField('''to_dms($x ,'x',3)''', field)
         field= QgsField( 'lat', QVariant.String)
         vertice.addExpressionField('''to_dms($y ,'y',3)''',field)
-        
+
         linhas = list()
         for feat in vertice.getFeatures():
             linha = list()
@@ -222,7 +186,7 @@ class createTemplate(QgsProcessingAlgorithm):
             linha.append(att['matricula'])
             linha = self.listaExchange(linha)
             linhas.append(linha)
-    
+
         vertice.removeExpressionField(vertice.fields().indexOf('long'))
         vertice.removeExpressionField(vertice.fields().indexOf('lat'))
 
@@ -230,7 +194,7 @@ class createTemplate(QgsProcessingAlgorithm):
         df = pd.DataFrame(linhas, columns = head_line)
         df = df.to_csv(sep = '\t',header=None, index=False).strip('\n').split('\n')
         df_string = ''.join(df)
-        
+
         arq.writelines(df_string)
         arq.close
 

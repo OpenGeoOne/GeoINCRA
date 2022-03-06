@@ -49,35 +49,21 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFeatureSink)
 
 import os
+from qgis.PyQt.QtGui import QIcon
+from GeoINCRA.images.Imgs import *
 
 
 class ConnectBase(QgsProcessingAlgorithm):
-    """
-    This is an example algorithm that takes a vector layer and
-    creates a new identical one.
-
-    It is meant to be used as an example of how to create your own
-    algorithms and explain methods and variables used to do it. An
-    algorithm like this will be available in all elements, and there
-    is not need for additional work.
-
-    All Processing algorithms should extend the QgsProcessingAlgorithm
-    class.
-    """
-
-    # Constants used to refer to parameters and outputs. They will be
-    # used when calling the algorithm from another algorithm, or when
-    # calling from the QGIS console.
 
     INPUT = 'INPUT'
     OUTPUT = 'OUTPUT'
     EXTENT = 'EXTENT'
     WFS = 'WFS'
 
-    mapping ={ 0: 'imóveis Certificados Sigef - Particular',
-               1: 'imóveis Certificados Sigef - Público',
-               2: 'imóveis Certificados SNCI - Privado',
-               3: 'imóveis Certificados SNCI - Público',
+    mapping ={ 0: 'Imóveis Certificados SIGEF - Particular',
+               1: 'Imóveis Certificados SIGEF - Público',
+               2: 'Imóveis Certificados SNCI - Privado',
+               3: 'Imóveis Certificados SNCI - Público',
                4: 'Assentamentos',
                5:'Quilombolas'
             }
@@ -90,10 +76,10 @@ class ConnectBase(QgsProcessingAlgorithm):
                5:'ms:quilombolas_xx'
             }
 
-    links = {     'imóveis Certificados Sigef - Particular': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_particular_xx',
-                  'imóveis Certificados Sigef - Público': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_publico_xx',
-                  'imóveis Certificados SNCI - Privado': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_privado_xx',
-                  'imóveis Certificados SNCI - Público': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_publico_xx',
+    links = {     'Imóveis Certificados SIGEF - Particular': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_particular_xx',
+                  'Imóveis Certificados SIGEF - Público': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_publico_xx',
+                  'Imóveis Certificados SNCI - Privado': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_privado_xx',
+                  'Imóveis Certificados SNCI - Público': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_publico_xx',
                   'Assentamentos':'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=assentamentos_xx',
                   'Quilombolas':'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=quilombolas_xx'
             }
@@ -107,16 +93,14 @@ class ConnectBase(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterExtent(
                 self.EXTENT,
-                self.tr('Extent')
+                self.tr('Retângulo de Extensão')
             )
         )
-
-
 
         self.addParameter(
             QgsProcessingParameterEnum(
                 self.WFS,
-                self.tr('Tipo de Camada'),
+                self.tr('Camada do acervo fundiário'),
                 options = self.links.keys(),
                 defaultValue= 0
             )
@@ -125,14 +109,12 @@ class ConnectBase(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('Camada')
+                self.tr('Resultado da consulta ao INCRA')
             )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        """
-        Here is where the processing itself takes place.
-        """
+
         extensao = self.parameterAsExtent(
         parameters,
         self.EXTENT,
@@ -152,8 +134,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         link = self.links[layer]
 
         path = os.path.dirname(__file__) + "/shp" + "/BR_UF_2020.shp"
-        estado = QgsVectorLayer(path, "Brasil", "ogr")
-
+        estado = QgsVectorLayer(path, "BR_UF_2020", "ogr")
 
         uris = list()
         for feat in estado.getFeatures():
@@ -200,7 +181,7 @@ class ConnectBase(QgsProcessingAlgorithm):
     def addField(self, layer):
     	config = {'IsMultiline': True, 'UseHtml': True}
     	field_type = 'TextEdit'
-    	widget_setup = QgsEditorWidgetSetup(field_type,config) 
+    	widget_setup = QgsEditorWidgetSetup(field_type,config)
     	layer.setEditorWidgetSetup(layer.fields().indexOf('base_INCRA'), widget_setup)
     	field= QgsField( 'base_INCRA', QVariant.String)
     	layer.addExpressionField(
@@ -213,56 +194,33 @@ class ConnectBase(QgsProcessingAlgorithm):
 			</head>
 			<body>
 			<a
-			 href="https://sigef.incra.gov.br/geo/exportar/vertice/shp/[ID]/">Clique
-			aqui para baixar v&eacute;rtices (pontos)</a><br>
+			 href="https://sigef.incra.gov.br/geo/exportar/vertice/csv/[ID]/">Clique
+			aqui para baixar CSV v&eacute;rtices (pontos)</a><br>
 			<a
 			 href="https://sigef.incra.gov.br/geo/exportar/limite/shp/[ID]/">Clique
-			aqui para baixar limites (linhas)</a><br>
+			aqui para baixar Shapefile dos limites (linhas)</a><br>
 			<a
 			 href="https://sigef.incra.gov.br/geo/exportar/parcela/shp/[ID]/">Clique
-			aqui para baixar parcela (&aacute;rea)</a>
+			aqui para baixar Shapefile da parcela (&aacute;rea)</a><br><br>
+            <a
+			 href="https://sigef.incra.gov.br/geo/parcela/detalhe/[ID]/">Clique
+			aqui para saber mais detalhes sobre a parcela (&aacute;rea)</a>
 			</body>
 			</html>','[ID]',  "parcela_codigo" )''', field
 			)
 
-    #field = layer.fields()[1]
-	#field.editorWidgetSetup().type()
-	#field.editorWidgetSetup().config()
-
     	return layer
 
     def name(self):
-        """
-        Returns the algorithm name, used for identifying the algorithm. This
-        string should be fixed for the algorithm, and must not be localised.
-        The name should be unique within each provider. Names should contain
-        lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
         return 'connectbase'
 
     def displayName(self):
-        """
-        Returns the translated algorithm name, which should be used for any
-        user-visible display of the algorithm name.
-        """
-        return self.tr('Base INCRA')
+        return self.tr('Consultar base do INCRA')
 
     def group(self):
-        """
-        Returns the name of the group this algorithm belongs to. This string
-        should be localised.
-        """
         return self.tr(self.groupId())
 
     def groupId(self):
-        """
-        Returns the unique ID of the group this algorithm belongs to. This
-        string should be fixed for the algorithm, and must not be localised.
-        The group id should be unique within each provider. Group id should
-        contain lowercase alphanumeric characters only and no spaces or other
-        formatting characters.
-        """
         return ''
 
     def tr(self, string):
@@ -271,6 +229,25 @@ class ConnectBase(QgsProcessingAlgorithm):
     def createInstance(self):
         return ConnectBase()
 
-    def shortHelpString(self):
+    def icon(self):
+        return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
 
-        return self.tr("Conecta a base de dados do INCRA para baixar os dados em formato shapefile (*.shp) de uma área selecionada pelo usuário.")
+    def shortHelpString(self):
+        txt = "Conecta a base de dados do INCRA e carrega camada de imóveis a partir de um retângulo selecionado pelo usuário. Também é possível baixar dados dos imóveis certificados nos formatos CSV e SHP, obtendo-se mais informações complementares."
+
+        footer = '''<div>
+                      <div align="center">
+                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      </div>
+                      <div align="right">
+                      <p align="right">
+                      <a href="https://geoone.com.br/"><span style="font-weight: bold;">Clique aqui para conhecer o modelo GeoRural da GeoOne</span></a><br>
+                      </p>
+                      <p align="right">
+                      <a href="https://sigef.incra.gov.br/consultar/parcelas/"><span style="font-weight: bold;">Clique aqui para consultar parcelas do SIGEF</span></a><br>
+                      </p>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne"</i></p>
+                      </div>
+                    </div>'''
+        return txt + footer
