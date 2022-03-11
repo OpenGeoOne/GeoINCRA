@@ -183,13 +183,13 @@ class addFeat(QgsProcessingAlgorithm):
         if not source_in:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
 
-        sigma_x = self.parameterAsFields(parameters, self.sigma_x, context)
-        sigma_y = self.parameterAsFields(parameters, self.sigma_y, context)
-        sigma_z = self.parameterAsFields(parameters, self.sigma_z, context)
-        metodo_pos = self.parameterAsFields(parameters, self.metodo_pos, context)
-        vertice = self.parameterAsFields(parameters, self.vertice, context)
-        tipo_verti = self.parameterAsFields(parameters, self.tipo_verti, context)
-        qrcode = self.parameterAsFields(parameters, self.qrcode, context)
+        sigma_x = self.parameterAsFields(parameters, self.sigma_x, context)[0]
+        sigma_y = self.parameterAsFields(parameters, self.sigma_y, context)[0]
+        sigma_z = self.parameterAsFields(parameters, self.sigma_z, context)[0]
+        metodo_pos = self.parameterAsFields(parameters, self.metodo_pos, context)[0]
+        vertice = self.parameterAsFields(parameters, self.vertice, context)[0]
+        tipo_verti = self.parameterAsFields(parameters, self.tipo_verti, context)[0]
+        qrcode = self.parameterAsFields(parameters, self.qrcode, context)[0]
 
         source_out = self.parameterAsVectorLayer(
             parameters,
@@ -222,12 +222,12 @@ class addFeat(QgsProcessingAlgorithm):
             (res, outFeats) = source_out.dataProvider().addFeatures([feat])
             feedback.setProgress(int(current * total))
 
-        i=0
-        for feature in source_out.getFeatures():
-            i+=1
-            attrs = { 0 : i}
-            source_out.dataProvider().changeAttributeValues({ feature.id() : attrs })
-
-        source_out.triggerRepaint()
+        # i=0
+        # for feature in source_out.getFeatures():
+        #     i+=1
+        #     attrs = { 0 : i}
+        #     source_out.dataProvider().changeAttributeValues({ feature.id() : attrs })
+        #
+        # source_out.triggerRepaint()
 
         return {}
