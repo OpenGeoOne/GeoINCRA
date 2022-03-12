@@ -226,7 +226,7 @@ class createTemplate(QgsProcessingAlgorithm):
     def getAtt (self,feat):
         att = dict()
         for feature in self.limite.getFeatures():
-            if feature.geometry().intersects(feat.geometry()):
+            if feature.geometry().intersects(feat.geometry().buffer(0.001, 2)):
                 att['tipo'] =  feature['tipo']
                 att['cns'] = feature['cns']
                 att['matricula'] = feature['matricula']

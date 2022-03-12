@@ -38,6 +38,7 @@ from .algorithms.connectbase import ConnectBase
 from .algorithms.getSpreadsheet import getSpreadsheet
 from .algorithms.addFeat import addFeat
 from .algorithms.createTemplate import createTemplate
+from .algorithms.addWkt import addWkt
 
 class GeoINCRAProvider(QgsProcessingProvider):
 
@@ -62,6 +63,7 @@ class GeoINCRAProvider(QgsProcessingProvider):
         self.addAlgorithm(getSpreadsheet())
         self.addAlgorithm(addFeat())
         self.addAlgorithm(createTemplate())
+        self.addAlgorithm(addWkt())
 
 
     def id(self):
