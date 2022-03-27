@@ -219,7 +219,7 @@ class createTemplate(QgsProcessingAlgorithm):
 
     def getZ(self,feat):
         try:
-            return feat.geometry().asPoint().z()
+            return feat.geometry().constGet().z()
         except:
             return '0'
 
@@ -241,16 +241,20 @@ class createTemplate(QgsProcessingAlgorithm):
     	return new_strings
 
     def writeHead(self,arq):
-    	for feat in self.parcela.getFeatures():
-	    	arq.write('Natureza do Serviço:'+ str(feat['nat_serv'])+ '\n')
-	    	arq.write('Tipo Pessoa:'+ str(feat['pessoa'])+ '\n')
-	    	arq.write('nome:'+ str(feat['nome'])+ '\n')
-	    	arq.write('cpf:'+ str(feat['cpf_cnpj'])+ '\n')
-	    	arq.write('denominação:'+ str(feat['denominacao'])+ '\n')
-	    	arq.write('situação:'+ str(feat['situacao'])+ '\n')
-	    	arq.write('Código do Imóvel (SNCR/INCRA):'+ str(feat['sncr'])+ '\n')
-	    	arq.write('Código do cartório (CNS):'+ str(feat['cod_cartorio'])+ '\n')
-	    	arq.write('Matricula:'+ str(feat['matricula'])+ '\n')
-	    	arq.write('Município:'+ str(feat['municipio'])+ '\n')
-	    	arq.write('UF:'+ str(feat['uf'])+ '\n')
-	    	arq.write('\n\n')
+        nat_ser = {1:'Particular', 2:'Contrato com Adm Pública'}
+
+        pessoa = {1:'Física', 2:'Jurídica'}
+
+        for feat in self.parcela.getFeatures():
+            arq.write('Natureza do Serviço:'+ nat_ser[feat['nat_serv']]+ '\n')
+            arq.write('Tipo Pessoa:'+ pessoa[feat['pessoa']]+ '\n')
+            arq.write('nome:'+ str(feat['nome'])+ '\n')
+            arq.write('cpf:'+ str(feat['cpf_cnpj'])+ '\n')
+            arq.write('denominação:'+ str(feat['denominacao'])+ '\n')
+            arq.write('situação:'+ str(feat['situacao'])+ '\n')
+            arq.write('Código do Imóvel (SNCR/INCRA):'+ str(feat['sncr'])+ '\n')
+            arq.write('Código do cartório (CNS):'+ str(feat['cod_cartorio'])+ '\n')
+            arq.write('Matricula:'+ str(feat['matricula'])+ '\n')
+            arq.write('Município:'+ str(feat['municipio'])+ '\n')
+            arq.write('UF:'+ str(feat['uf'])+ '\n')
+            arq.write('\n\n')

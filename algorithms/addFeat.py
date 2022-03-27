@@ -204,11 +204,12 @@ class addFeat(QgsProcessingAlgorithm):
         for current, feature in enumerate(source_in.getFeatures()):
             feat = QgsFeature(source_out.fields())
             if sigma_x:
-                feat.setAttribute('sigma_x', float(feature[sigma_x]))
+                feat.setAttribute('sigma_x', float(feature[sigma_x].replace(',','.')) if isinstance(feature[sigma_x], str) else feature[sigma_x])
+                print(float(feature[sigma_x].replace(',','.')))
             if sigma_y:
-                feat.setAttribute('sigma_y', float(feature[sigma_y]))
+                feat.setAttribute('sigma_y', float(feature[sigma_y].replace(',','.')) if isinstance(feature[sigma_y], str) else feature[sigma_y])
             if sigma_z:
-                feat.setAttribute('sigma_z', float(feature[sigma_z]))
+                feat.setAttribute('sigma_z', float(feature[sigma_z].replace(',','.')) if isinstance(feature[sigma_z], str) else feature[sigma_z])
             if metodo_pos:
                 feat.setAttribute('metodo_pos',feature[metodo_pos])
             if vertice:
