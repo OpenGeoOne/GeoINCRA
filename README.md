@@ -163,47 +163,6 @@ Esta ferramenta preenche um atributo numérico seguindo um critério geográfico
 
 
 
-## Cartografia
-
-
-### Coordenadas para moldura UTM
-Este algoritmo retorna o polígono correspondente à <b>moldura</b> relativa a uma escala do <b>Mapeamento Sistemático Brasileiro</b>. Esta moldura é calculada a partir das coordenadas de um <b>Ponto</b> definido pelo usuário.
-<div align="center">
-<table style="text-align: left; width: 275px;" border="0" cellpadding="0" cellspacing="0">
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/LEOXINGU/lftools/blob/main/images/tutorial/grid_coord_utm.jpg"></td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-### Extensão para molduras UTM
-Este algoritmo retorna os polígonos correspondentes às molduras relacionadas a uma escala do Mapeamento Sistemático Brasileiro para uma extensão específica definida pelo usuário.
-<div align="center">
-<table style="text-align: left; width: 275px;" border="0" cellpadding="0" cellspacing="0">
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/LEOXINGU/lftools/blob/main/images/tutorial/grid_ext_utm.jpg"></td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-### Nome para moldura UTM
-Este algoritmo retorna o polígono correspondente à <b>moldura</b> relativa a uma escala do <b>Mapeamento Sistemático Brasileiro</b>. Esta moldura é calculada a partir do Índice de Nomenclatura <b>INOM</b> ou Mapa Índice <b>MI</b> válido, que deve ser dado pelo usuário.
-<div align="center">
-<table style="text-align: left; width: 275px;" border="0" cellpadding="0" cellspacing="0">
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/LEOXINGU/lftools/blob/main/images/tutorial/grid_inom_utm.jpg"></td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
-
 ## Como contribuir
 
 CURSO HOTMART
