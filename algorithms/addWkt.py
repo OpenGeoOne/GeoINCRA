@@ -76,7 +76,7 @@ class addWkt(QgsProcessingAlgorithm):
 
     def displayName(self):
 
-        return self.tr('Adicionar vertices INCRA')
+        return self.tr('CSV do INCRA para camada PointZ')
 
     def group(self):
 
@@ -90,7 +90,7 @@ class addWkt(QgsProcessingAlgorithm):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
 
     def shortHelpString(self):
-        txt = 'Esta ferramenta carrega a camada vertice do INCRA'
+        txt = 'Esta ferramenta transforma um arquivo CSV de vértices do INCRA em uma camada do tipo PointZ.'
 
         footer = '''<div>
                       <div align="center">
@@ -145,19 +145,19 @@ class addWkt(QgsProcessingAlgorithm):
             self.INPUT,
             context
         )
-        
+
         if my_wkt is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
-        
+
         uri = "file:{}?delimiter={}&crs=epsg:4674&wktField={}".format(my_wkt,";", "GEOMETRIA_WKT")
         source = QgsVectorLayer(uri, "vertice", "delimitedtext")
-        
+
         if not source.isValid():
             feedback.pushInfo("Layer failed to load!")
         else:
             feedback.pushInfo("Layer to load!")
 
-    
+
         (sink, dest_id) = self.parameterAsSink(
             parameters,
             self.OUTPUT,
