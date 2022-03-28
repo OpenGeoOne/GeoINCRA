@@ -10,7 +10,7 @@ version=0.1
 author=Tiago Prudencio e Leandro França
 email=contato@geoone.com.br
 
-about=Ferramentas para georreferenciamento de imóveis rurais conforme normas técnicas do Instituto Nacional de Colonização e reforma Agrária (INCRA).
+about=Ferramentas para georreferenciamento de imóveis rurais conforme normas técnicas do Instituto Nacional de Colonização e Reforma Agrária (INCRA).
 
 tracker=https://github.com/OpenGeoOne/GeoINCRA/issues
 repository=https://github.com/OpenGeoOne/GeoINCRA
