@@ -12,17 +12,6 @@
 <details open="open">
   <summary>Conteúdo</summary>
   <ol>
-    <li>
-      <a href="#banco-de-dados-georural">Banco de Dados GeoRural</a>
-      <ul>
-        <li><a href="#classe-vértice">Classe Vértice</a></li>
-      </ul>
-      <ul>
-        <li><a href="#classe-limite">Classe Limite</a></li>
-      </ul>
-      <ul>
-        <li><a href="#classe-parcela">Classe Parcela</a></li>
-      </ul>
       <li>
       <a href="#ferramentas-do-plugin">Ferramentas do Plugin</a>
       <ul>
@@ -41,6 +30,17 @@
         <li><a href="#gerar-txt-para-planilha-ods">Gerar TXT para Planilha ODS</a></li>
       </ul>
       </li>
+      <li>
+      <a href="#banco-de-dados-georural">Banco de Dados GeoRural</a>
+      <ul>
+        <li><a href="#classe-vértice">Classe Vértice</a></li>
+      </ul>
+      <ul>
+        <li><a href="#classe-limite">Classe Limite</a></li>
+      </ul>
+      <ul>
+        <li><a href="#classe-parcela">Classe Parcela</a></li>
+      </ul>
     <li>
       <a href="#como-contribuir-aprendendo-mais">Como contribuir aprendendo mais</a>
     </li>
@@ -53,6 +53,41 @@
   </ol>
 </details>
 
+
+## Ferramentas do Plugin
+
+
+### Consultar base do INCRA
+Conecta a base de dados do INCRA e carrega camada de imóveis a partir de um retângulo selecionado pelo usuário. Também é possível baixar dados dos imóveis certificados nos formatos CSV e SHP, obtendo-se mais informações complementares.
+<div align="center">
+
+https://user-images.githubusercontent.com/88212377/161186206-9b781839-277f-40f8-a3cd-42a314b0d57f.mp4
+
+</div>
+
+### CSV do INCRA para camada PointZ
+Esta ferramenta transforma um arquivo CSV de vértices do INCRA em uma camada do tipo PointZ.
+<div align="center">
+
+</div>
+
+### Alimentar camada vértice
+Esta ferramenta carrega as feições selecionadas de uma camada de pontos para dentro da camada vértices do banco de dados GeoRural.
+<div align="center">
+
+</div>
+
+### Baixar planilha ODS do SIGEF
+Gera uma planilha ODS vazia para preenchimento com os dados gerados no TXT.
+<div align="center">
+
+</div>
+
+### Gerar TXT para Planilha ODS
+Cria um arquivo de Texto (TXT) com todas os dados necessários para preencher a planilha ODS do SIGEF.
+<div align="center">
+
+</div>
 
 
 
@@ -1164,44 +1199,7 @@ Observação: Também podem ser utilizadas as camadas “hist_vertice”, “his
 
 
 
-## Ferramentas do Plugin
-
-
-### Consultar base do INCRA
-Conecta a base de dados do INCRA e carrega camada de imóveis a partir de um retângulo selecionado pelo usuário. Também é possível baixar dados dos imóveis certificados nos formatos CSV e SHP, obtendo-se mais informações complementares.
-<div align="center">
-
-https://user-images.githubusercontent.com/88212377/161186206-9b781839-277f-40f8-a3cd-42a314b0d57f.mp4
-
-</div>
-
-### CSV do INCRA para camada PointZ
-Esta ferramenta transforma um arquivo CSV de vértices do INCRA em uma camada do tipo PointZ.
-<div align="center">
-
-</div>
-
-### Alimentar camada vértice
-Esta ferramenta carrega as feições selecionadas de uma camada de pontos para dentro da camada vértices do banco de dados GeoRural.
-<div align="center">
-
-</div>
-
-### Baixar planilha ODS do SIGEF
-Gera uma planilha ODS vazia para preenchimento com os dados gerados no TXT.
-<div align="center">
-
-</div>
-
-### Gerar TXT para Planilha ODS
-Cria um arquivo de Texto (TXT) com todas os dados necessários para preencher a planilha ODS do SIGEF.
-<div align="center">
-
-</div>
-
-
-
-## Como contribuir
+## Como contribuir aprendendo mais
 
 CURSO HOTMART
 
