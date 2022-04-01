@@ -56,7 +56,7 @@ class addFeat(QgsProcessingAlgorithm):
         return 'addFeat'
 
     def displayName(self):
-        return self.tr('Alimentar camada "vértice"')
+        return self.tr('Alimentar camada vértice')
 
     def group(self):
         return self.tr(self.groupId())
