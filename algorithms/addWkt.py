@@ -31,6 +31,7 @@ from qgis.core import (QgsProcessing,
                        QgsFeatureSink,
                        QgsProcessingException,
                        QgsProcessingAlgorithm,
+                       QgsWkbTypes,
                        QgsProcessingParameterFile,
                        QgsVectorLayer,
                        QgsGeometry,
@@ -163,7 +164,7 @@ class addWkt(QgsProcessingAlgorithm):
             self.OUTPUT,
             context,
             source.fields(),
-            source.wkbType(),
+            QgsWkbTypes.PointZ,
             source.sourceCrs()
         )
 
