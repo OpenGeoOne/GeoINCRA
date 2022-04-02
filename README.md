@@ -1218,6 +1218,10 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
  src="https://user-images.githubusercontent.com/88212377/161396191-32d9775a-d877-4eed-b8d1-61f07caf4af8.jpg"></a>
 <br>
 </div>
+<div style="text-align: center;"><a
+ style="font-weight: bold;"
+ href="https://go.hotmart.com/X69158193B">CLIQUE AQUI: Georreferenciamento de Imóveis Rurais com o plugin GeoINCRA no QGIS</a></div>
+
 
 ## Colaboradores
 
