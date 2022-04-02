@@ -60,31 +60,41 @@
 ### Consultar base do INCRA
 Conecta a base de dados do INCRA e carrega camada de imóveis a partir de um retângulo selecionado pelo usuário. Também é possível baixar dados dos imóveis certificados nos formatos CSV e SHP, obtendo-se mais informações complementares.
 <div align="center">
+    
 https://user-images.githubusercontent.com/88212377/161190002-e3f211bd-a337-4f4a-9632-25ff67b07eb1.mp4
+    
 </div>
 
 ### CSV do INCRA para camada PointZ
 Esta ferramenta transforma um arquivo CSV de vértices do INCRA em uma camada do tipo PointZ.
 <div align="center">
+    
 https://user-images.githubusercontent.com/88212377/161395789-9c55d2d3-3e60-4a2e-92b9-a16a204a87c5.mp4
+    
 </div>
 
 ### Alimentar camada vértice
 Esta ferramenta carrega as feições selecionadas de uma camada de pontos para dentro da camada vértices do banco de dados GeoRural.
 <div align="center">
+    
 https://user-images.githubusercontent.com/88212377/161395699-088309e5-d25b-4745-926e-0edddc37b091.mp4
+    
 </div>
 
 ### Baixar planilha ODS do SIGEF
 Gera uma planilha ODS vazia para preenchimento com os dados gerados no TXT.
 <div align="center">
+    
 https://user-images.githubusercontent.com/88212377/161395839-00643672-4ff0-4336-aba4-6edcd1459612.mp4
+    
 </div>
 
 ### Gerar TXT para Planilha ODS
 Cria um arquivo de Texto (TXT) com todas os dados necessários para preencher a planilha ODS do SIGEF.
 <div align="center">
+    
 https://user-images.githubusercontent.com/88212377/161395898-a09d962e-33a8-4da9-a3b2-c9f06eb5b403.mp4
+    
 </div>
 
 
@@ -1194,6 +1204,10 @@ do Brasil (IBGE)</span><span
 <p class="MsoNormal"><o:p>&nbsp;</o:p></p>
 </div>
 Observação: Também podem ser utilizadas as camadas “hist_vertice”, “hist_limite” e “hist_parcela” para armazenamento dos dados de georreferenciamento anteriores e, assim, manter o histórico de todos os trabalhos, possibilitando a consulta dos códigos anteriores, análises e relatórios de desempenho.
+
+
+
+https://user-images.githubusercontent.com/88212377/161396398-8e16ac2d-f5fd-48e1-bedf-21118fec4e3a.mp4
 
 
 
