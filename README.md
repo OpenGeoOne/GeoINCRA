@@ -1204,7 +1204,7 @@ do Brasil (IBGE)</span><span
 <p class="MsoNormal"><o:p>&nbsp;</o:p></p>
 </div>
 Observação: Também podem ser utilizadas as camadas “hist_vertice”, “hist_limite” e “hist_parcela” para armazenamento dos dados de georreferenciamento anteriores e, assim, manter o histórico de todos os trabalhos, possibilitando a consulta dos códigos anteriores, análises e relatórios de desempenho.
-
+<br>
 
 https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-84db-c4a6acd49a27.mp4
 
