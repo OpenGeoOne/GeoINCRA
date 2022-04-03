@@ -1236,7 +1236,7 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
 
 ## Autores
 
-Thiago Prudêncio e
+Tiago Prudencio e
 Leandro França
 
 
