@@ -241,7 +241,7 @@ class ConnectBase(QgsProcessingAlgorithm):
                       </div>
                       <div align="right">
                       <p align="right">
-                      <a href="https://geoone.com.br/"><span style="font-weight: bold;">Clique aqui para conhecer o modelo GeoRural da GeoOne</span></a><br>
+                      <a href="https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA"><span style="font-weight: bold;">Clique aqui para conhecer o modelo GeoRural da GeoOne</span></a><br>
                       </p>
                       <p align="right">
                       <a href="https://sigef.incra.gov.br/consultar/parcelas/"><span style="font-weight: bold;">Clique aqui para consultar parcelas do SIGEF</span></a><br>
