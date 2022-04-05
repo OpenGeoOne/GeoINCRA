@@ -100,6 +100,8 @@ https://user-images.githubusercontent.com/88212377/161395898-a09d962e-33a8-4da9-
 
 
 ## Banco de Dados GeoRural
+Este modelo de dados pode ser implementado em banco de dados GeoPackage, PostGIS, ou atém mesmo no formato Shapefile, embora este último seja desaconselhado, por estar entrando em desuso.
+O GeoRural é um modelo extremamente simples, de fácil entendimento e utilização. Ele consiste nas camadas: “vertice”, “limite” e “parcela”, contando também com camadas auxiliares para armazenar o histórico dos georreferenciamentos executados anteriormente, facilitando consultas e geração de relatórios.
 
 
 ### Classe Vértice
