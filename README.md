@@ -1227,12 +1227,21 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
 
 ## Colaboradores
 
-<div style="text-align: center;"><a
- href="https://www.acgeoengenharia.com.br/"><img
- style="border: 2px solid ;" alt="ACGEO Engenharia"
- title="ACGEO Engenharia"
- src="https://user-images.githubusercontent.com/88212377/161191725-f37650ff-1fba-4cae-8145-af45f1c599d1.jpg"></a>
-<br>
+<div style="text-align: center;">
+<tbody>
+        <tr>
+          <td><a target="_blank" rel="noopener noreferrer" href="https://www.acgeoengenharia.com.br/">
+          <img title="ACGEO Engenharia" style="border: 0px solid ; width: 200px; " alt="acgeo"
+           src="https://user-images.githubusercontent.com/88212377/161191725-f37650ff-1fba-4cae-8145-af45f1c599d1.jpg">
+           </a>
+          </td>
+          <td><a target="_blank" rel="noopener noreferrer" href="https://agrodata.me/">
+          <img title="AgroData" style="border: 0px solid ; width: 200px; " alt="agrodata"
+           src="https://user-images.githubusercontent.com/88212377/162041289-c6501045-52d9-4245-85e5-4d62050c4faf.JPG">
+           </a>
+          </td>
+        </tr>
+      </tbody>
 </div>
 
 
