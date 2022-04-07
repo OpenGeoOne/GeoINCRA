@@ -1214,7 +1214,7 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
 
 ## Como contribuir aprendendo mais
 <div style="text-align: center;"><a
- href="https://go.hotmart.com/X69158193B"><img
+ href="https://pay.hotmart.com/X69158193B?checkoutMode=10&bid=1649294185791"><img
  style="border: 2px solid ;" alt="GeoINCRA no QGIS"
  title="CURSO NA HOTMART"
  src="https://user-images.githubusercontent.com/88212377/161396191-32d9775a-d877-4eed-b8d1-61f07caf4af8.jpg"></a>
@@ -1222,7 +1222,7 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
 </div>
 <div style="text-align: center;"><a
  style="font-weight: bold;"
- href="https://go.hotmart.com/X69158193B">CLIQUE AQUI: Georreferenciamento de Imóveis Rurais com o plugin GeoINCRA no QGIS</a></div>
+ href="https://pay.hotmart.com/X69158193B?checkoutMode=10&bid=1649294185791">CLIQUE AQUI: Georreferenciamento de Imóveis Rurais com o plugin GeoINCRA no QGIS</a></div>
 
 
 ## Colaboradores
