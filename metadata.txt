@@ -7,8 +7,8 @@ name=GeoINCRA
 qgisMinimumVersion=3.10
 description=Georreferenciamento de Imoveis Rurais
 version=0.1
-author=Tiago Prudencio e Leandro França
-email=contato@geoone.com.br
+author=Tiago Prudencio, Leandro França
+email=geoleandro.franca@gmail.com
 
 about=Ferramentas para georreferenciamento de imóveis rurais conforme normas técnicas do Instituto Nacional de Colonização e Reforma Agrária (INCRA).
 
@@ -25,11 +25,11 @@ hasProcessingProvider=yes
 # Tags are comma separated with spaces allowed
 tags=georreferenciamento, imoveis, rurais, incra, sigef, ods, planilha, brazil
 
-homepage=https://github.com/OpenGeoOne/GeoINCRA
+homepage=https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA
 category=cartography
 icon=images/geoincra_logo.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

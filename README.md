@@ -100,6 +100,8 @@ https://user-images.githubusercontent.com/88212377/161395898-a09d962e-33a8-4da9-
 
 
 ## Banco de Dados GeoRural
+Este modelo de dados pode ser implementado em banco de dados GeoPackage, PostGIS, ou atém mesmo no formato Shapefile, embora este último seja desaconselhado, por estar entrando em desuso.
+O GeoRural é um modelo extremamente simples, de fácil entendimento e utilização. Ele consiste nas camadas: “vertice”, “limite” e “parcela”, contando também com camadas auxiliares para armazenar o histórico dos georreferenciamentos executados anteriormente, facilitando consultas e geração de relatórios.
 
 
 ### Classe Vértice
@@ -1212,7 +1214,7 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
 
 ## Como contribuir aprendendo mais
 <div style="text-align: center;"><a
- href="https://go.hotmart.com/X69158193B"><img
+ href="https://pay.hotmart.com/X69158193B?checkoutMode=10&bid=1649294185791"><img
  style="border: 2px solid ;" alt="GeoINCRA no QGIS"
  title="CURSO NA HOTMART"
  src="https://user-images.githubusercontent.com/88212377/161396191-32d9775a-d877-4eed-b8d1-61f07caf4af8.jpg"></a>
@@ -1220,17 +1222,26 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
 </div>
 <div style="text-align: center;"><a
  style="font-weight: bold;"
- href="https://go.hotmart.com/X69158193B">CLIQUE AQUI: Georreferenciamento de Imóveis Rurais com o plugin GeoINCRA no QGIS</a></div>
+ href="https://pay.hotmart.com/X69158193B?checkoutMode=10&bid=1649294185791">CLIQUE AQUI: Georreferenciamento de Imóveis Rurais com o plugin GeoINCRA no QGIS</a></div>
 
 
 ## Colaboradores
 
-<div style="text-align: center;"><a
- href="https://www.acgeoengenharia.com.br/"><img
- style="border: 2px solid ;" alt="ACGEO Engenharia"
- title="ACGEO Engenharia"
- src="https://user-images.githubusercontent.com/88212377/161191725-f37650ff-1fba-4cae-8145-af45f1c599d1.jpg"></a>
-<br>
+<div style="text-align: center;">
+<tbody>
+        <tr>
+          <td><a target="_blank" rel="noopener noreferrer" href="https://www.acgeoengenharia.com.br/">
+          <img title="ACGEO Engenharia" style="border: 0px solid ; width: 200px; " alt="acgeo"
+           src="https://user-images.githubusercontent.com/88212377/161191725-f37650ff-1fba-4cae-8145-af45f1c599d1.jpg">
+           </a>
+          </td>
+          <td><a target="_blank" rel="noopener noreferrer" href="https://agrodata.me/">
+          <img title="AgroData" style="border: 0px solid ; width: 200px; " alt="agrodata"
+           src="https://user-images.githubusercontent.com/88212377/162041289-c6501045-52d9-4245-85e5-4d62050c4faf.JPG">
+           </a>
+          </td>
+        </tr>
+      </tbody>
 </div>
 
 
