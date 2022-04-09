@@ -32,6 +32,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingException,
                        QgsFeature,
                        QgsField,
+                       QgsGeometry,
                        QgsVectorLayer,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingAlgorithm,
@@ -165,57 +166,49 @@ class createTemplate(QgsProcessingAlgorithm):
         self.writeHead(arq)
 
         field= QgsField( 'long', QVariant.String)
-        vertice.addExpressionField('''to_dms($x ,'x',3)''', field)
+        vertice.addExpressionField('''to_dms($x ,'x',3,'suffix')''', field)
         field= QgsField( 'lat', QVariant.String)
-        vertice.addExpressionField('''to_dms($y ,'y',3)''',field)
+        vertice.addExpressionField('''to_dms($y ,'y',3, 'suffix')''',field)
 
-        linhas = list()
-        for feat in vertice.getFeatures():
-            linha = list()
-            linha.append(feat['vertice'])
-            linha.append(self.fixcoord(feat['long'], 'long'))
-            linha.append(str(feat['sigma_x']))
-            linha.append(self.fixcoord(feat['lat'],'lat'))
-            linha.append(str(feat['sigma_y']))
-            linha.append(self.getZ(feat))
-            linha.append(str(feat['sigma_z']))
-            linha.append(feat['metodo_pos'])
-            att = self.getAtt(feat)
-            linha.append(att['tipo'])
-            linha.append(att['cns'])
-            linha.append(att['matricula'])
-            linha = self.listaExchange(linha)
-            linhas.append(linha)
+        parc = [parcela.geometry() for parcela in self.parcela.getFeatures()][0]
+        for count, part in enumerate(parc.parts()):
+            geom = QgsGeometry.fromWkt(part.asWkt())
+            arq.write('Parcela ' + str(count+1)+ '\n')
+            linhas = list()
+
+            for feat in vertice.getFeatures():
+                if feat.geometry().intersection(geom):
+                    linha = list()
+                    linha.append(feat['vertice'])
+                    linha.append(feat['long'])
+                    linha.append(str(feat['sigma_x']))
+                    linha.append(feat['lat'])
+                    linha.append(str(feat['sigma_y']))
+                    linha.append(self.getZ(feat))
+                    linha.append(str(feat['sigma_z']))
+                    linha.append(feat['metodo_pos'])
+                    att = self.getAtt(feat)
+                    linha.append(att['tipo'])
+                    linha.append(att['cns'])
+                    linha.append(att['matricula'])
+                    linha = self.listaExchange(linha)
+                    linhas.append(linha)
+
+
+
+            head_line = ['vertice','long', 'sigma_x','lat', 'sigma_y','h', 'sigma_z','metodo_pos','tipo_limite','cns','Matrícula']
+            df = pd.DataFrame(linhas, columns = head_line)
+            df = df.to_csv(sep = '\t',header=None, index=False).strip('\n').split('\n')
+            df_string = ''.join(df)
+            arq.writelines(df_string)
+            arq.write('\n\n')
 
         vertice.removeExpressionField(vertice.fields().indexOf('long'))
         vertice.removeExpressionField(vertice.fields().indexOf('lat'))
-
-        head_line = ['vertice','long', 'sigma_x','lat', 'sigma_y','h', 'sigma_z','metodo_pos','tipo_limite','cns','Matrícula']
-        df = pd.DataFrame(linhas, columns = head_line)
-        df = df.to_csv(sep = '\t',header=None, index=False).strip('\n').split('\n')
-        df_string = ''.join(df)
-
-        arq.writelines(df_string)
         arq.close
 
         return {}
 
-    def fixcoord(self,coord,suf):
-        coord = coord.replace("°",' ')
-        coord = coord.replace(r"′",' ')
-        coord = coord.replace(".",',')
-        coord = coord.replace(r'″',' ')
-        if suf == 'long':
-            coord = coord.replace('-',' ')
-            coord += 'W'
-        elif suf == 'lat':
-            try:
-                coord = coord.replace('-',' ')
-                coord += 'S'
-            except:
-                coord = coord.replace('+',' ')
-                coord += 'N'
-        return coord
 
     def getZ(self,feat):
         try:
@@ -226,7 +219,7 @@ class createTemplate(QgsProcessingAlgorithm):
     def getAtt (self,feat):
         att = dict()
         for feature in self.limite.getFeatures():
-            if feature.geometry().intersects(feat.geometry().buffer(0.001, 2)):
+            if feature.geometry().asPolyline()[0] == feat.geometry().asPoint():
                 att['tipo'] =  feature['tipo']
                 att['cns'] = feature['cns']
                 att['matricula'] = feature['matricula']
