@@ -8,3 +8,4 @@ algorithms/__pycache__/connectbase.cpython-39.pyc
 __pycache__/GeoINCRA_provider.cpython-39.pyc
 __pycache__/GeoINCRA.cpython-39.pyc
 __pycache__/__init__.cpython-39.pyc
+*.pyc
