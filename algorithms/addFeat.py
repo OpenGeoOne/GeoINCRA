@@ -183,13 +183,27 @@ class addFeat(QgsProcessingAlgorithm):
         if not source_in:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
 
-        sigma_x = self.parameterAsFields(parameters, self.sigma_x, context)[0]
-        sigma_y = self.parameterAsFields(parameters, self.sigma_y, context)[0]
-        sigma_z = self.parameterAsFields(parameters, self.sigma_z, context)[0]
-        metodo_pos = self.parameterAsFields(parameters, self.metodo_pos, context)[0]
-        vertice = self.parameterAsFields(parameters, self.vertice, context)[0]
-        tipo_verti = self.parameterAsFields(parameters, self.tipo_verti, context)[0]
-        qrcode = self.parameterAsFields(parameters, self.qrcode, context)[0]
+        sigma_x = self.parameterAsFields(parameters, self.sigma_x, context)
+        if sigma_x:
+            sigma_x = sigma_x[0]
+        sigma_y = self.parameterAsFields(parameters, self.sigma_y, context)
+        if sigma_y:
+            sigma_y = sigma_y[0]
+        sigma_z = self.parameterAsFields(parameters, self.sigma_z, context)
+        if sigma_z:
+            sigma_z = sigma_z[0]
+        metodo_pos = self.parameterAsFields(parameters, self.metodo_pos, context)
+        if metodo_pos:
+            metodo_pos = metodo_pos[0]
+        vertice = self.parameterAsFields(parameters, self.vertice, context)
+        if vertice:
+            vertice = vertice[0]
+        tipo_verti = self.parameterAsFields(parameters, self.tipo_verti, context)
+        if tipo_verti:
+            tipo_verti = tipo_verti[0]
+        qrcode = self.parameterAsFields(parameters, self.qrcode, context)
+        if qrcode:
+            qrcode = qrcode[0]
 
         source_out = self.parameterAsVectorLayer(
             parameters,
@@ -205,7 +219,6 @@ class addFeat(QgsProcessingAlgorithm):
             feat = QgsFeature(source_out.fields())
             if sigma_x:
                 feat.setAttribute('sigma_x', float(feature[sigma_x].replace(',','.')) if isinstance(feature[sigma_x], str) else feature[sigma_x])
-                print(float(feature[sigma_x].replace(',','.')))
             if sigma_y:
                 feat.setAttribute('sigma_y', float(feature[sigma_y].replace(',','.')) if isinstance(feature[sigma_y], str) else feature[sigma_y])
             if sigma_z:
