@@ -85,10 +85,6 @@ class ConnectBase(QgsProcessingAlgorithm):
             }
 
     def initAlgorithm(self, config):
-        """
-        Here we define the inputs and output of the algorithm, along
-        with some other properties.
-        """
 
         self.addParameter(
             QgsProcessingParameterExtent(
@@ -139,7 +135,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         uris = list()
         for feat in estado.getFeatures():
              if feat.geometry().intersects(extensao):
-                 #uri_default="""pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4326' typename='ms:certificada_sigef_particular_xx' url='http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_particular_xx' version='auto'"""
+                 
                  uri_default="""pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1'  srsname='EPSG:4326' typename='name_' url='link' version='auto'"""
                  uri_default = uri_default.replace('name_',name)
                  uri_default = uri_default.replace('link',link)

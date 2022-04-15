@@ -31,7 +31,10 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterField,
                        QgsFeatureSink,
                        QgsProcessingException,
+                       QgsCoordinateReferenceSystem,
+                       QgsCoordinateTransform,
                        QgsFeature,
+                       QgsProject,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterVectorLayer)
@@ -183,6 +186,8 @@ class addFeat(QgsProcessingAlgorithm):
         if not source_in:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
 
+
+
         sigma_x = self.parameterAsFields(parameters, self.sigma_x, context)
         if sigma_x:
             sigma_x = sigma_x[0]
@@ -232,16 +237,17 @@ class addFeat(QgsProcessingAlgorithm):
             if qrcode:
                 feat.setAttribute('qrcode',feature[qrcode])
 
-            feat.setGeometry(feature.geometry()) # VERIFICAR SE AS CAMADAS ESTÃO NO MESMO SRC!!!!
+            crsSrc = QgsCoordinateReferenceSystem(source_in.sourceCrs())
+            crsDest = QgsCoordinateReferenceSystem('EPSG:4674')
+            print(crsSrc, crsDest)
+            proj2geo = QgsCoordinateTransform(crsSrc, crsDest,QgsProject.instance())
+            geom = feature.geometry()
+            geom.transform(proj2geo)
+
+            feat.setGeometry(geom) # VERIFICAR SE AS CAMADAS ESTÃO NO MESMO SRC!!!!
             (res, outFeats) = source_out.dataProvider().addFeatures([feat])
             feedback.setProgress(int(current * total))
 
-        # i=0
-        # for feature in source_out.getFeatures():
-        #     i+=1
-        #     attrs = { 0 : i}
-        #     source_out.dataProvider().changeAttributeValues({ feature.id() : attrs })
-        #
-        # source_out.triggerRepaint()
+
 
         return {}
