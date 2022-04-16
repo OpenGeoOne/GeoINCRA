@@ -189,12 +189,12 @@ class createTemplate(QgsProcessingAlgorithm):
 				if feat.geometry().intersection(geom):
 					linha = list()
 					linha.append(feat['vertice'])
-					linha.append(feat['long'])
-					linha.append(str(feat['sigma_x']))
-					linha.append(feat['lat'])
-					linha.append(str(feat['sigma_y']))
+					linha.append(self.fixCoord(feat['long']))
+					linha.append(self.fixSigma(feat['sigma_x']))
+					linha.append(self.fixCoord(feat['lat']))
+					linha.append(self.fixSigma(feat['sigma_y']))
 					linha.append(self.getZ(feat))
-					linha.append(str(feat['sigma_z']))
+					linha.append(self.fixSigma(feat['sigma_z']))
 					linha.append(feat['metodo_pos'])
 					att = self.getAtt(feat,feedback)
 					if not att:
@@ -221,12 +221,24 @@ class createTemplate(QgsProcessingAlgorithm):
 		for feat in point_out:
 			feedback.pushInfo('ERRO: O ponto {} não intercepta a camada parcela'.format(feat['Código do Vértice']))
 			arq.write('\nERRO: O ponto {} não intercepta a camada parcela\n'.format(feat['Código do Vértice']))
-			
+
 		vertice.removeExpressionField(vertice.fields().indexOf('long'))
 		vertice.removeExpressionField(vertice.fields().indexOf('lat'))
 		arq.close
 
 		return {}
+
+	def fixCoord(self, coord):
+		coord = coord.replace('°',' ')
+		coord = coord.replace('′',' ')
+		coord = coord.replace('″',' ')
+
+		return (coord)
+
+	def fixSigma(self, sigma):
+		sigma = round(sigma,2)
+		sigma = str(sigma).replace('.',',')
+		return(sigma)
 
 
 	def getZ(self,feat):
