@@ -170,12 +170,11 @@ class createTemplate(QgsProcessingAlgorithm):
 		field= QgsField( 'lat', QVariant.String)
 		vertice.addExpressionField('''to_dms($y ,'y',3, 'suffix')''',field)
 
-
 		parc = [parcela.geometry() for parcela in self.parcela.getFeatures()][0]
 
 		ordena = dict()
 		for feature in vertice.getFeatures():
-			ordena[feature['Ordem do Vértice']] = feature 
+			ordena[feature['Ordem do Vértice']] = feature
 		vertices = [ordena[key] for key in sorted(ordena.keys())]
 
 		point_out = list()
@@ -260,7 +259,7 @@ class createTemplate(QgsProcessingAlgorithm):
 				att['cns'] = feature['cns']
 				att['matricula'] = feature['matricula']
 
-			
+
 		try:
 			return (att)
 		except:
