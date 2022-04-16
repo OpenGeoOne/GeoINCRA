@@ -204,13 +204,14 @@ class createTemplate(QgsProcessingAlgorithm):
 					linha.append(att['tipo'])
 					linha.append(att['cns'])
 					linha.append(att['matricula'])
+					linha.append(att['Confrontante'])
 					linha = self.listaExchange(linha)
 					linhas.append(linha)
 				else:
 					point_out.append(feat)
 
 
-			head_line = ['vertice','long', 'sigma_x','lat', 'sigma_y','h', 'sigma_z','metodo_pos','tipo_limite','cns','Matrícula']
+			head_line = ['vertice','long', 'sigma_x','lat', 'sigma_y','h', 'sigma_z','metodo_pos','tipo_limite','cns','Matrícula','Descritivo']
 			df = pd.DataFrame(linhas, columns = head_line)
 			df = df.to_csv(sep = '\t',header=None, index=False).strip('\n').split('\n')
 			df_string = ''.join(df)
@@ -253,11 +254,13 @@ class createTemplate(QgsProcessingAlgorithm):
 				att['tipo'] =  feature['tipo']
 				att['cns'] = feature['cns']
 				att['matricula'] = feature['matricula']
+				att['Confrontante'] = feature['Confrontante']
 				break
 			elif feat.geometry().asPoint() in feature.geometry().asPolyline():
 				att['tipo'] =  feature['tipo']
 				att['cns'] = feature['cns']
 				att['matricula'] = feature['matricula']
+				att['Confrontante'] = feature['Confrontante']
 
 
 		try:
