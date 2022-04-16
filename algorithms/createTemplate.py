@@ -170,12 +170,11 @@ class createTemplate(QgsProcessingAlgorithm):
 		field= QgsField( 'lat', QVariant.String)
 		vertice.addExpressionField('''to_dms($y ,'y',3, 'suffix')''',field)
 
-
 		parc = [parcela.geometry() for parcela in self.parcela.getFeatures()][0]
 
 		ordena = dict()
 		for feature in vertice.getFeatures():
-			ordena[feature['Ordem do Vértice']] = feature 
+			ordena[feature['Ordem do Vértice']] = feature
 		vertices = [ordena[key] for key in sorted(ordena.keys())]
 
 		point_out = list()
@@ -221,7 +220,7 @@ class createTemplate(QgsProcessingAlgorithm):
 		for feat in point_out:
 			feedback.pushInfo('ERRO: O ponto {} não intercepta a camada parcela'.format(feat['Código do Vértice']))
 			arq.write('\nERRO: O ponto {} não intercepta a camada parcela\n'.format(feat['Código do Vértice']))
-			
+
 		vertice.removeExpressionField(vertice.fields().indexOf('long'))
 		vertice.removeExpressionField(vertice.fields().indexOf('lat'))
 		arq.close
@@ -248,7 +247,7 @@ class createTemplate(QgsProcessingAlgorithm):
 				att['cns'] = feature['cns']
 				att['matricula'] = feature['matricula']
 
-			
+
 		try:
 			return (att)
 		except:
