@@ -232,6 +232,7 @@ class createTemplate(QgsProcessingAlgorithm):
 		coord = coord.replace('°',' ')
 		coord = coord.replace('′',' ')
 		coord = coord.replace('″',' ')
+		coord = coord.replace('.',',')
 
 		return (coord)
 
