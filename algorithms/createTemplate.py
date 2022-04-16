@@ -244,7 +244,8 @@ class createTemplate(QgsProcessingAlgorithm):
 
 	def getZ(self,feat):
 		try:
-			return feat.geometry().constGet().z()
+			coord = str(feat.geometry().constGet().z()).replace('.',',')
+			return coord
 		except:
 			return '0'
 
