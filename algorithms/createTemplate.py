@@ -135,6 +135,19 @@ class createTemplate(QgsProcessingAlgorithm):
 		if vertice is None:
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.VERTICE))
 
+		for feature in vertice.getFeatures():
+			if not feature['Ordem do vértice']:
+				raise QgsProcessingException('ERRO: O vertice (id = {}) , atributo Ordem do Vértice é de PREENCHIMENTO OBRIGATÓRIO'.format(feature.id()))
+
+			elif not feature['Código do Vértice']:
+				raise QgsProcessingException('ERRO: O vertice (id = {}) , atributo Código do Vértice é de PREENCHIMENTO OBRIGATÓRIO'.format(feature.id()))
+
+			elif not feature['Método de Posicionamento']:
+				raise QgsProcessingException('ERRO: O vertice (id = {}) , atributo Método de Posicionamento é de PREENCHIMENTO OBRIGATÓRIO'.format(feature.id()))
+
+
+
+
 		self.limite = self.parameterAsVectorLayer(
 			parameters,
 			self.LIMITE,
@@ -199,6 +212,7 @@ class createTemplate(QgsProcessingAlgorithm):
 					if not att:
 						vertice.removeExpressionField(vertice.fields().indexOf('long'))
 						vertice.removeExpressionField(vertice.fields().indexOf('lat'))
+						raise QgsProcessingException('ERRO: O ponto {} não intercepta a camada limite'.format(feat['Código do Vértice']))
 						arq.write('\nERRO: O ponto {} não intercepta a camada limite\n'.format(feat['Código do Vértice']))
 						break
 					linha.append(att['tipo'])
@@ -219,7 +233,8 @@ class createTemplate(QgsProcessingAlgorithm):
 			arq.write('\n\n')
 
 		for feat in point_out:
-			feedback.pushInfo('ERRO: O ponto {} não intercepta a camada parcela'.format(feat['Código do Vértice']))
+			#feedback.pushInfo('ERRO: O ponto {} não intercepta a camada parcela'.format(feat['Código do Vértice']))
+			raise QgsProcessingException('ERRO: O ponto {} não intercepta a camada parcela'.format(feat['Código do Vértice']))
 			arq.write('\nERRO: O ponto {} não intercepta a camada parcela\n'.format(feat['Código do Vértice']))
 
 		vertice.removeExpressionField(vertice.fields().indexOf('long'))
@@ -237,7 +252,7 @@ class createTemplate(QgsProcessingAlgorithm):
 		return (coord)
 
 	def fixSigma(self, sigma):
-		sigma = round(sigma,2)
+		sigma = "{0:.2f}".format(round(sigma,2))
 		sigma = str(sigma).replace('.',',')
 		return(sigma)
 
@@ -268,7 +283,7 @@ class createTemplate(QgsProcessingAlgorithm):
 		try:
 			return (att)
 		except:
-			feedback.pushInfo('ERRO: O ponto {} não intercepta a camada limite'.format(feat['Código do Vértice']))
+			#feedback.pushInfo('ERRO: O ponto {} não intercepta a camada limite'.format(feat['Código do Vértice']))
 			return ()
 
 	def listaExchange(self,strings):

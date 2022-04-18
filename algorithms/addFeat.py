@@ -186,8 +186,8 @@ class addFeat(QgsProcessingAlgorithm):
         if not source_in:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
 
-        if source_in.sourceCrs() != QgsCoordinateReferenceSystem('EPSG:4674'):
-            raise QgsProcessingException('A camada de entrada deve estar em SIRGAS 2000 (EPSG:4674)!')
+        #if source_in.sourceCrs() != QgsCoordinateReferenceSystem('EPSG:4674'):
+            #raise QgsProcessingException('A camada de entrada deve estar em SIRGAS 2000 (EPSG:4674)!')
 
         sigma_x = self.parameterAsFields(parameters, self.sigma_x, context)
         if sigma_x:
