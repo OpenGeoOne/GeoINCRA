@@ -221,8 +221,6 @@ class createTemplate(QgsProcessingAlgorithm):
 					linha.append(att['Confrontante'])
 					linha = self.listaExchange(linha)
 					linhas.append(linha)
-				else:
-					point_out.append(feat)
 
 
 			head_line = ['vertice','long', 'sigma_x','lat', 'sigma_y','h', 'sigma_z','metodo_pos','tipo_limite','cns','Matrícula','Descritivo']
@@ -232,10 +230,6 @@ class createTemplate(QgsProcessingAlgorithm):
 			arq.writelines(df_string)
 			arq.write('\n\n')
 
-		for feat in point_out:
-			#feedback.pushInfo('ERRO: O ponto {} não intercepta a camada parcela'.format(feat['Código do Vértice']))
-			raise QgsProcessingException('ERRO: O ponto {} não intercepta a camada parcela'.format(feat['Código do Vértice']))
-			arq.write('\nERRO: O ponto {} não intercepta a camada parcela\n'.format(feat['Código do Vértice']))
 
 		vertice.removeExpressionField(vertice.fields().indexOf('long'))
 		vertice.removeExpressionField(vertice.fields().indexOf('lat'))
@@ -283,7 +277,6 @@ class createTemplate(QgsProcessingAlgorithm):
 		try:
 			return (att)
 		except:
-			#feedback.pushInfo('ERRO: O ponto {} não intercepta a camada limite'.format(feat['Código do Vértice']))
 			return ()
 
 	def listaExchange(self,strings):
