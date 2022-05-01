@@ -1246,8 +1246,19 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
 
 
 ## Autores
+Tiago Prudencio 
+<div style="text-align: center;"><a
+ href="https://www.linkedin.com/in/tiago-prudencio-a665a7203/"><img
+ style="border: 0px solid ;width: 20px" alt="GeoINCRA no QGIS"
+ title="Tiago Prudencio"
+ src="https://user-images.githubusercontent.com/52215653/163875911-3ff4d34b-bf67-4b2b-9d2c-8525c1c011a6.png"></a>
+<br>
 
-Tiago Prudencio e
 Leandro França
-
+<div style="text-align: center;"><a
+ href="https://www.linkedin.com/in/leandro-fran%C3%A7a-93093714b/"><img
+ style="border: 0px solid ;width: 20px" alt="GeoINCRA no QGIS"
+ title="Leandro França"
+ src="https://user-images.githubusercontent.com/52215653/163875911-3ff4d34b-bf67-4b2b-9d2c-8525c1c011a6.png"></a>
+<br>
 
