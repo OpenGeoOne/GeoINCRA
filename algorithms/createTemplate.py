@@ -292,19 +292,18 @@ class createTemplate(QgsProcessingAlgorithm):
 
 	def writeHead(self,arq):
 		nat_ser = {1:'Particular', 2:'Contrato com Adm Pública'}
-
-		pessoa = {1:'Física', 2:'Jurídica'}
+		pessoa, situacao  = {1:'Física', 2:'Jurídica'}, {1:'Imóvel Registrado', 2:'Área Titulada não Registrada', 3:'Área não Titulada'}
 
 		for feat in self.parcela.getFeatures():
-			arq.write('Natureza do Serviço:'+ nat_ser[feat['nat_serv']]+ '\n')
-			arq.write('Tipo Pessoa:'+ pessoa[feat['pessoa']]+ '\n')
-			arq.write('nome:'+ str(feat['nome'])+ '\n')
-			arq.write('cpf:'+ str(feat['cpf_cnpj'])+ '\n')
-			arq.write('denominação:'+ str(feat['denominacao'])+ '\n')
-			arq.write('situação:'+ str(feat['situacao'])+ '\n')
-			arq.write('Código do Imóvel (SNCR/INCRA):'+ str(feat['sncr'])+ '\n')
-			arq.write('Código do cartório (CNS):'+ str(feat['cod_cartorio'])+ '\n')
-			arq.write('Matricula:'+ str(feat['matricula'])+ '\n')
-			arq.write('Município:'+ str(feat['municipio'])+ '\n')
-			arq.write('UF:'+ str(feat['uf'])+ '\n')
+			arq.write('Natureza do Serviço: '+ nat_ser[feat['nat_serv']]+ '\n')
+			arq.write('Tipo Pessoa: '+ pessoa[feat['pessoa']]+ '\n')
+			arq.write('nome: '+ str(feat['nome'])+ '\n')
+			arq.write('CPF: '+ str(feat['cpf_cnpj'])+ '\n')
+			arq.write('Denominação: '+ str(feat['denominacao'])+ '\n')
+			arq.write('Situação: '+ situacao[feat['situacao']]+ '\n')
+			arq.write('Código do Imóvel (SNCR/INCRA): '+ str(feat['sncr'])+ '\n')
+			arq.write('Código do cartório (CNS): '+ str(feat['cod_cartorio'])+ '\n')
+			arq.write('Matricula: '+ str(feat['matricula'])+ '\n')
+			arq.write('Município: '+ str(feat['municipio'])+ '\n')
+			arq.write('UF: '+ str(feat['uf'])+ '\n')
 			arq.write('\n\n')
