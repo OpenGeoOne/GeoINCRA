@@ -34,6 +34,9 @@ from qgis.core import (QgsProcessing,
 					   QgsField,
 					   QgsGeometry,
 					   QgsVectorLayer,
+					   QgsExpression,
+					   QgsExpressionContextUtils,
+					   QgsExpressionContext,
 					   QgsProcessingParameterFeatureSource,
 					   QgsProcessingAlgorithm,
 					   QgsProcessingParameterFile,
@@ -136,10 +139,8 @@ class createTemplate(QgsProcessingAlgorithm):
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.VERTICE))
 
 		for feature in vertice.getFeatures():
-			if not feature['Ordem do vértice']:
-				raise QgsProcessingException('ERRO: O vertice (id = {}) , atributo Ordem do Vértice é de PREENCHIMENTO OBRIGATÓRIO'.format(feature.id()))
 
-			elif not feature['Código do Vértice']:
+			if not feature['Código do Vértice']:
 				raise QgsProcessingException('ERRO: O vertice (id = {}) , atributo Código do Vértice é de PREENCHIMENTO OBRIGATÓRIO'.format(feature.id()))
 
 			elif not feature['Método de Posicionamento']:
@@ -178,40 +179,45 @@ class createTemplate(QgsProcessingAlgorithm):
 		arq =  open(output_path,'w')
 		self.writeHead(arq)
 
-		field= QgsField( 'long', QVariant.String)
-		vertice.addExpressionField('''to_dms($x ,'x',3,'suffix')''', field)
-		field= QgsField( 'lat', QVariant.String)
-		vertice.addExpressionField('''to_dms($y ,'y',3, 'suffix')''',field)
+
+		expression1 = QgsExpression('''to_dms($x ,'x',3,'suffix')''')
+		expression2 = QgsExpression('''to_dms($y ,'y',3, 'suffix')''')
+		context = QgsExpressionContext()
+		context.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(vertice))
+
+
 
 		parc = [parcela.geometry() for parcela in self.parcela.getFeatures()][0]
-
-		ordena = dict()
-		for feature in vertice.getFeatures():
-			ordena[feature['Ordem do Vértice']] = feature
-		vertices = [ordena[key] for key in sorted(ordena.keys())]
 
 		point_out = list()
 
 		for count, part in enumerate(parc.parts()):
 			geom = QgsGeometry.fromWkt(part.asWkt())
+			vertices = list()
+			for vrt in geom.asPolygon()[0][:-1]:
+				for feature in vertice.getFeatures():
+					if vrt==feature.geometry().asPoint():
+						vertices.append(feature)
+
+
+
 			arq.write('Parcela ' + str(count+1)+ '\n')
 			linhas = list()
 
 			for feat in vertices:
+				context.setFeature(feat)
 				if feat.geometry().intersection(geom):
 					linha = list()
 					linha.append(feat['vertice'])
-					linha.append(self.fixCoord(feat['long']))
+					linha.append(self.fixCoord(expression1.evaluate(context)))
 					linha.append(self.fixSigma(feat['sigma_x']))
-					linha.append(self.fixCoord(feat['lat']))
+					linha.append(self.fixCoord(expression2.evaluate(context)))
 					linha.append(self.fixSigma(feat['sigma_y']))
 					linha.append(self.getZ(feat))
 					linha.append(self.fixSigma(feat['sigma_z']))
 					linha.append(feat['metodo_pos'])
 					att = self.getAtt(feat,feedback)
 					if not att:
-						vertice.removeExpressionField(vertice.fields().indexOf('long'))
-						vertice.removeExpressionField(vertice.fields().indexOf('lat'))
 						raise QgsProcessingException('ERRO: O ponto {} não intercepta a camada limite'.format(feat['Código do Vértice']))
 						arq.write('\nERRO: O ponto {} não intercepta a camada limite\n'.format(feat['Código do Vértice']))
 						break
@@ -231,8 +237,6 @@ class createTemplate(QgsProcessingAlgorithm):
 			arq.write('\n\n')
 
 
-		vertice.removeExpressionField(vertice.fields().indexOf('long'))
-		vertice.removeExpressionField(vertice.fields().indexOf('lat'))
 		arq.close
 
 		return {}
