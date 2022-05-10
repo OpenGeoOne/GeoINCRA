@@ -258,7 +258,7 @@ class createTemplate(QgsProcessingAlgorithm):
 	def getZ(self,feat):
 		try:
 			coord = str(feat.geometry().constGet().z()).replace('.',',')
-			return coord
+			return "{0:.2f}".format(round(coord,2))
 		except:
 			return '0'
 
