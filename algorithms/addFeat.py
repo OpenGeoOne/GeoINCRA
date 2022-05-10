@@ -79,10 +79,10 @@ class addFeat(QgsProcessingAlgorithm):
                       </div>
                       <div align="right">
                       <p align="right">
-                      <a href="https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA"><span style="font-weight: bold;">Clique aqui para conhecer o modelo GeoRural da GeoOne</span></a><br>
+                      <a href="https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA#banco-de-dados-georural"><span style="font-weight: bold;">Clique aqui para conhecer o modelo GeoRural da GeoOne</span></a><br>
                       </p>
                       <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
-                      <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne"</i></p>
+                      <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
         return txt + footer
