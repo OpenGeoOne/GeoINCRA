@@ -39,6 +39,7 @@ from .algorithms.getSpreadsheet import getSpreadsheet
 from .algorithms.addFeat import addFeat
 from .algorithms.createTemplate import createTemplate
 from .algorithms.addWkt import addWkt
+from .algorithms.toTopoGeo import ToTopoGeo
 
 class GeoINCRAProvider(QgsProcessingProvider):
 
@@ -64,6 +65,7 @@ class GeoINCRAProvider(QgsProcessingProvider):
         self.addAlgorithm(addFeat())
         self.addAlgorithm(createTemplate())
         self.addAlgorithm(addWkt())
+        self.addAlgorithm(ToTopoGeo())
 
 
     def id(self):
