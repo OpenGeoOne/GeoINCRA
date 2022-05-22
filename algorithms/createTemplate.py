@@ -216,7 +216,7 @@ class createTemplate(QgsProcessingAlgorithm):
 					linha.append(self.getZ(feat))
 					linha.append(self.fixSigma(feat['sigma_z']))
 					linha.append(feat['metodo_pos'])
-					att = self.getAtt(feat,feedback)
+					att = self.getAtt(feat,geom,feedback)
 					if not att:
 						raise QgsProcessingException('ERRO: O ponto {} não intercepta a camada limite'.format(feat['Código do Vértice']))
 						arq.write('\nERRO: O ponto {} não intercepta a camada limite\n'.format(feat['Código do Vértice']))
@@ -257,21 +257,21 @@ class createTemplate(QgsProcessingAlgorithm):
 
 	def getZ(self,feat):
 		try:
-			coord = str(feat.geometry().constGet().z()).replace('.',',')
-			return coord
+			coord = feat.geometry().constGet().z()
+			return "{0:.2f}".format(round(coord,2)).replace('.',',')
 		except:
 			return '0'
 
-	def getAtt (self,feat,feedback):
+	def getAtt (self,feat,geom,feedback):
 		att = dict()
 		for feature in self.limite.getFeatures():
-			if feature.geometry().asPolyline()[0] == feat.geometry().asPoint():
+			if feature.geometry().asPolyline()[0] == feat.geometry().asPoint() and geom.intersection(feature.geometry()).length()/feature.geometry().length()==1:
 				att['tipo'] =  feature['tipo']
 				att['cns'] = feature['cns']
 				att['matricula'] = feature['matricula']
 				att['Confrontante'] = feature['Confrontante']
 				break
-			elif feat.geometry().asPoint() in feature.geometry().asPolyline():
+			elif feat.geometry().asPoint() in feature.geometry().asPolyline() and geom.intersection(feature.geometry()).length()/feature.geometry().length()==1:
 				att['tipo'] =  feature['tipo']
 				att['cns'] = feature['cns']
 				att['matricula'] = feature['matricula']
