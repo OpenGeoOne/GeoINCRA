@@ -6,7 +6,7 @@
 name=GeoINCRA
 qgisMinimumVersion=3.10
 description=Georreferenciamento de Imoveis Rurais
-version=0.2
+version=1.0
 author=Tiago Prudencio, Leandro França
 email=geoleandro.franca@gmail.com
 
@@ -21,10 +21,11 @@ repository=https://github.com/OpenGeoOne/GeoINCRA
 hasProcessingProvider=yes
 # Uncomment the following line and add your changelog:
 # changelog=
-	0.2		- improvement to get limit type for each point
-	0.1   - Initial version
+	1.0 - conversion from GeoRural to TopoGeo database
+	0.2 - improvement to get limit type for each point
+	0.1 - Initial version
 # Tags are comma separated with spaces allowed
-tags=georreferenciamento, imoveis, rurais, incra, sigef, ods, planilha, brazil
+tags=georreferenciamento, imoveis, rurais, incra, sigef, georural, ods, planilha, brazil
 
 homepage=https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA
 category=cartography

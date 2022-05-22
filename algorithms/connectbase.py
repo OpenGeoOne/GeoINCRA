@@ -135,7 +135,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         uris = list()
         for feat in estado.getFeatures():
              if feat.geometry().intersects(extensao):
-                 
+
                  uri_default="""pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1'  srsname='EPSG:4326' typename='name_' url='link' version='auto'"""
                  uri_default = uri_default.replace('name_',name)
                  uri_default = uri_default.replace('link',link)
@@ -237,13 +237,13 @@ class ConnectBase(QgsProcessingAlgorithm):
                       </div>
                       <div align="right">
                       <p align="right">
-                      <a href="https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA"><span style="font-weight: bold;">Clique aqui para conhecer o modelo GeoRural da GeoOne</span></a><br>
+                      <a href="https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA#banco-de-dados-georural"><span style="font-weight: bold;">Clique aqui para conhecer o modelo GeoRural da GeoOne</span></a><br>
                       </p>
                       <p align="right">
                       <a href="https://sigef.incra.gov.br/consultar/parcelas/"><span style="font-weight: bold;">Clique aqui para consultar parcelas do SIGEF</span></a><br>
                       </p>
                       <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
-                      <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne"</i></p>
+                      <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
         return txt + footer
