@@ -140,13 +140,11 @@ class createTemplate(QgsProcessingAlgorithm):
 
 		for feature in vertice.getFeatures():
 
-			if not feature['Código do Vértice']:
+			if not feature['vertice']:
 				raise QgsProcessingException('ERRO: O vertice (id = {}) , atributo Código do Vértice é de PREENCHIMENTO OBRIGATÓRIO'.format(feature.id()))
 
-			elif not feature['Método de Posicionamento']:
+			elif not feature['metodo_pos']:
 				raise QgsProcessingException('ERRO: O vertice (id = {}) , atributo Método de Posicionamento é de PREENCHIMENTO OBRIGATÓRIO'.format(feature.id()))
-
-
 
 
 		self.limite = self.parameterAsVectorLayer(
@@ -218,13 +216,13 @@ class createTemplate(QgsProcessingAlgorithm):
 					linha.append(feat['metodo_pos'])
 					att = self.getAtt(feat,geom,feedback)
 					if not att:
-						raise QgsProcessingException('ERRO: O ponto {} não intercepta a camada limite'.format(feat['Código do Vértice']))
-						arq.write('\nERRO: O ponto {} não intercepta a camada limite\n'.format(feat['Código do Vértice']))
+						raise QgsProcessingException('ERRO: O ponto {} não intercepta a camada limite'.format(feat['vertice']))
+						arq.write('\nERRO: O ponto {} não intercepta a camada limite\n'.format(feat['vertice']))
 						break
 					linha.append(att['tipo'])
 					linha.append(att['cns'])
 					linha.append(att['matricula'])
-					linha.append(att['Confrontante'])
+					linha.append(att['confrontan'])
 					linha = self.listaExchange(linha)
 					linhas.append(linha)
 
@@ -269,13 +267,13 @@ class createTemplate(QgsProcessingAlgorithm):
 				att['tipo'] =  feature['tipo']
 				att['cns'] = feature['cns']
 				att['matricula'] = feature['matricula']
-				att['Confrontante'] = feature['Confrontante']
+				att['confrontan'] = feature['confrontan']
 				break
 			elif feat.geometry().asPoint() in feature.geometry().asPolyline() and geom.intersection(feature.geometry()).length()/feature.geometry().length()==1:
 				att['tipo'] =  feature['tipo']
 				att['cns'] = feature['cns']
 				att['matricula'] = feature['matricula']
-				att['Confrontante'] = feature['Confrontante']
+				att['confrontan'] = feature['confrontan']
 
 
 		try:
