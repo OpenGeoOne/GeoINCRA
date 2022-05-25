@@ -244,7 +244,7 @@ class addFeat(QgsProcessingAlgorithm):
             geom = feature.geometry()
             geom.transform(proj2geo)
 
-            feat.setGeometry(geom) # VERIFICAR SE AS CAMADAS ESTÃO NO MESMO SRC!!!!
+            feat.setGeometry(geom)
             (res, outFeats) = source_out.dataProvider().addFeatures([feat])
             feedback.setProgress(int(current * total))
 
