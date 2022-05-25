@@ -120,7 +120,7 @@ class ConnectBase(QgsProcessingAlgorithm):
             raise QgsProcessingException(self.invalidSourceError(parameters, self.EXTENT))
 
         crsSrc = QgsCoordinateReferenceSystem(QgsProject().instance().crs())
-        crsDest = QgsCoordinateReferenceSystem(4326)
+        crsDest = QgsCoordinateReferenceSystem('EPSG:4326')
         proj2geo = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
         extensao = proj2geo.transform(extensao)
 
