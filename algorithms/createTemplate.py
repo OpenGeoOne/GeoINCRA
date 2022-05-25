@@ -235,7 +235,7 @@ class createTemplate(QgsProcessingAlgorithm):
 			arq.write('\n\n')
 
 
-		arq.close
+		arq.close()
 
 		return {}
 
