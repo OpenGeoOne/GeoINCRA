@@ -26,22 +26,17 @@ __author__ = 'Tiago Prudencio e Leandro França'
 __date__ = '2022-02-13'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
-from qgis.PyQt.QtCore import QCoreApplication,QVariant
+from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessing,
-					   QgsFeatureSink,
 					   QgsProcessingException,
-					   QgsFeature,
-					   QgsField,
 					   QgsGeometry,
-					   QgsVectorLayer,
 					   QgsExpression,
 					   QgsExpressionContextUtils,
 					   QgsExpressionContext,
 					   QgsProcessingParameterFeatureSource,
 					   QgsProcessingAlgorithm,
-					   QgsProcessingParameterFile,
 					   QgsProcessingParameterFileDestination)
-from qgis import processing
+
 import pandas as pd
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
@@ -187,8 +182,6 @@ class createTemplate(QgsProcessingAlgorithm):
 
 		parc = [parcela.geometry() for parcela in self.parcela.getFeatures()][0]
 
-		point_out = list()
-
 		for count, part in enumerate(parc.parts()):
 			geom = QgsGeometry.fromWkt(part.asWkt())
 			vertices = list()
@@ -274,7 +267,6 @@ class createTemplate(QgsProcessingAlgorithm):
 				att['cns'] = feature['cns']
 				att['matricula'] = feature['matricula']
 				att['confrontan'] = feature['confrontan']
-
 
 		try:
 			return (att)
