@@ -27,12 +27,9 @@ __date__ = '2022-02-13'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (QgsProcessing,
-                       QgsProcessingException,
-                       QgsVectorLayer,
+from qgis.core import (QgsProcessingException,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterFileDestination)
-from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
 import os
