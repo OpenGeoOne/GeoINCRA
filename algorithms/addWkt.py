@@ -123,13 +123,10 @@ class addWkt(QgsProcessingAlgorithm):
             )
         )
 
-        # We add a feature sink in which to store our processed features (this
-        # usually takes the form of a newly created vector layer when the
-        # algorithm is run in QGIS).
         self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
-                self.tr('vertices_Incra')
+                self.tr('Vértices do INCRA')
             )
         )
 
