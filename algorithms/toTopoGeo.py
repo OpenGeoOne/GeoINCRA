@@ -102,7 +102,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.PONTOS_INI,
-                self.tr('Camada Vertice (GeoRural)'),
+                self.tr('Camada Vértice (GeoRural)'),
                 [QgsProcessing.TypeVectorPoint])
         )
 
@@ -156,7 +156,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
 
-        origem1 = self.parameterAsVectorLayer(
+        origem1 = self.parameterAsSource(
             parameters,
             self.PONTOS_INI,
             context
@@ -171,7 +171,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         if dest1 is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.PONTOS_FIM))
 
-        origem2 = self.parameterAsVectorLayer(
+        origem2 = self.parameterAsSource(
             parameters,
             self.LINHAS_INI,
             context
@@ -186,7 +186,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         if dest2 is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.LINHAS_FIM))
 
-        origem3 = self.parameterAsVectorLayer(
+        origem3 = self.parameterAsSource(
             parameters,
             self.AREA_INI,
             context
