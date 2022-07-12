@@ -71,7 +71,7 @@ class FillCodes(QgsProcessingAlgorithm):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
 
     def shortHelpString(self):
-        txt = '''Esta ferramenta preenche automaticamente o atributo "código do vértice" das camadas "vértices" informando-se o código do credenciado e o número inicial para cada tipo de vértice.
+        txt = '''Esta ferramenta preenche automaticamente o atributo "código do vértice" da camada "vértice", inserindo-se uma única vez o código do credenciado e o número inicial para cada tipo de vértice.
         Obs.: É necessário que o campo "ordem do vértice" esteja preenchido corretamente.'''
 
         footer = '''<div>
