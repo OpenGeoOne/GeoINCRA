@@ -862,9 +862,12 @@ da camada parcela<o:p></o:p></p>
  style="padding: 0cm 7.5pt; background: whitesmoke none repeat scroll 0%; -moz-background-clip: initial; -moz-background-origin: initial; -moz-background-inline-policy: initial;">
       <p class="MsoNormal"
  style="margin-bottom: 0cm; text-align: center; line-height: normal;"
- align="center"><span
- style="background: whitesmoke none repeat scroll 0%; font-size: 12pt; font-family: &quot;Times New Roman&quot;,serif; color: black; -moz-background-clip: initial; -moz-background-origin: initial; -moz-background-inline-policy: initial;">1 - Imóvel Registrado<br>2 - Área Titulada não Registrada<br>3 - Área não Titulada<br></span><span
- style="font-size: 12pt; font-family: &quot;Times New Roman&quot;,serif;"><o:p></o:p></span></p>
+ align="left"><span
+ style="background: whitesmoke none repeat scroll 0%; font-size: 12pt; font-family: &quot;Times New Roman&quot;,serif; color: black; -moz-background-clip: initial; -moz-background-origin: initial; -moz-background-inline-policy: initial;">
+          <p>1 - Imóvel Registrado</p>
+          <p>2 - Área Titulada não Registrada</p>
+          <p>3 - Área não Titulada</p>
+          </span><span style="font-size: 12pt; font-family: &quot;Times New Roman&quot;,serif;"><o:p></o:p></span></p>
       </td>
     </tr>
     <tr style="">
