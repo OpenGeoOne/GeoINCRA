@@ -863,7 +863,7 @@ da camada parcela<o:p></o:p></p>
       <p class="MsoNormal"
  style="margin-bottom: 0cm; text-align: center; line-height: normal;"
  align="center"><span
- style="background: whitesmoke none repeat scroll 0%; font-size: 12pt; font-family: &quot;Times New Roman&quot;,serif; color: black; -moz-background-clip: initial; -moz-background-origin: initial; -moz-background-inline-policy: initial;">-</span><span
+ style="background: whitesmoke none repeat scroll 0%; font-size: 12pt; font-family: &quot;Times New Roman&quot;,serif; color: black; -moz-background-clip: initial; -moz-background-origin: initial; -moz-background-inline-policy: initial;">1 - Imóvel Registrado<br>2 - Área Titulada não Registrada<br>3 - Área não Titulada<br></span><span
  style="font-size: 12pt; font-family: &quot;Times New Roman&quot;,serif;"><o:p></o:p></span></p>
       </td>
     </tr>
@@ -1222,7 +1222,8 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
 </div>
 <div style="text-align: center;"><a
  style="font-weight: bold;"
- href="https://pay.hotmart.com/X69158193B?checkoutMode=10&bid=1649294185791">CLIQUE AQUI: Georreferenciamento de Imóveis Rurais com o plugin GeoINCRA no QGIS</a></div>
+ href="https://pay.hotmart.com/X69158193B?checkoutMode=10&bid=1649294185791">CLIQUE 
+    : Georreferenciamento de Imóveis Rurais com o plugin GeoINCRA no QGIS</a></div>
 
 
 ## Colaboradores
