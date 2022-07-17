@@ -199,7 +199,11 @@ class createTemplate(QgsProcessingAlgorithm):
 
 		# Verificar se cada vértice da camada parcela (polígono) tem o correspondente da camada vétice (ponto)
 		for feat1 in parcela.getFeatures():
-			pols = feat1.geometry().asMultiPolygon()
+            geom1 = feat1.geometry().asMultiPolygon()
+            if geom1.isMultipart():
+                pols = geom1.asMultiPolygon()
+            else:
+                pols = [geom1.asPolygon()]
 			for pol in pols:
 				for pnt in pol[0]:
 					corresp = False
