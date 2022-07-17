@@ -1235,13 +1235,23 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
 <tbody>
         <tr>
           <td><a target="_blank" rel="noopener noreferrer" href="https://www.acgeoengenharia.com.br/">
-          <img title="ACGEO Engenharia" style="border: 0px solid ; width: 200px; " alt="acgeo"
+          <img title="ACGEO Engenharia" style="border: 0px solid ; heigth: 160px; " alt="acgeo"
            src="https://user-images.githubusercontent.com/88212377/161191725-f37650ff-1fba-4cae-8145-af45f1c599d1.jpg">
            </a>
           </td>
           <td><a target="_blank" rel="noopener noreferrer" href="https://agrodata.me/">
-          <img title="AgroData" style="border: 0px solid ; width: 200px; " alt="agrodata"
-           src="https://user-images.githubusercontent.com/88212377/162041289-c6501045-52d9-4245-85e5-4d62050c4faf.JPG">
+          <img title="AgroData" style="border: 0px solid ; heigth: 200px; " alt="agrodata"
+           src="https://user-images.githubusercontent.com/88212377/162043665-0508af3f-83f5-4bc4-847f-0e81b8261e77.JPG">
+           </a>
+          </td>
+          <td><a target="_blank" rel="noopener noreferrer" href="https://www.instagram.com/abeca.pe/">
+          <img title="ABECA-PE" style="border: 0px solid ; heigth: 200px; " alt="abeca-pe"
+           src="https://user-images.githubusercontent.com/25651083/178548305-85664a78-1dcc-4fda-9a07-af450480a32d.jpg">
+           </a>
+          </td>
+          <td><a target="_blank" rel="noopener noreferrer" href="https://www.ufpe.br/engenharia-cartografica-bacharelado-ctg">
+          <img title="DECart-UFPE" style="border: 0px solid ; heigth: 200px; " alt="decart"
+           src="https://user-images.githubusercontent.com/25651083/178548325-c32594ea-8a8a-465d-b688-459cb4753c15.jpg">
            </a>
           </td>
         </tr>
