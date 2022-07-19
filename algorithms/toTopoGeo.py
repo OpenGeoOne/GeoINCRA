@@ -103,14 +103,17 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             QgsProcessingParameterFeatureSource(
                 self.PONTOS_INI,
                 self.tr('Camada Vértice (GeoRural)'),
-                [QgsProcessing.TypeVectorPoint])
+                [QgsProcessing.TypeVectorPoint],
+                optional = True
+                )
         )
 
         self.addParameter(
             QgsProcessingParameterVectorLayer(
                 self.PONTOS_FIM,
                 self.tr('Pontos Limite (TopoGeo)'),
-                [QgsProcessing.TypeVectorPoint]
+                [QgsProcessing.TypeVectorPoint],
+                optional = True
             )
         )
 
@@ -118,7 +121,8 @@ class ToTopoGeo(QgsProcessingAlgorithm):
 			QgsProcessingParameterFeatureSource(
 				self.LINHAS_INI,
 				self.tr('Camada Limite (GeoRural)'),
-				[QgsProcessing.TypeVectorLine]
+				[QgsProcessing.TypeVectorLine],
+                optional = True
 			)
 		)
 
@@ -126,7 +130,8 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.LINHAS_FIM,
                 self.tr('Elemento Confrontante (TopoGeo)'),
-                [QgsProcessing.TypeVectorLine]
+                [QgsProcessing.TypeVectorLine],
+                optional = True
             )
         )
 
@@ -134,7 +139,8 @@ class ToTopoGeo(QgsProcessingAlgorithm):
 			QgsProcessingParameterFeatureSource(
 				self.AREA_INI,
 				self.tr('Camada Parcela (GeoRural)'),
-				[QgsProcessing.TypeVectorPolygon]
+				[QgsProcessing.TypeVectorPolygon],
+                optional = True
 			)
 		)
 
@@ -142,7 +148,8 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.AREA_FIM,
                 self.tr('Área do imóvel (TopoGeo)'),
-                [QgsProcessing.TypeVectorPolygon]
+                [QgsProcessing.TypeVectorPolygon],
+                optional = True
             )
         )
 
@@ -150,7 +157,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             QgsProcessingParameterBoolean(
                 self.SALVAR,
                 self.tr('Salvar Edições'),
-                defaultValue=False
+                defaultValue = False
             )
         )
 
@@ -161,45 +168,33 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             self.PONTOS_INI,
             context
         )
-        if origem1 is None:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.PONTOS_INI))
 
         dest1 = self.parameterAsVectorLayer(
             parameters,
             self.PONTOS_FIM,
             context)
-        if dest1 is None:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.PONTOS_FIM))
 
         origem2 = self.parameterAsSource(
             parameters,
             self.LINHAS_INI,
             context
         )
-        if origem2 is None:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.LINHAS_INI))
 
         dest2 = self.parameterAsVectorLayer(
             parameters,
             self.LINHAS_FIM,
             context)
-        if dest2 is None:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.LINHAS_FIM))
 
         origem3 = self.parameterAsSource(
             parameters,
             self.AREA_INI,
             context
         )
-        if origem3 is None:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.AREA_INI))
 
         dest3 = self.parameterAsVectorLayer(
             parameters,
             self.AREA_FIM,
             context)
-        if dest3 is None:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.AREA_FIM))
 
 
         #Vértice > limit_point_p
@@ -226,17 +221,25 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         }
 
         # Conversão
-        conversoes = [[origem1, dest1, dic_1],
-                      [origem2, dest2, dic_2],
-                      [origem3, dest3, dic_3]]
-        total_feicoes = origem1.featureCount() + origem2.featureCount() + origem3.featureCount()
+        conversoes = []
+        total_feicoes = 0
+        if origem1 and dest1:
+            conversoes += [[origem1, dest1, dic_1]]
+            total_feicoes += origem1.featureCount()
+        if origem2 and dest2:
+            conversoes += [[origem2, dest2, dic_2]]
+            total_feicoes += origem2.featureCount()
+        if origem3 and dest3:
+            conversoes += [[origem3, dest3, dic_3]]
+            total_feicoes += origem3.featureCount()
+
         total = 100.0 / total_feicoes if total_feicoes else 0
         cont = 0
 
         for conv in conversoes:
             origem = conv[0]
             dest = conv[1]
-            feedback.pushInfo('Copiando feições da camada {} para a camada {}...'.format(origem.name(), dest.name()))
+            feedback.pushInfo('Copiando feições da camada {} para a camada {}...'.format(origem.sourceName(), dest.sourceName()))
             dic_transf = conv[2]
             dest.startEditing()
             feature = QgsFeature(dest.fields())
