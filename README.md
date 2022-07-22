@@ -1249,9 +1249,9 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
            src="https://user-images.githubusercontent.com/25651083/178548305-85664a78-1dcc-4fda-9a07-af450480a32d.jpg">
            </a>
           </td>
-          <td><a target="_blank" rel="noopener noreferrer" href="https://www.ufpe.br/engenharia-cartografica-bacharelado-ctg">
-          <img title="DECart-UFPE" style="border: 0px solid ; heigth: 200px; " alt="decart"
-           src="https://user-images.githubusercontent.com/25651083/178548325-c32594ea-8a8a-465d-b688-459cb4753c15.jpg">
+          <td><a target="_blank" rel="noopener noreferrer" href="https://sites.google.com/view/labat/01">
+          <img title="DECart-UFPE" style="border: 0px solid ; heigth: 200px; " alt="labat"
+           src="https://user-images.githubusercontent.com/25651083/179381253-1805dd57-1bf7-4eb4-9608-c2fb0bd4c93b.jpg">
            </a>
           </td>
         </tr>
