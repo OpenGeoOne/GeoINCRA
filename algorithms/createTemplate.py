@@ -160,11 +160,11 @@ class createTemplate(QgsProcessingAlgorithm):
 
 		# Checar preenchimento dos atributos da camada vértice
 		for feat in vertice.getFeatures():
-			if feat['sigma_x'] < 0 or feat['sigma_x'] > 10  or not feat['sigma_x']:
+			if feat['sigma_x'] < 0 or feat['sigma_x'] > 10 or feat['sigma_x'] == None:
 				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_x"!')
-			if feat['sigma_y'] < 0 or feat['sigma_y'] > 10  or not feat['sigma_y']:
+			if feat['sigma_y'] < 0 or feat['sigma_y'] > 10 or feat['sigma_y'] == None:
 				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_y"!')
-			if feat['sigma_z'] < 0 or feat['sigma_z'] > 10  or not feat['sigma_z']:
+			if feat['sigma_z'] < 0 or feat['sigma_z'] > 10 or feat['sigma_z'] == None:
 				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_z"!')
 			if feat['metodo_pos'] not in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PA1', 'PA2', 'PS1', 'PS2', 'PS3', 'PS4'):
 				raise QgsProcessingException ('Verifique os valores do atrituto "metodo_pos"!')
