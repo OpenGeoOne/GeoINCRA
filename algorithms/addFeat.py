@@ -240,7 +240,7 @@ class addFeat(QgsProcessingAlgorithm):
 
             crsSrc = QgsCoordinateReferenceSystem(source_in.sourceCrs())
             crsDest = QgsCoordinateReferenceSystem('EPSG:4674')
-            proj2geo = QgsCoordinateTransform(crsSrc, crsDest,QgsProject.instance())
+            proj2geo = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
             geom = feature.geometry()
             geom.transform(proj2geo)
 
