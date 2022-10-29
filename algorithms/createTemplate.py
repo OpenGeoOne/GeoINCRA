@@ -30,7 +30,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessing,
 					   QgsProcessingException,
 					   QgsGeometry,
-					   QgsExpression,
+                       QgsProcessingParameterNumber,
 					   QgsExpressionContextUtils,
 					   QgsExpressionContext,
 					   QgsProcessingParameterFeatureSource,
@@ -49,6 +49,8 @@ class createTemplate(QgsProcessingAlgorithm):
 	LIMITE  = 'LIMITE'
 	PARCELA  ='PARCELA'
 	OUTPUT = 'OUTPUT'
+	DEC_COORD = 'DEC_COORD'
+	DEC_PREC = 'DEC_PREC'
 
 	def tr(self, string):
 		return QCoreApplication.translate('Processing', string)
@@ -115,6 +117,26 @@ class createTemplate(QgsProcessingAlgorithm):
 		)
 
 		self.addParameter(
+            QgsProcessingParameterNumber(
+                self.DEC_COORD,
+                self.tr('Casas decimais das coordenadas'),
+                type = 0,
+                defaultValue = 3,
+                minValue = 3
+            )
+        )
+
+		self.addParameter(
+            QgsProcessingParameterNumber(
+                self.DEC_PREC,
+                self.tr('Casas decimais das precisões e altitude'),
+                type = 0,
+                defaultValue = 2,
+                minValue = 2
+            )
+        )
+
+		self.addParameter(
 			QgsProcessingParameterFileDestination(
 				self.OUTPUT,
 				self.tr('TXT de dados da Planilha ODS'),
@@ -155,6 +177,20 @@ class createTemplate(QgsProcessingAlgorithm):
 		)
 		if not output_path:
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
+
+		dec_coord = self.parameterAsInt(
+            parameters,
+            self.DEC_COORD,
+            context
+        )
+
+		dec_prec = self.parameterAsInt(
+            parameters,
+            self.DEC_PREC,
+            context
+        )
+
+		dec_prec = str(dec_prec)
 
 		# Validações
 
@@ -279,17 +315,17 @@ class createTemplate(QgsProcessingAlgorithm):
 						vert = feat2.geometry().asPoint()
 						if vert == pnt:
 							codigo = feat2['vertice']
-							longitude = dd2dms(vert.x(), 3) + 'W'
-							sigma_x = '{:.2f}'.format(feat2['sigma_x']).replace('.',',')
-							latitude = dd2dms(vert.y(), 3) + 'S' if vert.y() < 0 else dd2dms(vert.y(), 3) + 'N'
-							sigma_y = '{:.2f}'.format(feat2['sigma_y']).replace('.',',')
+							longitude = dd2dms(vert.x(), dec_coord) + 'W'
+							sigma_x = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_x']).replace('.',',')
+							latitude = dd2dms(vert.y(), dec_coord) + 'S' if vert.y() < 0 else dd2dms(vert.y(), 3) + 'N'
+							sigma_y = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_y']).replace('.',',')
 							z = float(feat2.geometry().constGet().z())
 							if str(z) != 'nan':
-								altitude = '{:.2f}'.format(z).replace('.',',')
+								altitude = ('{:.'+ dec_prec + 'f}').format(z).replace('.',',')
 							else:
 								altitude = '0,00'
 								feedback.pushInfo('Advertência: Ponto de código {} está com altitude igual a 0 (zero). Verifique!'.format(codigo))
-							sigma_z = '{:.2f}'.format(feat2['sigma_z']).replace('.',',')
+							sigma_z = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_z']).replace('.',',')
 							metodo_pos = feat2['metodo_pos']
 							break
 					for feat3 in limite.getFeatures():
