@@ -273,7 +273,8 @@ class createTemplate(QgsProcessingAlgorithm):
 			for pol in pols:
 				cont_parc += 1
 				arq.write('\n\nParcela {}\n'.format(cont_parc))
-				for pnt in pol[0][:-1]:
+				for k1, pnt in enumerate(pol[0][:-1]):
+					pnt_seg = pol[0][k1 + 1]
 					for feat2 in vertice.getFeatures():
 						vert = feat2.geometry().asPoint()
 						if vert == pnt:
@@ -294,8 +295,9 @@ class createTemplate(QgsProcessingAlgorithm):
 					for feat3 in limite.getFeatures():
 						linha = feat3.geometry().asPolyline()
 						sentinela = False
-						for vert in linha[:-1]:
-							if vert == pnt:
+						for k2, vert in enumerate(linha[:-1]):
+							vert_seg = linha[k2 + 1]
+							if vert == pnt and vert_seg == pnt_seg:
 								tipo = feat3['tipo']
 								confrontan = feat3['confrontan']
 								cns = str(feat3['cns']).replace('NULL', '')
@@ -307,5 +309,10 @@ class createTemplate(QgsProcessingAlgorithm):
 					arq.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(codigo, longitude, sigma_x, latitude, sigma_y, altitude, sigma_z, metodo_pos, tipo, cns, matricula , confrontan))
 
 		arq.close()
+
+		try:
+		    os.popen(output_path)
+		except:
+		    feedback.pushInfo('Abra o arquivo de saída na pasta {}'.format(output_path))
 
 		return {}
