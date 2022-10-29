@@ -108,4 +108,9 @@ class getSpreadsheet(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
+        try:
+            os.popen(fonte)
+        except:
+            feedback.pushInfo('Abra o arquivo de saída na pasta {}'.format(fonte))
+
         return {self.OUTPUT: output}
