@@ -101,7 +101,7 @@ class getSpreadsheet(QgsProcessingAlgorithm):
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
 
 
-        fonte = os.path.dirname(__file__) + "/shp" + "/planilha_modelo.ods"
+        fonte = os.path.dirname(__file__) + "/shp" + "/sigef_planilha_modelo_1.2_rc5.ods"
         shutil.copy(fonte, output)
 
         # Check for cancelation
