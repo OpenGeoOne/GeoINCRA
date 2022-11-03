@@ -308,7 +308,7 @@ class createTemplate(QgsProcessingAlgorithm):
 				pols = [geom1.asPolygon()]
 			for pol in pols:
 				cont_parc += 1
-				arq.write('\n\nParcela {}\n'.format(cont_parc))
+				arq.write('\n\nPerímetro {}\n'.format(cont_parc))
 				for k1, pnt in enumerate(pol[0][:-1]):
 					pnt_seg = pol[0][k1 + 1]
 					for feat2 in vertice.getFeatures():
