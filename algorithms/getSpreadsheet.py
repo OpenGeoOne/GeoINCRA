@@ -109,8 +109,8 @@ class getSpreadsheet(QgsProcessingAlgorithm):
             return {}
 
         try:
-            os.popen(fonte)
+            os.popen(output)
         except:
-            feedback.pushInfo('Abra o arquivo de saída na pasta {}'.format(fonte))
+            feedback.pushInfo('Abra o arquivo de saída na pasta {}'.format(output))
 
         return {self.OUTPUT: output}
