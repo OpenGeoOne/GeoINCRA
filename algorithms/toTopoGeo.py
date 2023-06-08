@@ -200,7 +200,8 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         #Vértice > limit_point_p
         dic_1 = {
         'type':['tipo_verti' , {'M':1, 'P':2, 'V':3}],
-        'code': 'vertice'
+        'code': 'vertice',
+        'sequence': 'indice'
         }
 
         #Limite > boundary_element_l
