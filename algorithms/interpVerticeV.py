@@ -72,7 +72,7 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
 
     def shortHelpString(self):
-        txt = '''Esta ferramenta calcula e preenche automaticamente o valor da cota Z e os sigmas de vértices do tipo V (virtual) obtidos do método de posicionamento "PA2: interseção de retas". O cálculo da interpolação é dado a partir dos dois vértices mais próximos utilizando da média ponderada pelo inverso da distância.'''
+        txt = '''Esta ferramenta calcula e preenche automaticamente o valor da cota Z e os sigmas de vértices do tipo V (virtual) obtidos dos métodos de posicionamento "PA1:Paralela" e "PA2: interseção de retas". O cálculo da interpolação é dado a partir dos dois vértices mais próximos utilizando a média ponderada pelo inverso da distância.'''
 
         footer = '''<div>
                       <div align="center">
@@ -114,7 +114,7 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
             QgsProcessingParameterBoolean(
                 self.SALVAR,
                 self.tr('Salvar Edições'),
-                defaultValue = True
+                defaultValue = False
             )
         )
 
@@ -140,11 +140,11 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
         # Verificar se existe ponto virtual com método de posicionamento PA2 (interseção)
         existe = False
         for feat in vertices.getFeatures():
-            if feat['tipo_verti'] == 'V' and feat['metodo_pos'] == 'PA2':
+            if feat['tipo_verti'] == 'V' and feat['metodo_pos'] in ('PA1','PA2'):
                 existe = True
                 break
         if not existe:
-            raise QgsProcessingException('Não existe vértice do tipo V obtida pelo método PA2 (interseção)!')
+            raise QgsProcessingException('Não existe vértice do tipo V obtida pelo método PA1 (paralela) ou PA2 (interseção)!')
 
         # Verificar se as precisões dos pontos foram preenchidas
         for feat in vertices.getFeatures():
@@ -163,7 +163,7 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
         # Verificar se as cotas dos pontos do tipo não Virtual foram preenchidas
         for feat in vertices.getFeatures():
             pnt = feat.geometry().constGet()
-            if str(pnt.z()) == 'nan':
+            if feat['tipo_verti'] != 'V' and str(pnt.z()) == 'nan':
                 raise QgsProcessingException('Coordenada Z do vértice de ID = {} deve ser preenchida!'.format(feat.id()))
             elif feat['tipo_verti'] != 'V' and pnt.z() == 0:
                 feedback.pushInfo('Coordenada Z do vértice de ID = {} é igual a Zero.'.format(feat.id()))
@@ -175,7 +175,7 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
             return (v1/dist1 + v2/dist2)/(1/dist1 + 1/dist2)
 
         for feat1 in vertices.getFeatures():
-            if feat1['tipo_verti'] == 'V' and feat1['metodo_pos'] == 'PA2':
+            if feat1['tipo_verti'] == 'V' and feat1['metodo_pos'] in ('PA1','PA2'):
                 pnt1 = feat1.geometry().constGet()
                 prox1 = {'dist':1e9, 'z': None, 'stdx': None, 'stdy': None, 'stdz': None, 'id': None}
                 prox2 = {'dist':1e9, 'z': None, 'stdx': None, 'stdy': None, 'stdz': None, 'id': None}
