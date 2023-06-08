@@ -34,6 +34,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterNumber,
                        QgsProcessingParameterBoolean,
                        QgsFeature,
+                       QgsSettings,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterVectorLayer)
 
@@ -106,11 +107,18 @@ class FillCodes(QgsProcessingAlgorithm):
                 [QgsProcessing.TypeVectorPoint])
         )
 
+        my_settings = QgsSettings()
+        my_user_code = my_settings.value("GeoINCRA/geoincra_user_code", "")
+        if my_user_code == "":
+            user_code_txt = 'Código do credenciado INCRA'
+        else:
+            user_code_txt = 'Código do credenciado INCRA ou usar código abaixo'
+
         self.addParameter(
             QgsProcessingParameterString(
                 self.CREDENCIADO,
-                self.tr('Código do credenciado INCRA'),
-                defaultValue = 'GONE'
+                user_code_txt,
+                defaultValue = my_user_code
             )
         )
 
@@ -189,6 +197,9 @@ class FillCodes(QgsProcessingAlgorithm):
         )
         credenciado = credenciado.upper().replace(' ','').replace('-','')
 
+        my_settings = QgsSettings()
+        my_settings.setValue("GeoINCRA/geoincra_user_code", parameters[self.CREDENCIADO])
+
         manter = self.parameterAsBool(
             parameters,
             self.MANTER,
@@ -222,14 +233,41 @@ class FillCodes(QgsProcessingAlgorithm):
 
         # Validações
 
-        # verificar se o campo "indice" existe
+        # Verificação de Modelo de Dados
         field_names = [campo.name() for campo in vertice.fields()]
-        if 'indice' not in field_names:
-            raise QgsProcessingException('Não existe o campo "indice" para sequência dos vértices!')
+
+        for att in ['vertice', 'tipo_verti', 'indice']: # GeoRural
+            if att not in field_names:
+                tipoModel = 'notGeoRural'
+                break
+        else:
+            tipoModel = 'GeoRural'
+
+        if tipoModel is 'notGeoRural':
+            for att in ['type', 'sequence', 'code']: # TopoGeo
+                if att not in field_names:
+                    tipoModel = 'notTopoGeo'
+                    break
+            else:
+                tipoModel = 'TopoGeo'
+
+        if tipoModel is 'notTopoGeo':
+            raise QgsProcessingException('Camada de entrada não está no modelo GeoRural e nem no TopoGeo! Verifique a documentação do plugin!')
+
+        # Atributos
+        feedback.pushInfo('Modelo {} identificado...'.format(tipoModel))
+        if tipoModel == 'GeoRural':
+            att_vertice, att_tipo_verti, att_indice = 'vertice', 'tipo_verti', 'indice'
+        else:
+            att_vertice, att_tipo_verti, att_indice = 'code', 'type', 'sequence'
+
+        # Tipo vertice
+        dic_tipo_vert = {1:'M', 2:'P', 3:'V'}
+
         # verificar se o campo indice está preenchido corretamente
         indices = []
         for feat in vertice.getFeatures():
-            ind = feat['indice']
+            ind = feat[att_indice]
             if ind:
                 indices += [ind]
             else:
@@ -240,8 +278,8 @@ class FillCodes(QgsProcessingAlgorithm):
 
         # verificar se o campo "tipo de vértice" está preenchido
         for feat in vertice.getFeatures():
-            tipo = feat['tipo_verti']
-            if tipo not in ('M', 'P', 'V'):
+            tipo = feat[att_tipo_verti]
+            if tipo not in ('M', 'P', 'V', 1, 2, 3):
                 raise QgsProcessingException('Verifique o preenchimento do campo "tipo de vértice"!')
 
         # Verificar se o valor "credenciado" é composto apenas por letras (no mínimo 3)
@@ -251,9 +289,12 @@ class FillCodes(QgsProcessingAlgorithm):
         # Listando valores para preenchimento
         dic = {}
         for feat in vertice.getFeatures():
-            tipo = feat['tipo_verti']
-            codigo_vert = feat['vertice']
-            sequencia = feat['indice']
+            codigo_vert = feat[att_vertice]
+            if tipoModel == 'TopoGeo':
+                tipo = dic_tipo_vert[feat[att_tipo_verti]]
+            else:
+                tipo = feat[att_tipo_verti]
+            sequencia = feat[att_indice]
             if codigo_vert:
                 if len(codigo_vert)< 8: # preenchido de forma errada
                     dic[sequencia] = tipo
@@ -280,10 +321,10 @@ class FillCodes(QgsProcessingAlgorithm):
 
         # Inserir valores dos códigos dos vértices nas feições
         total = vertice.featureCount()
-        columnIndex = vertice.fields().indexFromName('vertice')
+        columnIndex = vertice.fields().indexFromName(att_vertice)
 
         for k, feat in enumerate(vertice.getFeatures()):
-            sequencia = feat['indice']
+            sequencia = feat[att_indice]
             if sequencia in dic:
                 codigo_vert = dic[sequencia]
                 vertice.changeAttributeValue(feat.id(), columnIndex, codigo_vert)
