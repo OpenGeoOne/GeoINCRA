@@ -202,7 +202,7 @@ class createTemplate(QgsProcessingAlgorithm):
 				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_y"!')
 			if feat['sigma_z'] < 0 or feat['sigma_z'] > 10 or feat['sigma_z'] == None:
 				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_z"!')
-			if feat['metodo_pos'] not in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PA1', 'PA2', 'PS1', 'PS2', 'PS3', 'PS4'):
+			if feat['metodo_pos'] not in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PT9', 'PA1', 'PA2', 'PA3', 'PS1', 'PS2', 'PS3', 'PS4', 'PB1', 'PB2'):
 				raise QgsProcessingException ('Verifique os valores do atrituto "metodo_pos"!')
 			if feat['tipo_verti'] not in ('M', 'P', 'V'):
 				raise QgsProcessingException ('Verifique os valores do atrituto "tipo_vertice"!')
