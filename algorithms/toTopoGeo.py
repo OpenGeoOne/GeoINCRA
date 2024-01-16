@@ -218,7 +218,9 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         'owner': 'nome',
         'county': 'municipio',
         'state': 'uf',
-        'survey_date': 'data'
+        'survey_date': 'data',
+        'resp_tec': 'tech_manager',
+        'reg_prof': 'prof_id'
         }
 
         # Conversão
