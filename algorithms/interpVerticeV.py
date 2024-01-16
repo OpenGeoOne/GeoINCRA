@@ -137,14 +137,14 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
         vertices.startEditing()
         campos = vertices.fields()
 
-        # Verificar se existe ponto virtual com método de posicionamento PA2 (interseção)
+        # Verificar se existe ponto virtual com método de posicionamento PA1, PA2 ou PA3
         existe = False
         for feat in vertices.getFeatures():
-            if feat['tipo_verti'] == 'V' and feat['metodo_pos'] in ('PA1','PA2'):
+            if feat['tipo_verti'] == 'V' and feat['metodo_pos'] in ('PA1','PA2','PA3'):
                 existe = True
                 break
         if not existe:
-            raise QgsProcessingException('Não existe vértice do tipo V obtida pelo método PA1 (paralela) ou PA2 (interseção)!')
+            raise QgsProcessingException('Não existe vértice do tipo V obtida pelo método PA1 (paralela), PA2 (interseção) ou PA3 (Projeção Técnica)!')
 
         # Verificar se as precisões dos pontos foram preenchidas
         for feat in vertices.getFeatures():
@@ -155,7 +155,7 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
                     raise QgsProcessingException ('Verifique os valores do atrituto "sigma_y"!')
                 if feat['sigma_z'] < 0 or feat['sigma_z'] > 10  or feat['sigma_z'] == None:
                     raise QgsProcessingException ('Verifique os valores do atrituto "sigma_z"!')
-                if feat['metodo_pos'] not in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PA1', 'PA2', 'PS1', 'PS2', 'PS3', 'PS4'):
+                if feat['metodo_pos'] not in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PT9','PA1', 'PA2', 'PA3', 'PS1', 'PS2', 'PS3', 'PS4', 'PB1', 'PB2'):
                     raise QgsProcessingException ('Verifique os valores do atrituto "metodo_pos"!')
                 if feat['tipo_verti'] not in ('M', 'P', 'V'):
                     raise QgsProcessingException ('Verifique os valores do atrituto "tipo_vertice"!')
