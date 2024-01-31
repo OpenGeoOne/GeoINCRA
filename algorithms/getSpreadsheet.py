@@ -34,6 +34,7 @@ from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
 import os
 import shutil
+import requests
 
 
 class getSpreadsheet(QgsProcessingAlgorithm):
@@ -102,7 +103,24 @@ class getSpreadsheet(QgsProcessingAlgorithm):
 
 
         fonte = os.path.dirname(__file__) + "/shp" + "/sigef_planilha_modelo_1.2_rc5.ods"
-        shutil.copy(fonte, output)
+
+        try:
+            shutil.copy(fonte, output)
+
+        except:
+            try:
+                # Fazendo a requisição GET para obter o conteúdo do arquivo
+                url = "https://sigef.incra.gov.br/static/sigef_planilha_modelo_1.2_rc5.ods"
+                response = requests.get(url)
+                # Verificando se a requisição foi bem-sucedida
+                if response.status_code == 200:
+                    # Escrevendo o conteúdo do arquivo em um arquivo local
+                    with open(output, 'wb') as f:
+                        f.write(response.content)
+                else:
+                    feedback.pushInfo("Falha ao baixar o arquivo. Status code: {}".format(response.status_code))
+            except Exception as e:
+                feedback.pushInfo("Ocorreu um erro: {}".format(e))
 
         # Check for cancelation
         if feedback.isCanceled():
