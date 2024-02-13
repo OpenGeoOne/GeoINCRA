@@ -1217,15 +1217,15 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
 
 ## Como contribuir aprendendo mais
 <div style="text-align: center;"><a
- href="https://pay.hotmart.com/X69158193B?checkoutMode=10&bid=1649294185791"><img
+ href="https://geoone.com.br/pvgeoincra2/"><img
  style="border: 2px solid ;" alt="GeoINCRA no QGIS"
- title="CURSO NA HOTMART"
+ title="CURSO NA GEOONE"
  src="https://user-images.githubusercontent.com/88212377/161396191-32d9775a-d877-4eed-b8d1-61f07caf4af8.jpg"></a>
 <br>
 </div>
 <div style="text-align: center;"><a
  style="font-weight: bold;"
- href="https://pay.hotmart.com/X69158193B?checkoutMode=10&bid=1649294185791">CLIQUE 
+ href="https://geoone.com.br/pvgeoincra2/">CLIQUE 
     : Georreferenciamento de Imóveis Rurais com o plugin GeoINCRA no QGIS</a></div>
 
 
