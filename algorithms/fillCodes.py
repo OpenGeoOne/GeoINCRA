@@ -90,6 +90,7 @@ class FillCodes(QgsProcessingAlgorithm):
         return txt + footer
 
     VERTICES = 'VERTICES'
+    SELECTED = 'SELECTED'
     CREDENCIADO = 'CREDENCIADO'
     MANTER = 'MANTER'
     M_INI = 'M_INI'
@@ -105,6 +106,14 @@ class FillCodes(QgsProcessingAlgorithm):
                 self.VERTICES,
                 self.tr('Camada Vértice'),
                 [QgsProcessing.TypeVectorPoint])
+        )
+
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.SELECTED,
+                self.tr('Apenas selecionados'),
+                defaultValue = False
+            )
         )
 
         my_settings = QgsSettings()
@@ -188,7 +197,11 @@ class FillCodes(QgsProcessingAlgorithm):
         if vertice is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.VERTICES))
 
-        vertice.startEditing()
+        selecionados = self.parameterAsBool(
+            parameters,
+            self.SELECTED,
+            context
+        )
 
         credenciado = self.parameterAsString(
             parameters,
@@ -266,7 +279,7 @@ class FillCodes(QgsProcessingAlgorithm):
 
         # verificar se o campo indice está preenchido corretamente
         indices = []
-        for feat in vertice.getFeatures():
+        for feat in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
             ind = feat[att_indice]
             if ind:
                 indices += [ind]
@@ -277,7 +290,7 @@ class FillCodes(QgsProcessingAlgorithm):
             raise QgsProcessingException('A sequência dos vértices deve ser preenchida corretamente!')
 
         # verificar se o campo "tipo de vértice" está preenchido
-        for feat in vertice.getFeatures():
+        for feat in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
             tipo = feat[att_tipo_verti]
             if tipo not in ('M', 'P', 'V', 1, 2, 3):
                 raise QgsProcessingException('Verifique o preenchimento do campo "tipo de vértice"!')
@@ -288,7 +301,8 @@ class FillCodes(QgsProcessingAlgorithm):
 
         # Listando valores para preenchimento
         dic = {}
-        for feat in vertice.getFeatures():
+        for feat in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
+            print('oi')
             codigo_vert = feat[att_vertice]
             if tipoModel == 'TopoGeo':
                 tipo = dic_tipo_vert[feat[att_tipo_verti]]
@@ -296,7 +310,7 @@ class FillCodes(QgsProcessingAlgorithm):
                 tipo = feat[att_tipo_verti]
             sequencia = feat[att_indice]
             if codigo_vert:
-                if len(codigo_vert)< 8: # preenchido de forma errada
+                if len(codigo_vert) < 8: # preenchido de forma errada
                     dic[sequencia] = tipo
                 else: # preenchido corretamente
                     if not manter:
@@ -323,7 +337,9 @@ class FillCodes(QgsProcessingAlgorithm):
         total = vertice.featureCount()
         columnIndex = vertice.fields().indexFromName(att_vertice)
 
-        for k, feat in enumerate(vertice.getFeatures()):
+        vertice.startEditing()
+
+        for k, feat in enumerate(vertice.getSelectedFeatures() if selecionados else vertice.getFeatures()):
             sequencia = feat[att_indice]
             if sequencia in dic:
                 codigo_vert = dic[sequencia]
