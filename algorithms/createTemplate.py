@@ -288,17 +288,17 @@ class createTemplate(QgsProcessingAlgorithm):
 		geoms = []
 		for feat1 in limite.getFeatures():
 			geom1 = feat1.geometry()
-			if geom1 not in geoms:
-				geoms += [geom1]
+			if geom1.asWkt() not in geoms:
+				geoms += [geom1.asWkt()]
 			else:
 				raise QgsProcessingException('Geometria de ID {} da camada "limite" está duplicada!'.format(feat1.id()))
 
         # Verificar geometrias duplicadas para parcela
 		geoms = []
-		for feat1 in limite.getFeatures():
+		for feat1 in parcela.getFeatures():
 			geom1 = feat1.geometry()
-			if geom1 not in geoms:
-				geoms += [geom1]
+			if geom1.asWkt() not in geoms:
+				geoms += [geom1.asWkt()]
 			else:
 				raise QgsProcessingException('Geometria de ID {} da camada "parcela" está duplicada!'.format(feat1.id()))
 
