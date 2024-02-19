@@ -209,6 +209,7 @@ class createTemplate(QgsProcessingAlgorithm):
 			if len(feat['vertice']) < 7:
 				raise QgsProcessingException ('Verifique os valores do atrituto "código do vértice"!')
 
+        # Checar relação entre atributos
 
 		# Camada parcela deve ter apenas uma feição selecionada
 		if parcela.featureCount() != 1:
@@ -233,6 +234,80 @@ class createTemplate(QgsProcessingAlgorithm):
 				if not corresp:
 					raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada limite não possui correspondente na camada vértice!'.format(pnt.x(), pnt.y()))
 
+        # Verificar orientação dos confrontantes
+		for feat1 in limite.getFeatures():
+			geom1 =  feat1.geometry()
+			ultimo_pnt = geom1.asPolyline()[-1]
+			for feat2 in limite.getFeatures():
+				if feat1.id() != feat2.id():
+					geom2 = feat2.geometry()
+					primeiro_pnt = geom2.asPolyline()[0]
+					if ultimo_pnt == primeiro_pnt:
+						break
+			else:
+				raise QgsProcessingException('Problema de orientação dos confrontantes no Ponto de coordenadas ({}, {}) da camada limite!'.format(ultimo_pnt.x(), ultimo_pnt.y()))
+
+        # Verificar nós duplicados da camada vertice
+		pontos = []
+		for feat1 in vertice.getFeatures():
+			vert = feat1.geometry().asPoint()
+			if vert not in pontos:
+				pontos += [vert]
+			else:
+				raise QgsProcessingException('Nó duplicado na camada "vertice" no ponto de coordenadas ({}, {})!'.format(vert.x(), vert.y()))
+
+        # Verificar nós duplicados da camada limite
+		for feat1 in limite.getFeatures():
+			geom1 = feat1.geometry()
+			if geom1.isMultipart():
+				linha = feat1.geometry().asMultiPolyline()[0]
+			else:
+				linha = feat1.geometry().asPolyline()
+			pontos = []
+			for pnt in linha:
+				if pnt not in pontos:
+					pontos += [pnt]
+				else:
+					raise QgsProcessingException('Nó duplicado na camada "limite" no ponto de coordenadas ({}, {})!'.format(pnt.x(), pnt.y()))
+
+        # Verificar nós duplicados da camada parcela
+		for feat1 in parcela.getFeatures():
+			geom1 = feat1.geometry()
+			if geom1.isMultipart():
+				pol = feat1.geometry().asMultiPolygon()[0][0]
+			else:
+				pol = feat1.geometry().asPolygon()[0]
+			pontos = []
+			for pnt in pol[:-1]:
+				if pnt not in pontos:
+					pontos += [pnt]
+				else:
+					raise QgsProcessingException('Nó duplicado na camada "parcela" no ponto de coordenadas ({}, {})!'.format(pnt.x(), pnt.y()))
+
+        # Verificar geometrias duplicadas para camada limite
+		geoms = []
+		for feat1 in limite.getFeatures():
+			geom1 = feat1.geometry()
+			if geom1 not in geoms:
+				geoms += [geom1]
+			else:
+				raise QgsProcessingException('Geometria de ID {} da camada "limite" está duplicada!'.format(feat1.id()))
+
+        # Verificar geometrias duplicadas para parcela
+		geoms = []
+		for feat1 in limite.getFeatures():
+			geom1 = feat1.geometry()
+			if geom1 not in geoms:
+				geoms += [geom1]
+			else:
+				raise QgsProcessingException('Geometria de ID {} da camada "parcela" está duplicada!'.format(feat1.id()))
+
+        # Verificar altitude Z não preenchida
+		for feat1 in vertice.getFeatures():
+			z = float(feat1.geometry().constGet().z())
+			if str(z) == 'nan' or z == 0:
+				raise QgsProcessingException('Cota Z não preenchida ou igual a zero no ponto de coordenadas ({}, {})!'.format(pnt.x(), pnt.y()))
+
 		# Verificar se cada vértice da camada parcela (polígono) tem o correspondente da camada vétice (ponto)
 		for feat1 in parcela.getFeatures():
 			geom1 = feat1.geometry()
@@ -250,8 +325,6 @@ class createTemplate(QgsProcessingAlgorithm):
 							continue
 					if not corresp:
 						raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada parcela não possui correspondente na camada vértice!'.format(pnt.x(), pnt.y()))
-
-		# Outras validações - nós duplicados, feições duplicadas, relação entre atributos, altitude não preenchida ou igual a zero
 
 		def dd2dms(dd, n_digits=3):
 			if dd != 0:
@@ -320,11 +393,7 @@ class createTemplate(QgsProcessingAlgorithm):
 							latitude = dd2dms(vert.y(), dec_coord) + 'S' if vert.y() < 0 else dd2dms(vert.y(), 3) + 'N'
 							sigma_y = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_y']).replace('.',',')
 							z = float(feat2.geometry().constGet().z())
-							if str(z) != 'nan':
-								altitude = ('{:.'+ dec_prec + 'f}').format(z).replace('.',',')
-							else:
-								altitude = '0,00'
-								feedback.pushInfo('Advertência: Ponto de código {} está com altitude igual a 0 (zero). Verifique!'.format(codigo))
+							altitude = ('{:.'+ dec_prec + 'f}').format(z).replace('.',',')
 							sigma_z = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_z']).replace('.',',')
 							metodo_pos = feat2['metodo_pos']
 							break
