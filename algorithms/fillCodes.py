@@ -357,6 +357,6 @@ class FillCodes(QgsProcessingAlgorithm):
            raise QgsProcessingException(self.invalidSourceError(parameters, self.SAVE))
 
         if salvar:
-           layer.commitChanges() # salva as edições
+           vertice.commitChanges() # salva as edições
 
         return {}
