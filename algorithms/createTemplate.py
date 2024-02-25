@@ -31,6 +31,7 @@ from qgis.core import (QgsProcessing,
 					   QgsProcessingException,
 					   QgsGeometry,
                        QgsProcessingParameterNumber,
+                       QgsProcessingParameterBoolean,
 					   QgsExpressionContextUtils,
 					   QgsExpressionContext,
 					   QgsProcessingParameterFeatureSource,
@@ -50,6 +51,7 @@ class createTemplate(QgsProcessingAlgorithm):
 	PARCELA  ='PARCELA'
 	OUTPUT = 'OUTPUT'
 	DEC_COORD = 'DEC_COORD'
+	VER_Z = 'VER_Z'
 	DEC_PREC = 'DEC_PREC'
 
 	def tr(self, string):
@@ -133,6 +135,14 @@ class createTemplate(QgsProcessingAlgorithm):
                 type = 0,
                 defaultValue = 2,
                 minValue = 2
+            )
+        )
+
+		self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.VER_Z,
+                self.tr('Verificar preenchimento de cota Z'),
+                defaultValue = False
             )
         )
 
@@ -254,7 +264,7 @@ class createTemplate(QgsProcessingAlgorithm):
 			if vert not in pontos:
 				pontos += [vert]
 			else:
-				raise QgsProcessingException('Nó duplicado na camada "vertice" no ponto de coordenadas ({}, {})!'.format(vert.x(), vert.y()))
+				raise QgsProcessingException('Nó duplicado na camada "vertice" no ponto de coordenadas ({}, {})!'.format(vert.y(), vert.x()))
 
         # Verificar nós duplicados da camada limite
 		for feat1 in limite.getFeatures():
@@ -268,7 +278,7 @@ class createTemplate(QgsProcessingAlgorithm):
 				if pnt not in pontos:
 					pontos += [pnt]
 				else:
-					raise QgsProcessingException('Nó duplicado na camada "limite" no ponto de coordenadas ({}, {})!'.format(pnt.x(), pnt.y()))
+					raise QgsProcessingException('Nó duplicado na camada "limite" no ponto de coordenadas ({}, {})!'.format(pnt.y(), pnt.x()))
 
         # Verificar nós duplicados da camada parcela
 		for feat1 in parcela.getFeatures():
@@ -282,7 +292,7 @@ class createTemplate(QgsProcessingAlgorithm):
 				if pnt not in pontos:
 					pontos += [pnt]
 				else:
-					raise QgsProcessingException('Nó duplicado na camada "parcela" no ponto de coordenadas ({}, {})!'.format(pnt.x(), pnt.y()))
+					raise QgsProcessingException('Nó duplicado na camada "parcela" no ponto de coordenadas ({}, {})!'.format(pnt.y(), pnt.x()))
 
         # Verificar geometrias duplicadas para camada limite
 		geoms = []
@@ -302,11 +312,17 @@ class createTemplate(QgsProcessingAlgorithm):
 			else:
 				raise QgsProcessingException('Geometria de ID {} da camada "parcela" está duplicada!'.format(feat1.id()))
 
-        # Verificar altitude Z não preenchida
-		for feat1 in vertice.getFeatures():
-			z = float(feat1.geometry().constGet().z())
-			if str(z) == 'nan' or z == 0:
-				raise QgsProcessingException('Cota Z não preenchida ou igual a zero no ponto de coordenadas ({}, {})!'.format(pnt.x(), pnt.y()))
+		ver_z = self.parameterAsBool(
+           parameters,
+           self.VER_Z,
+           context
+        )
+		if ver_z:
+            # Verificar altitude Z não preenchida
+			for feat1 in vertice.getFeatures():
+				z = float(feat1.geometry().constGet().z())
+				if str(z) == 'nan' or z == 0:
+					raise QgsProcessingException('Cota Z não preenchida ou igual a zero no ponto de coordenadas ({}, {})!'.format(pnt.y(), pnt.x()))
 
 		# Verificar se cada vértice da camada parcela (polígono) tem o correspondente da camada vétice (ponto)
 		for feat1 in parcela.getFeatures():
@@ -393,7 +409,12 @@ class createTemplate(QgsProcessingAlgorithm):
 							latitude = dd2dms(vert.y(), dec_coord) + 'S' if vert.y() < 0 else dd2dms(vert.y(), 3) + 'N'
 							sigma_y = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_y']).replace('.',',')
 							z = float(feat2.geometry().constGet().z())
-							altitude = ('{:.'+ dec_prec + 'f}').format(z).replace('.',',')
+							if z == 'nan' or z == 0:
+								feedback.pushInfo('Advertência: Ponto de código {} está com altitude igual a 0 (zero). Verifique!'.format(codigo))
+							if str(z) != 'nan':
+								altitude = ('{:.'+ dec_prec + 'f}').format(z).replace('.',',')
+							else:
+								altitude = ('{:.'+ dec_prec + 'f}').format(0).replace('.',',')
 							sigma_z = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_z']).replace('.',',')
 							metodo_pos = feat2['metodo_pos']
 							break
