@@ -42,6 +42,7 @@ from .algorithms.addWkt import addWkt
 from .algorithms.toTopoGeo import ToTopoGeo
 from .algorithms.fillCodes import FillCodes
 from .algorithms.interpVerticeV import InterpolarVerticeV
+from .algorithms.createTemplate2 import createTemplate2
 
 
 class GeoINCRAProvider(QgsProcessingProvider):
@@ -71,6 +72,7 @@ class GeoINCRAProvider(QgsProcessingProvider):
         self.addAlgorithm(ToTopoGeo())
         self.addAlgorithm(FillCodes())
         self.addAlgorithm(InterpolarVerticeV())
+        self.addAlgorithm(createTemplate2())
 
 
     def id(self):
