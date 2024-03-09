@@ -16,6 +16,7 @@ def create_table(args=None):
 	doc.setValue("B13", "Codigo do Imovel") # código do imóvel
 	doc.setValue("B14", "Codigo do cartorio") # código cartório
 	doc.setValue("B15", "Matricula") # matrícula
+	doc.setValue("A17", "Municipio")
 	doc.setValue("B17", "Municipio")
 
 #copy_sheet
