@@ -206,11 +206,11 @@ class createTemplate(QgsProcessingAlgorithm):
 
 		# Checar preenchimento dos atributos da camada vértice
 		for feat in vertice.getFeatures():
-			if feat['sigma_x'] < 0 or feat['sigma_x'] > 10 or feat['sigma_x'] == None:
+			if feat['sigma_x'] < 0 or feat['sigma_x'] > 7.5 or feat['sigma_x'] == None:
 				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_x"!')
-			if feat['sigma_y'] < 0 or feat['sigma_y'] > 10 or feat['sigma_y'] == None:
+			if feat['sigma_y'] < 0 or feat['sigma_y'] > 7.5 or feat['sigma_y'] == None:
 				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_y"!')
-			if feat['sigma_z'] < 0 or feat['sigma_z'] > 10 or feat['sigma_z'] == None:
+			if feat['sigma_z'] < 0 or feat['sigma_z'] > 7.5 or feat['sigma_z'] == None:
 				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_z"!')
 			if feat['metodo_pos'] not in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PT9', 'PA1', 'PA2', 'PA3', 'PS1', 'PS2', 'PS3', 'PS4', 'PB1', 'PB2'):
 				raise QgsProcessingException ('Verifique os valores do atrituto "metodo_pos"!')
@@ -220,6 +220,8 @@ class createTemplate(QgsProcessingAlgorithm):
 				raise QgsProcessingException ('Verifique os valores do atrituto "código do vértice"!')
 
         # Checar relação entre atributos
+
+        # Checar preenchimento dos sigmas de acordo com o tipo de vértice
 
 		# Camada parcela deve ter apenas uma feição selecionada
 		if parcela.featureCount() != 1:
@@ -375,17 +377,17 @@ class createTemplate(QgsProcessingAlgorithm):
 		nat_ser = {1:'Particular', 2:'Contrato com Adm Pública'}
 		pessoa, situacao  = {1:'Física', 2:'Jurídica'}, {1:'Imóvel Registrado', 2:'Área Titulada não Registrada', 3:'Área não Titulada'}
 
-		arq.write('Natureza do Serviço: '+ nat_ser[feat1['nat_serv']]+ '\n')
-		arq.write('Tipo Pessoa: '+ pessoa[feat1['pessoa']]+ '\n')
-		arq.write('nome: '+ str(feat1['nome'])+ '\n')
-		arq.write('CPF: '+ str(feat1['cpf_cnpj'])+ '\n')
-		arq.write('Denominação: '+ str(feat1['denominacao'])+ '\n')
-		arq.write('Situação: '+ situacao[feat1['situacao']]+ '\n')
-		arq.write('Código do Imóvel (SNCR/INCRA): '+ str(feat1['sncr'])+ '\n')
-		arq.write('Código do cartório (CNS): '+ str(feat1['cod_cartorio'])+ '\n')
-		arq.write('Matricula: '+ str(feat1['matricula'])+ '\n')
-		arq.write('Município: '+ str(feat1['municipio'])+ '\n')
-		arq.write('UF: '+ str(feat1['uf'])+ '\n')
+		arq.write('Natureza do Serviço: ' + (nat_ser[feat1['nat_serv']] if feat1['nat_serv'] in nat_ser else '')  + '\n')
+		arq.write('Tipo Pessoa: ' + (pessoa[feat1['pessoa']] if feat1['pessoa'] in pessoa else '') + '\n')
+		arq.write('Nome: ' + str(feat1['nome']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('CPF: ' + str(feat1['cpf_cnpj']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('Denominação: ' + str(feat1['denominacao']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('Situação: ' + (situacao[feat1['situacao']] if feat1['situacao'] in situacao else '') + '\n')
+		arq.write('Código do Imóvel (SNCR/INCRA): ' + str(feat1['sncr']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('Código do cartório (CNS): ' + str(feat1['cod_cartorio']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('Matricula: ' + str(feat1['matricula']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('Município: ' + str(feat1['municipio']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('UF: ' + str(feat1['uf']).replace('\n','') + '\n')
 
 		# Preenchimento das Parcelas
 		cont_parc = 0
@@ -432,7 +434,7 @@ class createTemplate(QgsProcessingAlgorithm):
 								break
 						if sentinela:
 							break
-					arq.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(codigo, longitude, sigma_x, latitude, sigma_y, altitude, sigma_z, metodo_pos, tipo, cns, matricula , confrontan))
+					arq.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(codigo, longitude, sigma_x, latitude, sigma_y, altitude, sigma_z, metodo_pos, tipo, cns.replace('\n',''), matricula.replace('\n','') , confrontan.replace('\n','')))
 
 		arq.close()
 
