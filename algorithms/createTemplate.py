@@ -156,7 +156,7 @@ class createTemplate(QgsProcessingAlgorithm):
 
 	def processAlgorithm(self, parameters, context, feedback):
 
-		vertice = self.parameterAsVectorLayer(
+		vertice = self.parameterAsSource(
 			parameters,
 			self.VERTICE,
 			context
@@ -164,7 +164,7 @@ class createTemplate(QgsProcessingAlgorithm):
 		if vertice is None:
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.VERTICE))
 
-		limite = self.parameterAsVectorLayer(
+		limite = self.parameterAsSource(
 			parameters,
 			self.LIMITE,
 			context
@@ -172,7 +172,7 @@ class createTemplate(QgsProcessingAlgorithm):
 		if limite is None:
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.LIMITE))
 
-		parcela = self.parameterAsVectorLayer(
+		parcela = self.parameterAsSource(
 			parameters,
 			self.PARCELA,
 			context
