@@ -52,6 +52,7 @@ class createTemplate(QgsProcessingAlgorithm):
 	OUTPUT = 'OUTPUT'
 	DEC_COORD = 'DEC_COORD'
 	VER_Z = 'VER_Z'
+	ABRIR = 'ABRIR'
 	DEC_PREC = 'DEC_PREC'
 
 	def tr(self, string):
@@ -153,6 +154,14 @@ class createTemplate(QgsProcessingAlgorithm):
 				self.tr('Texto (*.txt)')
 			)
 		)
+
+		self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.ABRIR,
+                self.tr('Abrir automaticamente'),
+                defaultValue = True
+            )
+        )
 
 	def processAlgorithm(self, parameters, context, feedback):
 
@@ -438,9 +447,16 @@ class createTemplate(QgsProcessingAlgorithm):
 
 		arq.close()
 
-		try:
-		    os.popen(output_path)
-		except:
-		    feedback.pushInfo('Abra o arquivo de saída na pasta {}'.format(output_path))
+		abrir = self.parameterAsBool(
+           parameters,
+           self.ABRIR,
+           context
+        )
+
+		if abrir:
+		    try:
+		    	os.popen(output_path)
+		    except:
+		    	feedback.pushInfo('Abra o arquivo de saída na pasta {}'.format(output_path))
 
 		return {}
