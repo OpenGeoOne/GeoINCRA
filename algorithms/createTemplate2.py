@@ -151,7 +151,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 
 	def processAlgorithm(self, parameters, context, feedback):
 
-		vertice = self.parameterAsVectorLayer(
+		vertice = self.parameterAsSource(
 			parameters,
 			self.VERTICE,
 			context
@@ -159,7 +159,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 		if vertice is None:
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.VERTICE))
 
-		limite = self.parameterAsVectorLayer(
+		limite = self.parameterAsSource(
 			parameters,
 			self.LIMITE,
 			context
@@ -167,7 +167,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 		if limite is None:
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.LIMITE))
 
-		parcela = self.parameterAsVectorLayer(
+		parcela = self.parameterAsSource(
 			parameters,
 			self.PARCELA,
 			context
@@ -373,22 +373,52 @@ class createTemplate2(QgsProcessingAlgorithm):
 
 	def vertice (self,pnt,vertice,dec_coord,dec_prec):
 
-		dec_coord = str(dec_coord)
-		dec_prec = str(dec_prec)
 
-		expr1 = QgsExpression("to_dms($y, 'y', {}, 'aligned')".format(dec_coord))
-		expr2 = QgsExpression("to_dms($x, 'x', {}, 'aligned')".format(dec_coord))
-		context = QgsExpressionContext()
-		context.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(vertice))
+		dec_prec = str(dec_prec)
+		# dec_coord = str(dec_coord)
+		# expr1 = QgsExpression("to_dms($y, 'y', {}, 'aligned')".format(dec_coord))
+		# expr2 = QgsExpression("to_dms($x, 'x', {}, 'aligned')".format(dec_coord))
+		# context = QgsExpressionContext()
+		# context.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(vertice))
+		def dd2dms(dd, n_digits=3):
+			if dd != 0:
+				graus = int(floor(abs(dd)))
+				resto = round(abs(dd) - graus, 10)
+				minutos = int(floor(60*resto))
+				resto = round(resto*60 - minutos, 10)
+				segundos = resto*60
+				if round(segundos,n_digits) == 60:
+					minutos += 1
+					segundos = 0
+				if minutos == 60:
+					graus += 1
+					minutos = 0
+				if dd < 0:
+					texto = '{:02d}'.format(graus) + ' '
+				else:
+					texto = '{:02d}'.format(graus) + ' '
+				texto = texto + '{:02d}'.format(minutos) + " "
+				if n_digits < 1:
+					texto = texto + '{:02d}'.format(int(segundos)) + ' '
+				else:
+					texto = texto + ('{:0' + str(3+n_digits) + '.' + str(n_digits) + 'f}').format(segundos) + ' '
+				return texto.replace('.',',')
+			else:
+				texto = "00 00 " + ('{:0' + str(3+n_digits) + '.' + str(n_digits) + 'f}').format(0)
+				return texto.replace('.',',')
 
 		for feat in vertice.getFeatures():
-			context.setFeature(feat)
+			# context.setFeature(feat)
 			vert = feat.geometry().asPoint()
 			if vert == pnt:
 				codigo = feat['vertice']
-				longitude = str(expr2.evaluate(context)).replace("°"," ").replace("′"," ").replace('″',' ')
+				#longitude = str(expr2.evaluate(context)).replace("°"," ").replace("′"," ").replace('″',' ')
+				longitude = dd2dms(vert.x(), dec_coord) + 'W'
+				#longitude = longitude.replace("°"," ").replace("'"," ").replace('"',' ')
 				sigma_x = ('{:.'+ dec_prec + 'f}').format(feat['sigma_x']).replace('.',',')
-				latitude = str(expr1.evaluate(context)).replace("°"," ").replace("′"," ").replace('″',' ')
+				#latitude = str(expr1.evaluate(context)).replace("°"," ").replace("′"," ").replace('″',' ')
+				latitude = dd2dms(vert.y(), dec_coord) + 'S' if vert.y() < 0 else dd2dms(vert.y(), 3) + 'N'
+				#latitude = latitude.replace("°"," ").replace("'"," ").replace('"',' ')
 				sigma_y = ('{:.'+ dec_prec + 'f}').format(feat['sigma_y']).replace('.',',')
 				z = float(feat.geometry().constGet().z())
 				if str(z) != 'nan':
