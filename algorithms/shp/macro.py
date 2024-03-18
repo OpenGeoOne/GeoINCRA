@@ -17,10 +17,10 @@ def create_table(args=None):
 	doc.setValue("B14", "Codigo do cartorio") # código cartório
 	doc.setValue("B15", "Matricula") # matrícula
 	doc.setValue("A17", "Municipio")
-	doc.setValue("B17", "Municipio")
+	doc.setValue("B17", "Municipio") # Município
 
 #copy_sheet
-	
+
 	doc.activate("perimetro_1")
 #table_1
 
@@ -31,4 +31,3 @@ def create_table(args=None):
 
 	doc.SaveCopyAs(NewURL, overwrite = True)
 	doc.CloseDocument(False)
-	
