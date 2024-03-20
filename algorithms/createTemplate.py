@@ -123,7 +123,7 @@ class createTemplate(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.DEC_COORD,
                 self.tr('Casas decimais das coordenadas'),
-                type = 0,
+                type = QgsProcessingParameterNumber.Type.Integer,
                 defaultValue = 3,
                 minValue = 3
             )
@@ -133,7 +133,7 @@ class createTemplate(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.DEC_PREC,
                 self.tr('Casas decimais das precisões e altitude'),
-                type = 0,
+                type = QgsProcessingParameterNumber.Type.Integer,
                 defaultValue = 2,
                 minValue = 2
             )
