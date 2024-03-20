@@ -143,7 +143,7 @@ class FillCodes(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.M_INI,
                 self.tr('Tipo M - primeiro número'),
-                type = 0,
+                type = QgsProcessingParameterNumber.Type.Integer,
                 defaultValue = 1,
                 minValue = 1
                 )
@@ -153,7 +153,7 @@ class FillCodes(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.P_INI,
                 self.tr('Tipo P - primeiro número'),
-                type = 0,
+                type = QgsProcessingParameterNumber.Type.Integer,
                 defaultValue = 1,
                 minValue = 1
                 )
@@ -163,7 +163,7 @@ class FillCodes(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.V_INI,
                 self.tr('Tipo V - primeiro número'),
-                type = 0,
+                type = QgsProcessingParameterNumber.Type.Integer,
                 defaultValue = 1,
                 minValue = 1
                 )
@@ -173,7 +173,7 @@ class FillCodes(QgsProcessingAlgorithm):
             QgsProcessingParameterNumber(
                 self.DIGITOS,
                 self.tr('Número de dígitos'),
-                type = 0,
+                type = QgsProcessingParameterNumber.Type.Integer,
                 defaultValue = 4,
                 minValue = 4
                 )
