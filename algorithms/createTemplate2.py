@@ -34,6 +34,7 @@ from qgis.core import (QgsProcessing,
 					   QgsExpressionContextUtils,
 					   QgsExpressionContext,
 					   QgsProcessingParameterFeatureSource,
+					   QgsFeatureRequest,
 					   QgsProcessingAlgorithm,
 					   QgsExpression,
 					   QgsExpressionContext,
@@ -167,6 +168,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 		if limite is None:
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.LIMITE))
 
+		context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)
 		parcela = self.parameterAsSource(
 			parameters,
 			self.PARCELA,
@@ -203,10 +205,10 @@ class createTemplate2(QgsProcessingAlgorithm):
 
 		path_macro = os.path.join(Path.home(), "AppData\\Roaming\\LibreOffice\\4\\user\\Scripts\\python")
 		if os.path.isdir(path_macro): # verifica se diretorio ja existe
-			feedback.pushInfo ('Já existe uma pasta com esse nome!')
+			feedback.pushInfo ('Já existe uma pasta com esse nome para a macro!')
 		else:
 			os.makedirs(path_macro) # cria pasta caso nao exista
-			feedback.pushInfo ('Pasta criada com sucesso!  {}'.format(path_macro))
+			feedback.pushInfo ('Pasta criada com sucesso para a macro!  {}'.format(path_macro))
 
 
 		path_ods = os.path.join(Path.home(), "AppData\\Roaming\\QGIS\\QGIS3\\profiles\\default\\python\\plugins\\GeoINCRA\\algorithms\\shp\\sigef_planilha_modelo_1.2_rc5.ods")
