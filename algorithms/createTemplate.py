@@ -35,6 +35,7 @@ from qgis.core import (QgsProcessing,
 					   QgsExpressionContextUtils,
 					   QgsExpressionContext,
 					   QgsProcessingParameterFeatureSource,
+					   QgsFeatureRequest,
 					   QgsProcessingAlgorithm,
 					   QgsProcessingParameterFileDestination)
 
@@ -181,6 +182,7 @@ class createTemplate(QgsProcessingAlgorithm):
 		if limite is None:
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.LIMITE))
 
+		context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)
 		parcela = self.parameterAsSource(
 			parameters,
 			self.PARCELA,
