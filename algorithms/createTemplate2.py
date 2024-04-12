@@ -204,9 +204,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 		path_libfile = os.path.join(liboffice_path, liboffice_exe)
 
 		path_macro = os.path.join(Path.home(), "AppData\\Roaming\\LibreOffice\\4\\user\\Scripts\\python")
-		if os.path.isdir(path_macro): # verifica se diretorio ja existe
-			feedback.pushInfo ('Já existe uma pasta com esse nome para a macro!')
-		else:
+		if not os.path.isdir(path_macro): # verifica se diretorio ja existe
 			os.makedirs(path_macro) # cria pasta caso nao exista
 			feedback.pushInfo ('Pasta criada com sucesso para a macro!  {}'.format(path_macro))
 
@@ -272,8 +270,10 @@ class createTemplate2(QgsProcessingAlgorithm):
 			for k1, pnt in enumerate(pol[0][:-1]):
 				codigo,longitude,sigma_x,latitude,sigma_y,altitude, sigma_z,metodo_pos = self.vertice (pnt,vertice,dec_coord,dec_prec)
 				pnt_seg = pol[0][k1 + 1]
-				tipo,confrontan,cns,matricula = self.limite(pnt,pnt_seg,limite)
-
+				try:
+					tipo,confrontan,cns,matricula = self.limite(pnt,pnt_seg,limite)
+				except:
+					raise QgsProcessingException ('Verifique possível erro de topologia!')
 				k = k1+12
 				pnt_str +='\tdoc.setValue("A{}", "{}")\n'.format(k,codigo)
 				pnt_str +='\tdoc.setValue("B{}", "{}")\n'.format(k,longitude)
