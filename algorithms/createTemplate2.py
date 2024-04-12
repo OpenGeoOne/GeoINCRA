@@ -239,18 +239,17 @@ class createTemplate2(QgsProcessingAlgorithm):
 
 		with open(os.path.join(path_macro,'qgis_macro.py'),'r') as arq:
 			data = arq.read()
-			data = data.replace("Natureza do serviço",nat_ser[feature['nat_serv']])
-			data = data.replace("Tipo de pessoa",pessoa[feature['pessoa']])
-			data = data.replace("Nome",str(feature['nome']))
-			data = data.replace("Denominação",str(feature['denominacao']))
-			data = data.replace("Situação", situacao[feature['situacao']])
-			data = data.replace("Natureza da area", natureza[feature['natureza']])
-			data = data.replace("Codigo do Imovel",str(feature['sncr']))
-			data = data.replace("Codigo do cartorio",str(feature['cod_cartorio']))
-			data = data.replace("Matricula",str(feature['matricula']))
-			if str(feature['municipio']+'-'+str(feature['uf'])):
-				municipio = str(feature['municipio']+'-'+str(feature['uf']))
-				data = data.replace("Municipio", municipio)
+			data = data.replace("Natureza do serviço", nat_ser[feature['nat_serv']] if feature['nat_serv'] in nat_ser else '')
+			data = data.replace("Tipo de pessoa", pessoa[feature['pessoa']] if feature['pessoa'] in pessoa else '')
+			data = data.replace("Nome",str(feature['nome']).replace('NULL', '').replace('\n',''))
+			data = data.replace("Denominação",str(feature['denominacao']).replace('NULL', '').replace('\n',''))
+			data = data.replace("Situação", situacao[feature['situacao']] if feature['situacao'] in situacao else '')
+			data = data.replace("Natureza da area", nat_ser[feature['nat_serv']] if feature['nat_serv'] in nat_ser else '')
+			data = data.replace("Codigo do Imovel", str(feature['sncr']).replace('NULL', '').replace('\n',''))
+			data = data.replace("Codigo do cartorio", str(feature['cod_cartorio']).replace('NULL', '').replace('\n',''))
+			data = data.replace("Matricula",str(feature['matricula']).replace('NULL', '').replace('\n',''))
+			municipio = str(feature['municipio']).replace('NULL', '').replace('\n','')) +'-'+ str(feature['uf']).replace('NULL', '').replace('\n',''))
+			data = data.replace("Municipio", municipio)
 
 		geom = feature.geometry()
 		if geom.isMultipart():
