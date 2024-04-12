@@ -248,7 +248,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 			data = data.replace("Codigo do Imovel", str(feature['sncr']).replace('NULL', '').replace('\n',''))
 			data = data.replace("Codigo do cartorio", str(feature['cod_cartorio']).replace('NULL', '').replace('\n',''))
 			data = data.replace("Matricula",str(feature['matricula']).replace('NULL', '').replace('\n',''))
-			municipio = str(feature['municipio']).replace('NULL', '').replace('\n','')) +'-'+ str(feature['uf']).replace('NULL', '').replace('\n',''))
+			municipio = str(feature['municipio']).replace('NULL', '').replace('\n','') +'-'+ str(feature['uf']).replace('NULL', '').replace('\n','')
 			data = data.replace("Municipio", municipio)
 
 		geom = feature.geometry()
