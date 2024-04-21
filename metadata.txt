@@ -6,7 +6,7 @@
 name=GeoINCRA
 qgisMinimumVersion=3.10
 description=Georreferenciamento de Imóveis Rurais
-version=1.5.1
+version=1.5.2
 author=Tiago Prudencio, Leandro França
 email=suporte@geoone.com.br
 
@@ -21,6 +21,7 @@ repository=https://github.com/OpenGeoOne/GeoINCRA
 hasProcessingProvider=yes
 # Uncomment the following line and add your changelog:
 # changelog=
+	1.5.2 - bug fix toTopoGeo tool and natureza field
 	1.5.1 - bug fix for only selected layers
 	1.5.0 - new tool to transform GeoRural into an ODS spreadsheet
 	1.4.5 - improvement in z-dimension validation
