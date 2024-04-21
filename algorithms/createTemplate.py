@@ -215,6 +215,29 @@ class createTemplate(QgsProcessingAlgorithm):
 
 		# Validações
 
+        # Verificar estrutura do GeoRural
+		modeloBD = True
+		campos_vertices = ['tipo_verti', 'vertice', 'indice']
+		campos_limites = ['confrontan', 'matricula', 'tipo', 'cns']
+		campos_area = ['nome', 'nat_serv', 'pessoa', 'cpf_cnpj', 'denominacao', 'situacao', 'natureza', 'sncr', 'matricula', 'cod_cartorio', 'municipio', 'uf']
+		for campo in campos_vertices:
+			if campo not in [field.name() for field in vertice.fields()]:
+				modeloBD = False
+				break
+		for campo in campos_limites:
+			if campo not in [field.name() for field in limite.fields()]:
+				modeloBD = False
+				break
+		for campo in campos_area:
+			if campo not in [field.name() for field in parcela.fields()]:
+				modeloBD = False
+				break
+
+		if not modeloBD:
+			raise QgsProcessingException('Verifique se suas camadas estão com os nomes dos campos corretos para o modelo GeoRural! Mais informações: https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA')
+		else:
+			feedback.pushInfo('Banco de dados GeoRural identificado...' )
+
 		# Checar preenchimento dos atributos da camada vértice
 		for feat in vertice.getFeatures():
 			if feat['sigma_x'] < 0 or feat['sigma_x'] > 7.5 or feat['sigma_x'] == None:
@@ -268,7 +291,7 @@ class createTemplate(QgsProcessingAlgorithm):
 					if ultimo_pnt == primeiro_pnt:
 						break
 			else:
-				raise QgsProcessingException('Problema de orientação dos confrontantes no Ponto de coordenadas ({}, {}) da camada limite!'.format(ultimo_pnt.x(), ultimo_pnt.y()))
+				raise QgsProcessingException('Problema de orientação dos confrontantes no Ponto de coordenadas ({}, {}) da camada limite!'.format(ultimo_pnt.y(), ultimo_pnt.x()))
 
         # Verificar nós duplicados da camada vertice
 		pontos = []
@@ -337,7 +360,27 @@ class createTemplate(QgsProcessingAlgorithm):
 				if str(z) == 'nan' or z == 0:
 					raise QgsProcessingException('Cota Z não preenchida ou igual a zero no ponto de coordenadas ({}, {})!'.format(pnt.y(), pnt.x()))
 
-		# Verificar se cada vértice da camada parcela (polígono) tem o correspondente da camada vétice (ponto)
+        # Verificar se cada ponto da camada vértice tem o correspondente na camada parcela (polígono)
+		for feat1 in vertice.getFeatures():
+			vert = feat1.geometry().asPoint()
+			corresp = False
+			for feat2 in parcela.getFeatures():
+				geom2 = feat2.geometry()
+				if geom2.isMultipart():
+					pols = geom2.asMultiPolygon()
+				else:
+					pols = [geom2.asPolygon()]
+				for pol in pols:
+					for pnt in pol[0]:
+						if vert == pnt:
+							corresp = True
+							break
+					if corresp:
+						break
+			if not corresp:
+				raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada vértice não possui correspondente na camada parcela!'.format( vert.y(), vert.x() ))
+
+        # Verificar se cada vértice da camada parcela (polígono) tem o correspondente da camada vétice (ponto)
 		for feat1 in parcela.getFeatures():
 			geom1 = feat1.geometry()
 			if geom1.isMultipart():
@@ -353,7 +396,8 @@ class createTemplate(QgsProcessingAlgorithm):
 							corresp = True
 							continue
 					if not corresp:
-						raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada parcela não possui correspondente na camada vértice!'.format(pnt.x(), pnt.y()))
+						raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada parcela não possui correspondente na camada vértice!'.format(pnt.y(), pnt.x()))
+
 
 		def dd2dms(dd, n_digits=3):
 			if dd != 0:
@@ -387,6 +431,7 @@ class createTemplate(QgsProcessingAlgorithm):
 
 		nat_ser = {1:'Particular', 2:'Contrato com Adm Pública'}
 		pessoa, situacao  = {1:'Física', 2:'Jurídica'}, {1:'Imóvel Registrado', 2:'Área Titulada não Registrada', 3:'Área não Titulada'}
+		natureza = {1:'Assentamento',2:'Assentamento Parcela',3:'Estrada',4:'Ferrovia',5:'Floresta Pública',6:'Gleba Pública',7:'Particular',8:'Perímetro Urbano',9:'Terra Indígena',10:'Terreno de Marinha',11:'Terreno Marginal',12:'Território Quilombola',13:'Unidade de Conservação'}
 
 		arq.write('Natureza do Serviço: ' + (nat_ser[feat1['nat_serv']] if feat1['nat_serv'] in nat_ser else '')  + '\n')
 		arq.write('Tipo Pessoa: ' + (pessoa[feat1['pessoa']] if feat1['pessoa'] in pessoa else '') + '\n')
@@ -394,6 +439,7 @@ class createTemplate(QgsProcessingAlgorithm):
 		arq.write('CPF: ' + str(feat1['cpf_cnpj']).replace('NULL', '').replace('\n','') + '\n')
 		arq.write('Denominação: ' + str(feat1['denominacao']).replace('NULL', '').replace('\n','') + '\n')
 		arq.write('Situação: ' + (situacao[feat1['situacao']] if feat1['situacao'] in situacao else '') + '\n')
+		arq.write('Natureza da área: ' + (natureza[feat1['natureza']] if feat1['natureza'] in natureza else '') + '\n')
 		arq.write('Código do Imóvel (SNCR/INCRA): ' + str(feat1['sncr']).replace('NULL', '').replace('\n','') + '\n')
 		arq.write('Código do cartório (CNS): ' + str(feat1['cod_cartorio']).replace('NULL', '').replace('\n','') + '\n')
 		arq.write('Matricula: ' + str(feat1['matricula']).replace('NULL', '').replace('\n','') + '\n')
