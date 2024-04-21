@@ -244,7 +244,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 			data = data.replace("Nome",str(feature['nome']).replace('NULL', '').replace('\n',''))
 			data = data.replace("Denominação",str(feature['denominacao']).replace('NULL', '').replace('\n',''))
 			data = data.replace("Situação", situacao[feature['situacao']] if feature['situacao'] in situacao else '')
-			data = data.replace("Natureza da area", nat_ser[feature['nat_serv']] if feature['nat_serv'] in nat_ser else '')
+			data = data.replace("Natureza da area", natureza[feature['natureza']] if feature['natureza'] in natureza else '')
 			data = data.replace("Codigo do Imovel", str(feature['sncr']).replace('NULL', '').replace('\n',''))
 			data = data.replace("Codigo do cartorio", str(feature['cod_cartorio']).replace('NULL', '').replace('\n',''))
 			data = data.replace("Matricula",str(feature['matricula']).replace('NULL', '').replace('\n',''))
