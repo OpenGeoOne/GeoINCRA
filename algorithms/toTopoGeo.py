@@ -219,8 +219,8 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         'county': 'municipio',
         'state': 'uf',
         'survey_date': 'data',
-        'resp_tec': 'tech_manager',
-        'reg_prof': 'prof_id'
+        'tech_manager':'resp_tec',
+        'prof_id':'reg_prof'
         }
 
         # Conversão
@@ -248,12 +248,15 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             feature = QgsFeature(dest.fields())
             for feat in origem.getFeatures():
                 for item in dic_transf:
-                    if isinstance( dic_transf[item], list):
-                        campo = dic_transf[item][0]
-                        dic = dic_transf[item][1]
-                        feature[item] = dic[feat[campo]]
-                    else:
-                        feature[item] = feat[dic_transf[item]]
+                    try:
+                        if isinstance( dic_transf[item], list):
+                            campo = dic_transf[item][0]
+                            dic = dic_transf[item][1]
+                            feature[item] = dic[feat[campo]]
+                        else:
+                            feature[item] = feat[dic_transf[item]]
+                    except:
+                        pass
                 feature.setGeometry(feat.geometry())
                 dest.addFeatures([feature])
                 cont += 1
