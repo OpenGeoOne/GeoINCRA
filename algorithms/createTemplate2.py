@@ -296,13 +296,15 @@ class createTemplate2(QgsProcessingAlgorithm):
 			arq.write(data)
 
 		#executa macro
-		subprocess.call(f"{path_libfile} "
+		try:
+			subprocess.call(f"{path_libfile} "
                 		" --invisible "
                 		f"{path_ods} "
                			'vnd.sun.star.script:qgis_macro.py$create_table?language=Python&location=user'
                			)
+		except:
+			raise QgsProcessingException("Verifique se a versão do seu LibreOffice ou o seu SO estão atualizados!")
 		os.remove(os.path.join(path_macro,'qgis_macro.py'))
-
 
 		return {}
 
