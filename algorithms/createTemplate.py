@@ -278,7 +278,7 @@ class createTemplate(QgsProcessingAlgorithm):
 						corresp = True
 						continue
 				if not corresp:
-					raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada limite não possui correspondente na camada vértice!'.format(pnt.x(), pnt.y()))
+					raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada limite não possui correspondente na camada vértice!'.format(pnt.y(), pnt.x()))
 
         # Verificar orientação dos confrontantes
 		for feat1 in limite.getFeatures():
