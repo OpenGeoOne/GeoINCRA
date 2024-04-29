@@ -340,7 +340,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 						corresp = True
 						continue
 				if not corresp:
-					raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada limite não possui correspondente na camada vértice!'.format(pnt.x(), pnt.y()))
+					raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada limite não possui correspondente na camada vértice!'.format(pnt.y(), pnt.x()))
 
 	def vld_3(self,parcela,vertice):
 		for feat1 in parcela.getFeatures():
@@ -358,7 +358,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 							corresp = True
 							continue
 					if not corresp:
-						raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada parcela não possui correspondente na camada vértice!'.format(pnt.x(), pnt.y()))
+						raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada parcela não possui correspondente na camada vértice!'.format(pnt.y(), pnt.x()))
 
 	def createSheets(self,data,pols):
 		add_sheets = ''
