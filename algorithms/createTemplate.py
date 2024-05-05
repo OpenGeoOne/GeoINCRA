@@ -429,7 +429,7 @@ class createTemplate(QgsProcessingAlgorithm):
 		# Preencher cabeçalho
 		arq =  open(output_path,'w')
 
-		nat_ser = {1:'Particular', 2:'Contrato com Adm Pública'}
+		nat_ser = {1:'Particular', 2:'Contrato com Administração Pública'}
 		pessoa, situacao  = {1:'Física', 2:'Jurídica'}, {1:'Imóvel Registrado', 2:'Área Titulada não Registrada', 3:'Área não Titulada'}
 		natureza = {1:'Assentamento',2:'Assentamento Parcela',3:'Estrada',4:'Ferrovia',5:'Floresta Pública',6:'Gleba Pública',7:'Particular',8:'Perímetro Urbano',9:'Terra Indígena',10:'Terreno de Marinha',11:'Terreno Marginal',12:'Território Quilombola',13:'Unidade de Conservação'}
 
