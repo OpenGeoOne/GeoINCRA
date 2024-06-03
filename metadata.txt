@@ -38,7 +38,7 @@ hasProcessingProvider=yes
 	0.2 - improvement to get limit type for each point
 	0.1 - Initial version
 # Tags are comma separated with spaces allowed
-tags=georreferenciamento, imoveis, rurais, incra, sigef, georural, ods, planilha, brazil, geoone
+tags=georreferenciamento, imoveis, rurais, incra, sigef, georural, ods, planilha, brazil, GeoOne
 
 homepage=https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA
 category=cartography
