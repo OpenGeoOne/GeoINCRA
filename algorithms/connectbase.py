@@ -65,15 +65,17 @@ class ConnectBase(QgsProcessingAlgorithm):
                2: 'Imóveis Certificados SNCI - Privado',
                3: 'Imóveis Certificados SNCI - Público',
                4: 'Assentamentos',
-               5:'Quilombolas'
+               5: 'Quilombolas',
+               6: 'ParcelaGeo',
             }
 
     layer_name ={    0: 'ms:certificada_sigef_particular_xx',
-               1: 'ms:certificada_sigef_publico_xx',
-               2: 'ms:imoveiscertificados_privado_xx',
-               3: 'ms:imoveiscertificados_publico_xx',
-               4: 'ms:assentamentos_xx',
-               5:'ms:quilombolas_xx'
+                     1: 'ms:certificada_sigef_publico_xx',
+                     2: 'ms:imoveiscertificados_privado_xx',
+                     3: 'ms:imoveiscertificados_publico_xx',
+                     4: 'ms:assentamentos_xx',
+                     5: 'ms:quilombolas_xx',
+                     6: 'ms:parcelageo_xx',
             }
 
     links = {     'Imóveis Certificados SIGEF - Particular': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_particular_xx',
@@ -81,7 +83,8 @@ class ConnectBase(QgsProcessingAlgorithm):
                   'Imóveis Certificados SNCI - Privado': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_privado_xx',
                   'Imóveis Certificados SNCI - Público': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_publico_xx',
                   'Assentamentos':'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=assentamentos_xx',
-                  'Quilombolas':'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=quilombolas_xx'
+                  'Quilombolas':'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=quilombolas_xx',
+                  'ParcelaGeo':'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=parcelageo_xx'
             }
 
     def initAlgorithm(self, config):
