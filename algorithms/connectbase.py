@@ -66,7 +66,7 @@ class ConnectBase(QgsProcessingAlgorithm):
                3: 'Imóveis Certificados SNCI - Público',
                4: 'Assentamentos',
                5: 'Quilombolas',
-               6: 'ParcelaGeo',
+               6: 'Imóveis Pendentes de Titulação',
             }
 
     layer_name ={    0: 'ms:certificada_sigef_particular_xx',
@@ -78,13 +78,13 @@ class ConnectBase(QgsProcessingAlgorithm):
                      6: 'ms:parcelageo_xx',
             }
 
-    links = {     'Imóveis Certificados SIGEF - Particular': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_particular_xx',
-                  'Imóveis Certificados SIGEF - Público': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_publico_xx',
-                  'Imóveis Certificados SNCI - Privado': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_privado_xx',
-                  'Imóveis Certificados SNCI - Público': 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_publico_xx',
-                  'Assentamentos':'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=assentamentos_xx',
-                  'Quilombolas':'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=quilombolas_xx',
-                  'ParcelaGeo':'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=parcelageo_xx'
+    links = {     mapping[0]: 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_particular_xx',
+                  mapping[1]: 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=certificada_sigef_publico_xx',
+                  mapping[2]: 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_privado_xx',
+                  mapping[3]: 'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=imoveiscertificados_publico_xx',
+                  mapping[4]:'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=assentamentos_xx',
+                  mapping[5]:'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=quilombolas_xx',
+                  mapping[6]:'http://acervofundiario.incra.gov.br/i3geo/ogc.php?tema=parcelageo_xx'
             }
 
     def initAlgorithm(self, config):
