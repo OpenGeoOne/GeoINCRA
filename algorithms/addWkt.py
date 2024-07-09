@@ -44,22 +44,6 @@ import os
 
 
 class addWkt(QgsProcessingAlgorithm):
-    """
-    This is an example algorithm that takes a vector layer and
-    creates a new identical one.
-
-    It is meant to be used as an example of how to create your own
-    algorithms and explain methods and variables used to do it. An
-    algorithm like this will be available in all elements, and there
-    is not need for additional work.
-
-    All Processing algorithms should extend the QgsProcessingAlgorithm
-    class.
-    """
-
-    # Constants used to refer to parameters and outputs. They will be
-    # used when calling the algorithm from another algorithm, or when
-    # calling from the QGIS console.
 
     INPUT = 'INPUT'
     OUTPUT = 'OUTPUT'
@@ -108,13 +92,7 @@ class addWkt(QgsProcessingAlgorithm):
         return txt + footer
 
     def initAlgorithm(self, config=None):
-        """
-        Here we define the inputs and output of the algorithm, along
-        with some other properties.
-        """
 
-        # We add the input vector features source. It can have any kind of
-        # geometry.
         self.addParameter(
         QgsProcessingParameterFile(
             self.INPUT,
@@ -131,13 +109,7 @@ class addWkt(QgsProcessingAlgorithm):
         )
 
     def processAlgorithm(self, parameters, context, feedback):
-        """
-        Here is where the processing itself takes place.
-        """
 
-        # Retrieve the feature source and sink. The 'dest_id' variable is used
-        # to uniquely identify the feature sink, and must be included in the
-        # dictionary returned by the processAlgorithm function.
         my_wkt = self.parameterAsString(
             parameters,
             self.INPUT,
@@ -168,10 +140,6 @@ class addWkt(QgsProcessingAlgorithm):
         # Send some information to the user
         feedback.pushInfo('CRS is {}'.format(source.sourceCrs().authid()))
 
-        # If sink was not created, throw an exception to indicate that the algorithm
-        # encountered a fatal error. The exception text can be any string, but in this
-        # case we use the pre-built invalidSinkError method to return a standard
-        # helper text for when a sink cannot be evaluated
         if sink is None:
             raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
 
