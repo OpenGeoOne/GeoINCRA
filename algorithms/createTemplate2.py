@@ -320,7 +320,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 				raise QgsProcessingException ('Verifique os valores do atrituto "metodo_pos"!')
 			if feat['tipo_verti'] not in ('M', 'P', 'V'):
 				raise QgsProcessingException ('Verifique os valores do atrituto "tipo_vertice"!')
-			if len(feat['vertice']) < 7:
+			if len(str(feat['vertice'])) < 7:
 				raise QgsProcessingException ('Verifique os valores do atrituto "código do vértice"!')
 
 	def vld_2(self,limite,vertice):
