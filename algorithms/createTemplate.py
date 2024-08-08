@@ -266,7 +266,7 @@ class createTemplate(QgsProcessingAlgorithm):
 			# Checar preenchimento dos atributos
 			if feat1['tipo'] not in ('LA1', 'LA2', 'LA3', 'LA4', 'LA5', 'LA6', 'LA7', 'LN1', 'LN2', 'LN3', 'LN4', 'LN5', 'LN6'):
 				raise QgsProcessingException ('Verifique os valores do atributo "tipo"!')
-			if len(feat1['confrontan']) < 3:
+			if len(str(feat1['confrontan'])) < 3:
 				raise QgsProcessingException ('Verifique os valores do atrituto "confrontante"!')
 			# Topologia
 			linha = feat1.geometry().asPolyline()
@@ -484,7 +484,7 @@ class createTemplate(QgsProcessingAlgorithm):
 							vert_seg = linha[k2 + 1]
 							if vert == pnt and vert_seg == pnt_seg:
 								tipo = feat3['tipo']
-								confrontan = feat3['confrontan']
+								confrontan = str(feat3['confrontan']).replace('NULL', '').replace('\n','')
 								cns = str(feat3['cns']).replace('NULL', '')
 								matricula = str(feat3['matricula']).replace('NULL', '')
 								sentinela = True
