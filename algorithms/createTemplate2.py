@@ -414,7 +414,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 			# context.setFeature(feat)
 			vert = feat.geometry().asPoint()
 			if vert == pnt:
-				codigo = feat['vertice']
+				codigo = feat['vertice'].replace('\n','')
 				#longitude = str(expr2.evaluate(context)).replace("°"," ").replace("′"," ").replace('″',' ')
 				longitude = dd2dms(vert.x(), dec_coord) + 'W'
 				#longitude = longitude.replace("°"," ").replace("'"," ").replace('"',' ')
@@ -440,8 +440,8 @@ class createTemplate2(QgsProcessingAlgorithm):
 				vert_seg = linha[k2 + 1]
 				if vert == pnt and vert_seg == pnt_seg:
 					tipo = feat['tipo']
-					confrontan = feat['confrontan']
-					cns = str(feat['cns']).replace('NULL', '')
-					matricula = str(feat['matricula']).replace('NULL', '')
+					confrontan = feat['confrontan'].replace('\n','')
+					cns = str(feat['cns']).replace('NULL', '').replace('\n','')
+					matricula = str(feat['matricula']).replace('NULL', '').replace('\n','')
 
 					return tipo,confrontan,cns,matricula
