@@ -322,6 +322,8 @@ class createTemplate2(QgsProcessingAlgorithm):
 				raise QgsProcessingException ('Verifique os valores do atrituto "tipo_vertice"!')
 			if len(str(feat['vertice'])) < 7:
 				raise QgsProcessingException ('Verifique os valores do atrituto "código do vértice"!')
+			if str(feat['vertice']) in ('', ' ', 'NULL'):
+				raise QgsProcessingException ('O atrituto "código do vértice" deve ser preenchido!')
 
 	def vld_2(self,limite,vertice):
 		for feat1 in limite.getFeatures():
