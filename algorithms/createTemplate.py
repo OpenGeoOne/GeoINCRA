@@ -252,6 +252,8 @@ class createTemplate(QgsProcessingAlgorithm):
 				raise QgsProcessingException ('Verifique os valores do atrituto "tipo_vertice"!')
 			if len(feat['vertice']) < 7:
 				raise QgsProcessingException ('Verifique os valores do atrituto "código do vértice"!')
+			if str(feat['vertice']) in ('', ' ', 'NULL'):
+				raise QgsProcessingException ('O atrituto "código do vértice" deve ser preenchido!')
 
         # Checar relação entre atributos
 
