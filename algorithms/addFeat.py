@@ -219,16 +219,35 @@ class addFeat(QgsProcessingAlgorithm):
         if not source_out:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
 
+        # Checar preenchimento dos atributos da camada vértice
+        def valida_sigma(sigma, eixo):
+            if sigma < 0 or sigma > 7.5:
+                raise QgsProcessingException('Valor incorreto para as precisões em {}!'.format(eixo))
+
+        for feature in source_in.getFeatures():
+            if sigma_x:
+                sigma = float(feature[sigma_x].replace(',','.')) if isinstance(feature[sigma_x], str) else feature[sigma_x]
+                valida_sigma(sigma, 'x')
+            if sigma_y:
+                sigma = float(feature[sigma_y].replace(',','.')) if isinstance(feature[sigma_y], str) else feature[sigma_y]
+                valida_sigma(sigma, 'y')
+            if sigma_z:
+                sigma = float(feature[sigma_z].replace(',','.')) if isinstance(feature[sigma_z], str) else feature[sigma_z]
+                valida_sigma(sigma, 'z')
+
         total = 100.0 / source_in.featureCount() if source_in.featureCount() else 0
 
         for current, feature in enumerate(source_in.getFeatures()):
             feat = QgsFeature(source_out.fields())
             if sigma_x:
-                feat.setAttribute('sigma_x', float(feature[sigma_x].replace(',','.')) if isinstance(feature[sigma_x], str) else feature[sigma_x])
+                sigma = float(feature[sigma_x].replace(',','.')) if isinstance(feature[sigma_x], str) else feature[sigma_x]
+                feat.setAttribute('sigma_x', sigma)
             if sigma_y:
-                feat.setAttribute('sigma_y', float(feature[sigma_y].replace(',','.')) if isinstance(feature[sigma_y], str) else feature[sigma_y])
+                sigma = float(feature[sigma_y].replace(',','.')) if isinstance(feature[sigma_y], str) else feature[sigma_y]
+                feat.setAttribute('sigma_y', sigma)
             if sigma_z:
-                feat.setAttribute('sigma_z', float(feature[sigma_z].replace(',','.')) if isinstance(feature[sigma_z], str) else feature[sigma_z])
+                sigma = float(feature[sigma_z].replace(',','.')) if isinstance(feature[sigma_z], str) else feature[sigma_z]
+                feat.setAttribute('sigma_z', sigma)
             if metodo_pos:
                 feat.setAttribute('metodo_pos',feature[metodo_pos])
             if vertice:
