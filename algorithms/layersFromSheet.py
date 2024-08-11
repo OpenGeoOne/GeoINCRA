@@ -153,11 +153,11 @@ class LayersFromSheet(QgsProcessingAlgorithm):
 
         # Pegar dados do imóvel
         feedback.pushInfo('Obtendo dados da planilha ODS...')
-        layer = QgsVectorLayer(fonte+'idenficacao', "planilha", "ogr")
+        idendificacao = QgsVectorLayer(fonte+'|layername=identificacao', "planilha", "ogr")
         dic_nat_ser = {'Particular':1, 'Contrato com Administração Pública':2}
-		dic_pessoa, dic_situacao  = {'Física':1, 'Jurídica':2}, {'Imóvel Registrado':1, 'Área Titulada não Registrada':2, 'Área não Titulada':3}
-		dic_natureza = {'Assentamento':1,'Assentamento Parcela':2,'Estrada':3,'Ferrovia':4,'Floresta Pública':5,'Gleba Pública':6,'Particular':7,'Perímetro Urbano':8,'Terra Indígena':9,'Terreno de Marinha':10,'Terreno Marginal':11,'Território Quilombola':12,'Unidade de Conservação':13}
-        for k, lin in enumerate(layer.getFeatures()):
+        dic_pessoa, dic_situacao  = {'Física':1, 'Jurídica':2}, {'Imóvel Registrado':1, 'Área Titulada não Registrada':2, 'Área não Titulada':3}
+        dic_natureza = {'Assentamento':1,'Assentamento Parcela':2,'Estrada':3,'Ferrovia':4,'Floresta Pública':5,'Gleba Pública':6,'Particular':7,'Perímetro Urbano':8,'Terra Indígena':9,'Terreno de Marinha':10,'Terreno Marginal':11,'Território Quilombola':12,'Unidade de Conservação':13}
+        for k, lin in enumerate(idendificacao.getFeatures()):
             valor = str(lin[1]).replace('NULL','')
             if k == 5:
                 nome = valor
@@ -179,12 +179,16 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                 cod_cartorio = valor
             elif k == 14:
                 matricula_parcela = valor
-            elif k == 17:
-                municipio = valor.split('-')[0]
-                uf = valor.split('-')[-1]
+            elif k == 16:
+                try:
+                    municipio = valor.split('-')[0]
+                    uf = valor.split('-')[1]
+                except:
+                    municipio = ''
+                    uf = ''
 
         # Pegar dados de SRC do perímetro
-        feedback.pushInfo('Lendo dados do perímetro 1...')
+        feedback.pushInfo('Lendo dados de SRC...')
         layer = QgsVectorLayer(fonte+'|layername=perimetro_1', "planilha", "ogr")
         lista = []
         for k, lin in enumerate(layer.getFeatures()):
@@ -194,8 +198,6 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                 src = lin[1]
                 mc = lin[3]
                 hemisf = lin[5]
-            elif k > 10:
-                lista += [lin.attributes()]
 
         # Sistema de Referência de Coordenadas
         if src == 'Geográfica':
@@ -210,7 +212,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
 
         # Criar camada de Pontos
         feedback.pushInfo('Criando camada Vértice...')
-        Fields = QgsFields()
+        Fields1 = QgsFields()
         itens  = {   'indice': QVariant.Int,
                      'vertice': QVariant.String,
                      'tipo_verti': QVariant.String,
@@ -220,116 +222,45 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                      'sigma_z' : QVariant.Double,
                      }
         for item in itens:
-            Fields.append(QgsField(item, itens[item]))
+            Fields1.append(QgsField(item, itens[item]))
 
         (sink1, dest_id1) = self.parameterAsSink(
             parameters,
             self.VERTICE,
             context,
-            Fields,
+            Fields1,
             QgsWkbTypes.PointZ,
             SRC
         )
         if sink1 is None:
             raise QgsProcessingException(self.invalidSinkError(parameters, self.VERTICE))
 
-        cont = 0
-        pnts = []
-        for item in lista:
-            if src == 'Geográfica':
-                lon = item[1].replace(',','.').split(' ')
-                X = (float(lon[0]) + float(lon[1])/60 + float(lon[2])/3600)*(-1 if lon[3] == 'W' else 1)
-                lat = item[3].replace(',','.').split(' ')
-                Y = (float(lat[0]) + float(lat[1])/60 + float(lat[2])/3600)*(-1 if lat[3] == 'S' else 1)
-            else:
-                X = float(item[1].replace(',','.'))
-                X = float(item[3].replace(',','.'))
-            Z = float(item[5].replace(',','.'))
-            feat = QgsFeature(Fields)
-            pnts += [QgsPoint(X,Y,Z)]
-            feat.setGeometry(QgsGeometry(QgsPoint(X,Y,Z)))
-            cont += 1
-            feat['indice'] = cont
-            codigo = str(item[0])
-            feat['vertice'] = codigo
-            feat['tipo_verti'] = codigo.split('-')[1]
-            feat['metodo_pos'] = str(item[7])
-            feat['sigma_x'] = float(item[2].replace(',','.'))
-            feat['sigma_y'] = float(item[4].replace(',','.'))
-            feat['sigma_z'] = float(item[6].replace(',','.'))
-            sink1.addFeature(feat, QgsFeatureSink.FastInsert)
-            if feedback.isCanceled():
-                break
-
         # Criar camada de Linhas
         feedback.pushInfo('Criando camada Limite...')
-        Fields = QgsFields()
+        Fields2 = QgsFields()
         itens  = {   'tipo': QVariant.String,
                      'confrontan': QVariant.String,
                      'cns': QVariant.String,
                      'matricula' : QVariant.String,
                      }
         for item in itens:
-            Fields.append(QgsField(item, itens[item]))
+            Fields2.append(QgsField(item, itens[item]))
 
         (sink2, dest_id2) = self.parameterAsSink(
             parameters,
             self.LIMITE,
             context,
-            Fields,
+            Fields2,
             QgsWkbTypes.LineStringZ,
             SRC
         )
         if sink2 is None:
             raise QgsProcessingException(self.invalidSinkError(parameters, self.LIMITE))
 
-        linha = []
-        anterior_cns = str(lista[0][9]).replace('NULL','')
-        anterior_mat = str(lista[0][10]).replace('NULL','')
-        anterior_confr = str(lista[0][11]).replace('NULL','')
-
-        for k, item in enumerate(lista):
-            linha += [pnts[k]]
-            cns = str(item[9]).replace('NULL','')
-            matricula = str(item[10]).replace('NULL','')
-            confrontante = str(item[11]).replace('NULL','')
-            print(k+1,confrontante)
-            if ((cns+matricula+confrontante) != (anterior_cns+anterior_mat+anterior_confr)) and (k+1) != len(lista):
-                feat = QgsFeature(Fields)
-                feat.setGeometry(QgsGeometry(QgsLineString(linha)))
-                feat['tipo'] = str(item[8])
-                feat['confrontan'] = anterior_confr
-                feat['cns'] = anterior_cns
-                feat['matricula'] = anterior_mat
-                sink2.addFeature(feat, QgsFeatureSink.FastInsert)
-                anterior_mat = matricula
-                anterior_cns = cns
-                anterior_confr = confrontante
-                linha = [pnts[k]]
-
-            if feedback.isCanceled():
-                break
-
-        # Último segmento
-        feat = QgsFeature(Fields)
-        if ((cns+matricula) == anterior_cns+anterior_mat) and (confrontante == anterior_confr):
-            linha += [pnts[0]]
-            feat['tipo'] = str(item[8])
-            feat['confrontan'] = anterior_confr
-            feat['cns'] = anterior_cns
-            feat['matricula'] = anterior_mat
-        else:
-            linha = [pnts[k], pnts[0]]
-            feat['tipo'] = str(item[8])
-            feat['confrontan'] = confrontante
-            feat['cns'] = cns
-            feat['matricula'] = matricula
-        feat.setGeometry(QgsGeometry(QgsLineString(linha)))
-        sink2.addFeature(feat, QgsFeatureSink.FastInsert)
 
         # Criar camada de Polígono
         feedback.pushInfo('Criando camada Parcela...')
-        Fields = QgsFields()
+        Fields3 = QgsFields()
         itens  = {   'nome': QVariant.String,
                      'nat_serv': QVariant.Int,
                      'pessoa': QVariant.Int,
@@ -344,38 +275,123 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                      'uf': QVariant.String,
                      }
         for item in itens:
-            Fields.append(QgsField(item, itens[item]))
+            Fields3.append(QgsField(item, itens[item]))
 
         (sink3, dest_id3) = self.parameterAsSink(
             parameters,
             self.PARCELA,
             context,
-            Fields,
+            Fields3,
             QgsWkbTypes.MultiPolygonZ,
             SRC
         )
         if sink3 is None:
             raise QgsProcessingException(self.invalidSinkError(parameters, self.PARCELA))
 
-        mPol = QgsMultiPolygon()
-        anel = QgsLineString(linha)
-        pol = QgsPolygon(anel)
-        mPol.addGeometry(pol)
-        newGeom = QgsGeometry(mPol)
-        feat = QgsFeature(Fields)
-        feat['nome'] = nome
-        feat['nat_serv'] = nat_serv
-        feat['pessoa'] = pessoa
-        feat['cpf_cnpj'] = cpf_cnpj
-        feat['denominacao'] = denominacao
-        feat['situacao'] = situacao
-        feat['natureza'] = natureza
-        feat['sncr'] = sncr
-        feat['matricula'] = matricula_parcela
-        feat['cod_cartorio'] = cod_cartorio
-        feat['municipio'] = municipio
-        feat['uf'] = uf
+        for tabela in range(num_tab):
 
+            layer = QgsVectorLayer(fonte+'|layername=perimetro_{}'.format(tabela+1), "planilha", "ogr")
+            lista = []
+            for k, lin in enumerate(layer.getFeatures()):
+                if k > 10:
+                    lista += [lin.attributes()]
+
+
+            feedback.pushInfo('Alimentando camada Vértice (pontos) do Perímetro {}...'.format(tabela+1))
+            cont = 0
+            pnts = []
+            for item in lista:
+                if src == 'Geográfica':
+                    lon = item[1].replace(',','.').split(' ')
+                    X = (float(lon[0]) + float(lon[1])/60 + float(lon[2])/3600)*(-1 if lon[3] == 'W' else 1)
+                    lat = item[3].replace(',','.').split(' ')
+                    Y = (float(lat[0]) + float(lat[1])/60 + float(lat[2])/3600)*(-1 if lat[3] == 'S' else 1)
+                else:
+                    X = float(item[1].replace(',','.'))
+                    X = float(item[3].replace(',','.'))
+                Z = float(item[5].replace(',','.'))
+                feat = QgsFeature(Fields1)
+                pnts += [QgsPoint(X,Y,Z)]
+                feat.setGeometry(QgsGeometry(QgsPoint(X,Y,Z)))
+                cont += 1
+                feat['indice'] = cont
+                codigo = str(item[0])
+                feat['vertice'] = codigo
+                feat['tipo_verti'] = codigo.split('-')[1]
+                feat['metodo_pos'] = str(item[7])
+                feat['sigma_x'] = float(item[2].replace(',','.'))
+                feat['sigma_y'] = float(item[4].replace(',','.'))
+                feat['sigma_z'] = float(item[6].replace(',','.'))
+                sink1.addFeature(feat, QgsFeatureSink.FastInsert)
+                if feedback.isCanceled():
+                    break
+
+
+            feedback.pushInfo('Alimentando camada Limite (linha) do Perímetro {}...'.format(tabela+1))
+            linha = []
+            anterior_cns = str(lista[0][9]).replace('NULL','')
+            anterior_mat = str(lista[0][10]).replace('NULL','')
+            anterior_confr = str(lista[0][11]).replace('NULL','')
+
+            for k, item in enumerate(lista):
+                linha += [pnts[k]]
+                cns = str(item[9]).replace('NULL','')
+                matricula = str(item[10]).replace('NULL','')
+                confrontante = str(item[11]).replace('NULL','')
+                if ((cns+matricula+confrontante) != (anterior_cns+anterior_mat+anterior_confr)):
+                    feat = QgsFeature(Fields2)
+                    feat.setGeometry(QgsGeometry(QgsLineString(linha)))
+                    feat['tipo'] = str(item[8])
+                    feat['confrontan'] = anterior_confr
+                    feat['cns'] = anterior_cns
+                    feat['matricula'] = anterior_mat
+                    sink2.addFeature(feat, QgsFeatureSink.FastInsert)
+                    anterior_mat = matricula
+                    anterior_cns = cns
+                    anterior_confr = confrontante
+                    linha = [pnts[k]]
+                if feedback.isCanceled():
+                    break
+
+            # Último segmento
+            feat = QgsFeature(Fields2)
+            if (cns+matricula+confrontante) == (anterior_cns+anterior_mat+anterior_confr):
+                linha += [pnts[0]]
+                feat['tipo'] = str(item[8])
+                feat['confrontan'] = anterior_confr
+                feat['cns'] = anterior_cns
+                feat['matricula'] = anterior_mat
+            else:
+                linha = [pnts[k], pnts[0]]
+                feat['tipo'] = str(item[8])
+                feat['confrontan'] = confrontante
+                feat['cns'] = cns
+                feat['matricula'] = matricula
+            feat.setGeometry(QgsGeometry(QgsLineString(linha)))
+            sink2.addFeature(feat, QgsFeatureSink.FastInsert)
+
+
+            feedback.pushInfo('Alimentando camada Parcela (polígono) do Perímetro {}...'.format(tabela+1))
+            feat = QgsFeature(Fields3)
+            feat['nome'] = nome
+            feat['nat_serv'] = nat_serv
+            feat['pessoa'] = pessoa
+            feat['cpf_cnpj'] = cpf_cnpj
+            feat['denominacao'] = denominacao
+            feat['situacao'] = situacao
+            feat['natureza'] = natureza
+            feat['sncr'] = sncr
+            feat['matricula'] = matricula_parcela
+            feat['cod_cartorio'] = cod_cartorio
+            feat['municipio'] = municipio
+            feat['uf'] = uf
+            mPol = QgsMultiPolygon()
+            anel = QgsLineString(pnts+[pnts[0]])
+            pol = QgsPolygon(anel)
+            mPol.addGeometry(pol)
+            newGeom = QgsGeometry(mPol)
+            feat.setGeometry(newGeom)
+            sink3.addFeature(feat, QgsFeatureSink.FastInsert)
 
         return {self.VERTICE: dest_id1,
                 self.LIMITE: dest_id2,
