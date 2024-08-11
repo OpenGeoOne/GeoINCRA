@@ -41,6 +41,8 @@ from qgis.core import (QgsProcessing,
                        QgsFeature,
                        QgsGeometry,
                        QgsLineString,
+                       QgsMultiPolygon,
+                       QgsPolygon,
                        QgsPoint,
                        QgsProcessingParameterFeatureSink)
 from qgis import processing
@@ -355,8 +357,24 @@ class LayersFromSheet(QgsProcessingAlgorithm):
         if sink3 is None:
             raise QgsProcessingException(self.invalidSinkError(parameters, self.PARCELA))
 
-
-
+        mPol = QgsMultiPolygon()
+        anel = QgsLineString(linha)
+        pol = QgsPolygon(anel)
+        mPol.addGeometry(pol)
+        newGeom = QgsGeometry(mPol)
+        feat = QgsFeature(Fields)
+        feat['nome'] = nome
+        feat['nat_serv'] = nat_serv
+        feat['pessoa'] = pessoa
+        feat['cpf_cnpj'] = cpf_cnpj
+        feat['denominacao'] = denominacao
+        feat['situacao'] = situacao
+        feat['natureza'] = natureza
+        feat['sncr'] = sncr
+        feat['matricula'] = matricula_parcela
+        feat['cod_cartorio'] = cod_cartorio
+        feat['municipio'] = municipio
+        feat['uf'] = uf
 
 
         return {self.VERTICE: dest_id1,
