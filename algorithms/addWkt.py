@@ -123,9 +123,9 @@ class addWkt(QgsProcessingAlgorithm):
         source = QgsVectorLayer(uri, "vertice", "delimitedtext")
 
         if not source.isValid():
-            feedback.pushInfo("Layer failed to load!")
+            raise QgsProcessingException("Arquivo CSV não é válido!")
         else:
-            feedback.pushInfo("Layer to load!")
+            feedback.pushInfo("Arquivo CSV lido com sucesso..")
 
 
         (sink, dest_id) = self.parameterAsSink(
@@ -136,9 +136,6 @@ class addWkt(QgsProcessingAlgorithm):
             QgsWkbTypes.PointZ,
             source.sourceCrs()
         )
-
-        # Send some information to the user
-        feedback.pushInfo('CRS is {}'.format(source.sourceCrs().authid()))
 
         if sink is None:
             raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
