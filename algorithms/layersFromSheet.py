@@ -204,9 +204,9 @@ class LayersFromSheet(QgsProcessingAlgorithm):
             SRC = QgsCoordinateReferenceSystem('EPSG:4674')
         else:
             fuso = round((183+mc)/6)
-            if hemisf[0] == 'S':
+            if hemisf[0].upper() == 'S':
                 SRC = QgsCoordinateReferenceSystem('EPSG:' + str(31960+fuso))
-            else:
+            elif hemisf[0].upper() == 'N':
                 SRC = QgsCoordinateReferenceSystem('EPSG:' + str(31954+fuso))
         feedback.pushInfo('O SRC da planilha é {}'.format(SRC.authid()))
 
