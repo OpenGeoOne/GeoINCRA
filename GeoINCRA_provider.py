@@ -44,6 +44,7 @@ from .algorithms.fillCodes import FillCodes
 from .algorithms.interpVerticeV import InterpolarVerticeV
 from .algorithms.createTemplate2 import createTemplate2
 from .algorithms.layersFromSheet import LayersFromSheet
+from .algorithms.layersOfInterest import LayersOfInterest
 
 
 class GeoINCRAProvider(QgsProcessingProvider):
@@ -75,6 +76,7 @@ class GeoINCRAProvider(QgsProcessingProvider):
         self.addAlgorithm(InterpolarVerticeV())
         self.addAlgorithm(createTemplate2())
         self.addAlgorithm(LayersFromSheet())
+        self.addAlgorithm(LayersOfInterest())
 
     def id(self):
         """
