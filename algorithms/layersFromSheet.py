@@ -196,7 +196,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                 lado = lin[1]
             elif k == 8:
                 src = lin[1]
-                mc = lin[3]
+                mc = float(lin[3])
                 hemisf = lin[5]
 
         # Sistema de Referência de Coordenadas
@@ -308,7 +308,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                     Y = (float(lat[0]) + float(lat[1])/60 + float(lat[2])/3600)*(-1 if lat[3] == 'S' else 1)
                 else:
                     X = float(item[1].replace(',','.'))
-                    X = float(item[3].replace(',','.'))
+                    Y = float(item[3].replace(',','.'))
                 Z = float(item[5].replace(',','.'))
                 feat = QgsFeature(Fields1)
                 pnts += [QgsPoint(X,Y,Z)]
