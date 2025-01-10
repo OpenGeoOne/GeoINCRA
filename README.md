@@ -1234,14 +1234,9 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
 <div style="text-align: center;">
 <tbody>
         <tr>
-          <td><a target="_blank" rel="noopener noreferrer" href="https://www.acgeoengenharia.com.br/">
-          <img title="ACGEO Engenharia" style="border: 0px solid ; heigth: 160px; " alt="acgeo"
-           src="https://user-images.githubusercontent.com/88212377/161191725-f37650ff-1fba-4cae-8145-af45f1c599d1.jpg">
-           </a>
-          </td>
-          <td><a target="_blank" rel="noopener noreferrer" href="https://agrodata.me/">
-          <img title="AgroData" style="border: 0px solid ; heigth: 200px; " alt="agrodata"
-           src="https://user-images.githubusercontent.com/88212377/162043665-0508af3f-83f5-4bc4-847f-0e81b8261e77.JPG">
+          <td><a target="_blank" rel="noopener noreferrer" href="https://georondonia.ifro.edu.br/">
+          <img title="Projeto GeoRondônia" style="border: 0px solid ; heigth: 160px; " alt="GeoRondonia"
+           src="https://georondonia.ifro.edu.br/wp-content/uploads/2022/12/LOGOTIPO-projeto-Geo-Rondonia-e1670880624369-146x90.png">
            </a>
           </td>
           <td><a target="_blank" rel="noopener noreferrer" href="https://www.instagram.com/abeca.pe/">
@@ -1252,6 +1247,11 @@ https://user-images.githubusercontent.com/88212377/161396633-24f01f9c-a15b-46c8-
           <td><a target="_blank" rel="noopener noreferrer" href="https://sites.google.com/view/labat/01">
           <img title="DECart-UFPE" style="border: 0px solid ; heigth: 200px; " alt="labat"
            src="https://user-images.githubusercontent.com/25651083/179381253-1805dd57-1bf7-4eb4-9608-c2fb0bd4c93b.jpg">
+           </a>
+          </td>
+            <td><a target="_blank" rel="noopener noreferrer" href="https://www.acgeoengenharia.com.br/">
+          <img title="ACGEO Engenharia" style="border: 0px solid ; heigth: 160px; " alt="acgeo"
+           src="https://user-images.githubusercontent.com/88212377/161191725-f37650ff-1fba-4cae-8145-af45f1c599d1.jpg">
            </a>
           </td>
         </tr>
