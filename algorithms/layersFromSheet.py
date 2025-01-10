@@ -83,7 +83,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
 
     def shortHelpString(self):
-        txt = 'Esta ferramenta importa uma planilha ODS no padrão do SIGEF/INCRA nas camadas vétice (ponto), limite (linha) e parcela (polígono).'
+        txt = 'Esta ferramenta importa uma <b>planilha ODS</b> no padrão do SIGEF/INCRA, carregando as camadas vétice (ponto), limite (linha) e parcela (polígono) no modelo GeoRural.'
         footer = '''<div>
                       <div align="center">
                       <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
@@ -106,7 +106,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
         self.addParameter(
         QgsProcessingParameterFile(
             self.ODS,
-            self.tr('Arquivo de entrada (*.ods)'),
+            self.tr('Planilha ODS do Sigef'),
             fileFilter= 'Planilha ODF (*.ods)'
             )
         )
@@ -276,6 +276,9 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                      'cod_cartorio': QVariant.String,
                      'municipio': QVariant.String,
                      'uf': QVariant.String,
+                     'resp_tec': QVariant.String,
+                     'reg_prof': QVariant.String,
+                     'data': QVariant.Date,
                      }
         for item in itens:
             Fields3.append(QgsField(item, itens[item]))
