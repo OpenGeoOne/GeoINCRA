@@ -49,7 +49,7 @@ from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
 from PyPDF2 import PdfReader
-import os
+import os, re
 
 
 class LayersFromPDF(QgsProcessingAlgorithm):
@@ -305,102 +305,105 @@ class LayersFromPDF(QgsProcessingAlgorithm):
                         dic_cod[lista_cod[-1]]['confr'] = confr
                     except:
                         dic_cod[lista_cod[-1]]['confr'] = line.strip()
+        print(dic_cod)
+        if len(lista_cod) == 0 or dic['Denominação:'] == '':
+            raise QgsProcessingException('PDF de entrada não é um Memorial do Sigef!')
 
 
-            feedback.pushInfo('Alimentando camada Vértice (pontos)...')
-            cont = 0
-            pnts = []
-            for codigo in lista_cod:
-                lon = dic_cod[lista_cod[-1]]['lon'].replace('°', ' ').replace('"', ' ').replace("'", ' ').replace(',','.').split(' ')
-                X = (abs(float(lon[0])) + float(lon[1])/60 + float(lon[2])/3600)*(-1 if dic_cod[lista_cod[-1]]['lon'][0] == '-' else 1)
-                lat = dic_cod[lista_cod[-1]]['lat'].replace('°', ' ').replace('"', ' ').replace("'", ' ').replace(',','.').split(' ')
-                Y = (abs(float(lat[0])) + float(lat[1])/60 + float(lat[2])/3600)*(-1 if dic_cod[lista_cod[-1]]['lat'][0] == '-' else 1)
-                Z = float(dic_cod[lista_cod[-1]]['h'].replace(',','.'))
-                feat = QgsFeature(Fields1)
-                pnts += [QgsPoint(X,Y,Z)]
-                feat.setGeometry(QgsGeometry(QgsPoint(X,Y,Z)))
-                cont += 1
-                feat['indice'] = cont
-                feat['vertice'] = codigo
-                feat['tipo_verti'] = codigo.split('-')[1]
-                feat['metodo_pos'] = ''
-                feat['sigma_x'] = None
-                feat['sigma_y'] = None
-                feat['sigma_z'] = None
-                sink1.addFeature(feat, QgsFeatureSink.FastInsert)
-                if feedback.isCanceled():
-                    break
+        feedback.pushInfo('Alimentando camada Vértice (pontos)...')
+        cont = 0
+        pnts = []
+        for codigo in lista_cod:
+            lon = dic_cod[codigo]['lon'].replace('°', ' ').replace('"', ' ').replace("'", ' ').replace(',','.').split(' ')
+            X = (abs(float(lon[0])) + float(lon[1])/60 + float(lon[2])/3600)*(-1 if dic_cod[lista_cod[-1]]['lon'][0] == '-' else 1)
+            lat = dic_cod[codigo]['lat'].replace('°', ' ').replace('"', ' ').replace("'", ' ').replace(',','.').split(' ')
+            Y = (abs(float(lat[0])) + float(lat[1])/60 + float(lat[2])/3600)*(-1 if dic_cod[lista_cod[-1]]['lat'][0] == '-' else 1)
+            Z = float(dic_cod[codigo]['h'].replace(',','.'))
+            feat = QgsFeature(Fields1)
+            pnts += [QgsPoint(X,Y,Z)]
+            feat.setGeometry(QgsGeometry(QgsPoint(X,Y,Z)))
+            cont += 1
+            feat['indice'] = cont
+            feat['vertice'] = codigo
+            feat['tipo_verti'] = codigo.split('-')[1]
+            feat['metodo_pos'] = ''
+            feat['sigma_x'] = None
+            feat['sigma_y'] = None
+            feat['sigma_z'] = None
+            sink1.addFeature(feat, QgsFeatureSink.FastInsert)
+            if feedback.isCanceled():
+                break
 
-            feedback.pushInfo('Alimentando camada Limite (linhas)...')
-            linha = []
-            anterior_cns = dic_cod[lista_cod[0]]['cns'].replace('NULL','')
-            anterior_mat = dic_cod[lista_cod[0]]['matr'].replace('NULL','')
-            anterior_confr = dic_cod[lista_cod[0]]['confr'].replace('NULL','')
+        feedback.pushInfo('Alimentando camada Limite (linhas)...')
+        linha = []
+        anterior_cns = dic_cod[lista_cod[0]]['cns'].replace('NULL','')
+        anterior_mat = dic_cod[lista_cod[0]]['matr'].replace('NULL','')
+        anterior_confr = dic_cod[lista_cod[0]]['confr'].replace('NULL','')
 
-            for k, codigo in enumerate(lista_cod):
-                linha += [pnts[k]]
-                cns = dic_cod[codigo]['cns'].replace('NULL','')
-                matricula = dic_cod[codigo]['matr'].replace('NULL','')
-                confrontante = dic_cod[codigo]['confr'].replace('NULL','')
-                if ((cns+matricula+confrontante) != (anterior_cns+anterior_mat+anterior_confr)):
-                    feat = QgsFeature(Fields2)
-                    feat.setGeometry(QgsGeometry(QgsLineString(linha)))
-                    feat['tipo'] = ''
-                    feat['confrontan'] = anterior_confr
-                    feat['cns'] = anterior_cns
-                    feat['matricula'] = anterior_mat
-                    sink2.addFeature(feat, QgsFeatureSink.FastInsert)
-                    anterior_mat = matricula
-                    anterior_cns = cns
-                    anterior_confr = confrontante
-                    linha = [pnts[k]]
-                if feedback.isCanceled():
-                    break
-
-            # Último segmento
-            feat = QgsFeature(Fields2)
-            if (cns+matricula+confrontante) == (anterior_cns+anterior_mat+anterior_confr):
-                linha += [pnts[0]]
+        for k, codigo in enumerate(lista_cod):
+            linha += [pnts[k]]
+            cns = dic_cod[codigo]['cns'].replace('NULL','')
+            matricula = dic_cod[codigo]['matr'].replace('NULL','')
+            confrontante = dic_cod[codigo]['confr'].replace('NULL','')
+            if ((cns+matricula+confrontante) != (anterior_cns+anterior_mat+anterior_confr)):
+                feat = QgsFeature(Fields2)
+                feat.setGeometry(QgsGeometry(QgsLineString(linha)))
                 feat['tipo'] = ''
                 feat['confrontan'] = anterior_confr
                 feat['cns'] = anterior_cns
                 feat['matricula'] = anterior_mat
-            else:
-                linha = [pnts[k], pnts[0]]
-                feat['tipo'] = ''
-                feat['confrontan'] = confrontante
-                feat['cns'] = cns
-                feat['matricula'] = matricula
-            feat.setGeometry(QgsGeometry(QgsLineString(linha)))
-            sink2.addFeature(feat, QgsFeatureSink.FastInsert)
+                sink2.addFeature(feat, QgsFeatureSink.FastInsert)
+                anterior_mat = matricula
+                anterior_cns = cns
+                anterior_confr = confrontante
+                linha = [pnts[k]]
+            if feedback.isCanceled():
+                break
 
-            # Conversões
-            dic_nat_ser = {'Particular':1, 'Contrato com Administração Pública':2}
-            dic_pessoa, dic_situacao  = {'Física':1, 'Jurídica':2}, {'Imóvel Registrado':1, 'Área Titulada não Registrada':2, 'Área não Titulada':3}
-            dic_natureza = {'Assentamento':1,'Assentamento Parcela':2,'Estrada':3,'Ferrovia':4,'Floresta Pública':5,'Gleba Pública':6,'Particular':7,'Perímetro Urbano':8,'Terra Indígena':9,'Terreno de Marinha':10,'Terreno Marginal':11,'Território Quilombola':12,'Unidade de Conservação':13}
+        # Último segmento
+        feat = QgsFeature(Fields2)
+        if (cns+matricula+confrontante) == (anterior_cns+anterior_mat+anterior_confr):
+            linha += [pnts[0]]
+            feat['tipo'] = ''
+            feat['confrontan'] = anterior_confr
+            feat['cns'] = anterior_cns
+            feat['matricula'] = anterior_mat
+        else:
+            linha = [pnts[k], pnts[0]]
+            feat['tipo'] = ''
+            feat['confrontan'] = confrontante
+            feat['cns'] = cns
+            feat['matricula'] = matricula
+        feat.setGeometry(QgsGeometry(QgsLineString(linha)))
+        sink2.addFeature(feat, QgsFeatureSink.FastInsert)
 
-            feedback.pushInfo('Alimentando camada Parcela (polígono)...')
-            feat = QgsFeature(Fields3)
-            feat['nome'] = dic['Proprietário(a):']
-            feat['pessoa'] =  1 if dic['CPF:'] != '' else 2
-            feat['cpf_cnpj'] = dic['CPF:'] if dic['CPF:'] != '' else dic['CNJP:']
-            feat['denominacao'] = dic['Denominação:']
-            feat['natureza'] = dic_natureza[dic['Natureza da Área:']]
-            feat['sncr'] = dic['Código INCRA/SNCR:']
-            feat['matricula'] = dic['Matrícula do imóvel:']
-            feat['cod_cartorio'] = dic['Cartório (CNS):']
-            feat['municipio'] = dic['Município/UF:'].split('-')[0]
-            feat['uf'] = dic['Município/UF:'].split('-')[-1]
-            feat['resp_tec'] = dic['Responsável Técnico(a):']
-            feat['reg_prof'] = dic['Conselho Profissional:']
+        # Conversões
+        dic_nat_ser = {'Particular':1, 'Contrato com Administração Pública':2}
+        dic_pessoa, dic_situacao  = {'Física':1, 'Jurídica':2}, {'Imóvel Registrado':1, 'Área Titulada não Registrada':2, 'Área não Titulada':3}
+        dic_natureza = {'Assentamento':1,'Assentamento Parcela':2,'Estrada':3,'Ferrovia':4,'Floresta Pública':5,'Gleba Pública':6,'Particular':7,'Perímetro Urbano':8,'Terra Indígena':9,'Terreno de Marinha':10,'Terreno Marginal':11,'Território Quilombola':12,'Unidade de Conservação':13}
 
-            mPol = QgsMultiPolygon()
-            anel = QgsLineString(pnts+[pnts[0]])
-            pol = QgsPolygon(anel)
-            mPol.addGeometry(pol)
-            newGeom = QgsGeometry(mPol)
-            feat.setGeometry(newGeom)
-            sink3.addFeature(feat, QgsFeatureSink.FastInsert)
+        feedback.pushInfo('Alimentando camada Parcela (polígono)...')
+        feat = QgsFeature(Fields3)
+        feat['nome'] = dic['Proprietário(a):']
+        feat['pessoa'] =  1 if dic['CPF:'] != '' else 2
+        feat['cpf_cnpj'] = dic['CPF:'] if dic['CPF:'] != '' else dic['CNJP:']
+        feat['denominacao'] = dic['Denominação:']
+        feat['natureza'] = dic_natureza[dic['Natureza da Área:']]
+        feat['sncr'] = dic['Código INCRA/SNCR:']
+        feat['matricula'] = dic['Matrícula do imóvel:']
+        feat['cod_cartorio'] = dic['Cartório (CNS):']
+        feat['municipio'] = dic['Município/UF:'].split('-')[0]
+        feat['uf'] = dic['Município/UF:'].split('-')[-1]
+        feat['resp_tec'] = dic['Responsável Técnico(a):']
+        feat['reg_prof'] = dic['Conselho Profissional:']
+
+        mPol = QgsMultiPolygon()
+        anel = QgsLineString(pnts+[pnts[0]])
+        pol = QgsPolygon(anel)
+        mPol.addGeometry(pol)
+        newGeom = QgsGeometry(mPol)
+        feat.setGeometry(newGeom)
+        sink3.addFeature(feat, QgsFeatureSink.FastInsert)
 
         return {self.VERTICE: dest_id1,
                 self.LIMITE: dest_id2,
