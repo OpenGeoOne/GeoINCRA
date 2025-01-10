@@ -84,7 +84,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
 
     def shortHelpString(self):
-        txt = 'Esta ferramenta faz a leitura do arquivo <b>PDF do Memorial Descritivo</b> Tabular do SIGEF/INCRA, convertendo nas camadas vétice (ponto), limite (linha) e parcela (polígono) no padrão GeoRural.'
+        txt = 'Esta ferramenta faz a leitura do arquivo <b>PDF do Memorial Descritivo Tabular</b> do SIGEF/INCRA, convertendo nas camadas vétice (ponto), limite (linha) e parcela (polígono) no padrão GeoRural.'
         footer = '''<div>
                       <div align="center">
                       <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
