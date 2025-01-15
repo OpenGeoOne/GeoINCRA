@@ -48,9 +48,19 @@ from qgis.core import (QgsProcessing,
 from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
-from PyPDF2 import PdfReader
 import os, re
-
+import subprocess, sys
+try:
+    from PyPDF2 import PdfReader
+except ImportError:
+    print('PyPDF2 não está instalado. Tentando instalar pelo terminal utilizando "pip install PyPDF2"...'')
+    try:
+        # Executa o pip usando subprocess
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "PyPDF2"])
+        print("PyPDF2 instalado com sucesso.")
+        from PyPDF2 import PdfReader
+    except Exception as e:
+        print(f"Houve um erro ao tentar instalar o PyPDF2: {e}")
 
 class LayersFromPDF(QgsProcessingAlgorithm):
 
