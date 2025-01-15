@@ -53,7 +53,7 @@ import subprocess, sys
 try:
     from PyPDF2 import PdfReader
 except ImportError:
-    print('PyPDF2 não está instalado. Tentando instalar pelo terminal utilizando "pip install PyPDF2"...'')
+    print('PyPDF2 não está instalado. Tentando instalar pelo terminal utilizando "pip install PyPDF2"...')
     try:
         # Executa o pip usando subprocess
         subprocess.check_call([sys.executable, "-m", "pip", "install", "PyPDF2"])
