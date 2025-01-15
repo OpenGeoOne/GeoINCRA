@@ -49,15 +49,14 @@ from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
 import os, re
-import subprocess, sys
+import pip
 try:
     from PyPDF2 import PdfReader
 except ImportError:
-    print('PyPDF2 não está instalado. Tentando instalar pelo terminal utilizando "pip install PyPDF2"...')
+    print('PyPDF2 não está instalado. Tentando instalar "PyPDF2" utilizando "pip"...')
     try:
         # Executa o pip usando subprocess
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "PyPDF2"])
-        print("PyPDF2 instalado com sucesso.")
+        pip.main(["install","PyPDF2"])
         from PyPDF2 import PdfReader
     except Exception as e:
         print(f"Houve um erro ao tentar instalar o PyPDF2: {e}")
