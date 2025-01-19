@@ -68,7 +68,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                4: 'Municípios (IBGE)',
                5: 'Estações GPS (IBGE)',
                6: 'Faixa de domínio (DNIT)',
-               # 7: 'RBMC (IBGE)',
+               7: 'RBMC (IBGE)',
             }
 
 
@@ -79,8 +79,8 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                   mapping[3]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='PNADC:uf_poligono' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
                   mapping[4]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CCAR:BC250_2017_Municipio_A' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
                   mapping[5]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:ANMS2010_09_estacoes_GPS_2010' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
-                  mapping[6]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='vgeo:vw_faixa_dominio' url='http://servicos.dnit.gov.br/dnitgeo/geoserver/ows' url='http://servicos.dnit.gov.br/dnitgeo/geoserver/ows?service=wfs&version=2.0.0&request=GetCapabilities' http-header:referer=''",
-                  # mapping[7]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:andb2022_040401' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
+                  mapping[6]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:faixa_dominio_dnit_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
+                  mapping[7]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:RBMC_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
             }
 
     def initAlgorithm(self, config):
@@ -143,7 +143,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
 
         request = QgsFeatureRequest().setFilterRect(extensao)
 
-        if option != 6:
+        if option != -1: # quando o request não funcionar
             for feature in source.getFeatures(request):
                 if feedback.isCanceled():
                     break
