@@ -31,26 +31,10 @@ __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsProcessing,
-                       QgsProject,
-                       QgsFeatureRequest,
-                       QgsVectorLayer,
-                       QgsField,
-                       QgsCoordinateTransform,
-                       QgsProcessingParameterExtent,
-                       QgsEditorWidgetSetup,
-                       QgsCoordinateReferenceSystem,
-                       QgsRectangle,
-                       QgsProcessingUtils,
-                       QgsProcessingParameterEnum,
-                       QgsFeatureSink,
-                       QgsProcessingAlgorithm,
-                       QgsProcessingLayerPostProcessorInterface,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink)
-
+from qgis.core import *
 import os
-from qgis.PyQt.QtGui import QIcon
+import requests
+from qgis.PyQt.QtGui import QIcon, QFont, QColor
 from GeoINCRA.images.Imgs import *
 
 
@@ -120,6 +104,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
 
 
         option = self.parameterAsEnum(parameters, self.WFS, context)
+        self.OPTION = option
         layer = self.mapping[option]
         link = self.links[layer]
 
@@ -162,7 +147,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         global renamer
         renamer = Renamer(layer)
         context.layerToLoadOnCompletionDetails(dest_id).setPostProcessor(renamer)
-
+        self.SAIDA = dest_id
         return {self.OUTPUT: dest_id}
 
 
@@ -205,6 +190,104 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                       </div>
                     </div>'''
         return txt + footer
+    def postProcessAlgorithm(self, context, feedback):
+        layer = QgsProcessingUtils.mapLayerFromString(self.SAIDA, context)
+        print(layer)
+        if self.OPTION == 7:
+            # Simbologia
+            rbmc_dict = {}
+            # URL que você deseja acessar
+            url = "http://170.84.40.52:2101/"
+            # Enviar uma requisição GET para o servidor
+            try:
+                response = requests.get(url)
+                if response.status_code == 200:
+                    page_text = response.text
+                    linhas = page_text.split('\n')
+                    for linha in linhas:
+                        att = linha.split(';')
+                        if len(att) > 13 and att[0] == 'STR' and len(att[1]) == 5:
+                            code = att[1]
+                            format_rtc = att[3]
+                            gnss = att[6]
+                            status = att[5]
+                            software = att[13]
+                            rbmc_dict[code] = {
+                                "format_rtc": format_rtc,
+                                "gnss": gnss,
+                                "status": status,
+                                "software": software,
+                        }
+
+                # Criar lista de estações ON
+                ON = []
+                OFF = []
+                for feat in layer.getFeatures():
+                    codigo = feat['nome']
+                    if (codigo + '0' in rbmc_dict) or (codigo + '1' in rbmc_dict):
+                        ON.append(codigo)
+                    else:
+                        OFF.append(codigo)
+
+                # Criar a simbologia baseada em regras
+                root_rule = QgsRuleBasedRenderer.Rule(None)
+
+                # RBMC ativa
+                regra1 = QgsRuleBasedRenderer.Rule(QgsSymbol.defaultSymbol(layer.geometryType()))
+                regra1.setFilterExpression('"nome" in ' + str(tuple(OFF)))  # Expressão de filtragem
+                regra1.setLabel("Inoperante")  # Rótulo da regra
+                regra1.symbol().setColor(QColor("#FF0000"))  # Cor vermelha
+                regra1.symbol().setSize(2.5)  # Tamanho do símbolo
+                root_rule.appendChild(regra1)
+
+                # RBMC inativa
+                regra2 = QgsRuleBasedRenderer.Rule(QgsSymbol.defaultSymbol(layer.geometryType()))
+                regra2.setFilterExpression('"nome" in ' + str(tuple(ON)))
+                regra2.setLabel("Operante")
+                regra2.symbol().setColor(QColor("#00FF00"))  # Cor verde
+                regra2.symbol().setSize(2.5)  # Tamanho do símbolo
+                root_rule.appendChild(regra2)
+
+                # Aplicar a simbologia baseada em regras na camada
+                renderer = QgsRuleBasedRenderer(root_rule)
+                layer.setRenderer(renderer)
+
+            except:
+                print('Erro no processo requisição da URL!')
+
+            # Rotulação
+            # Configurar as propriedades de rótulo
+            label_settings = QgsPalLayerSettings()
+            label_settings.fieldName = '"nome"'  # Substitua "nome" pelo nome do campo
+            label_settings.isExpression = True
+            label_settings.placement = QgsPalLayerSettings.AroundPoint
+            label_settings.enabled = True
+
+            # Configurar o estilo do texto
+            text_format = QgsTextFormat()
+            font = QFont("Arial", 10)
+            font.setBold(True)
+            text_format.setFont(font)
+            text_format.setSize(10)
+            text_format.setColor(QColor("white"))
+
+            # Configurar o buffer
+            buffer_settings = QgsTextBufferSettings()
+            buffer_settings.setEnabled(True)
+            buffer_settings.setSize(0.5)
+            buffer_settings.setColor(QColor("black"))
+            text_format.setBuffer(buffer_settings)
+
+            # Aplicar o estilo de texto no rótulo
+            label_settings.setFormat(text_format)
+
+            # Configurar e ativar os rótulos
+            labeling = QgsVectorLayerSimpleLabeling(label_settings)
+            layer.setLabeling(labeling)
+            layer.setLabelsEnabled(True)
+            layer.triggerRepaint()
+
+        return {self.OUTPUT: self.SAIDA}
 
 class Renamer (QgsProcessingLayerPostProcessorInterface):
     def __init__(self, layer_name):
