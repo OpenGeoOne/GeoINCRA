@@ -192,68 +192,70 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         return txt + footer
     def postProcessAlgorithm(self, context, feedback):
         layer = QgsProcessingUtils.mapLayerFromString(self.SAIDA, context)
-        print(layer)
-        if self.OPTION == 7:
-            # Simbologia
-            rbmc_dict = {}
-            # URL que você deseja acessar
-            url = "http://170.84.40.52:2101/"
-            # Enviar uma requisição GET para o servidor
-            try:
-                response = requests.get(url)
-                if response.status_code == 200:
-                    page_text = response.text
-                    linhas = page_text.split('\n')
-                    for linha in linhas:
-                        att = linha.split(';')
-                        if len(att) > 13 and att[0] == 'STR' and len(att[1]) == 5:
-                            code = att[1]
-                            format_rtc = att[3]
-                            gnss = att[6]
-                            status = att[5]
-                            software = att[13]
-                            rbmc_dict[code] = {
-                                "format_rtc": format_rtc,
-                                "gnss": gnss,
-                                "status": status,
-                                "software": software,
-                        }
+        if layer.featureCount() > 0:
+            if self.OPTION == 7:
+                # Simbologia
+                rbmc_dict = {}
+                # URL que você deseja acessar
+                url = "http://170.84.40.52:2101/"
+                # Enviar uma requisição GET para o servidor
+                try:
+                    response = requests.get(url)
+                    if response.status_code == 200:
+                        page_text = response.text
+                        linhas = page_text.split('\n')
+                        for linha in linhas:
+                            att = linha.split(';')
+                            if len(att) > 13 and att[0] == 'STR' and len(att[1]) == 5:
+                                code = att[1]
+                                format_rtc = att[3]
+                                gnss = att[6]
+                                status = att[5]
+                                software = att[13]
+                                rbmc_dict[code] = {
+                                    "format_rtc": format_rtc,
+                                    "gnss": gnss,
+                                    "status": status,
+                                    "software": software,
+                            }
 
-                # Criar lista de estações ON
-                ON = []
-                OFF = []
-                for feat in layer.getFeatures():
-                    codigo = feat['nome']
-                    if (codigo + '0' in rbmc_dict) or (codigo + '1' in rbmc_dict):
-                        ON.append(codigo)
-                    else:
-                        OFF.append(codigo)
+                    # Criar lista de estações ON
+                    ON = []
+                    OFF = []
+                    for feat in layer.getFeatures():
+                        codigo = feat['nome']
+                        if (codigo + '0' in rbmc_dict) or (codigo + '1' in rbmc_dict):
+                            ON.append(codigo)
+                        else:
+                            OFF.append(codigo)
 
-                # Criar a simbologia baseada em regras
-                root_rule = QgsRuleBasedRenderer.Rule(None)
+                    # Criar a simbologia baseada em regras
+                    root_rule = QgsRuleBasedRenderer.Rule(None)
 
-                # RBMC ativa
-                regra1 = QgsRuleBasedRenderer.Rule(QgsSymbol.defaultSymbol(layer.geometryType()))
-                regra1.setFilterExpression('"nome" in ' + str(tuple(OFF)))  # Expressão de filtragem
-                regra1.setLabel("Inoperante")  # Rótulo da regra
-                regra1.symbol().setColor(QColor("#FF0000"))  # Cor vermelha
-                regra1.symbol().setSize(2.5)  # Tamanho do símbolo
-                root_rule.appendChild(regra1)
+                    # RBMC ativa
+                    regra1 = QgsRuleBasedRenderer.Rule(QgsSymbol.defaultSymbol(layer.geometryType()))
+                    filtro1 = '"nome" in ' + str(tuple(OFF)) if len(OFF) > 0 else 'ELSE'
+                    regra1.setFilterExpression(filtro1)  # Expressão de filtragem
+                    regra1.setLabel("Inoperante")  # Rótulo da regra
+                    regra1.symbol().setColor(QColor("#FF0000"))  # Cor vermelha
+                    regra1.symbol().setSize(2.5)  # Tamanho do símbolo
+                    root_rule.appendChild(regra1)
 
-                # RBMC inativa
-                regra2 = QgsRuleBasedRenderer.Rule(QgsSymbol.defaultSymbol(layer.geometryType()))
-                regra2.setFilterExpression('"nome" in ' + str(tuple(ON)))
-                regra2.setLabel("Operante")
-                regra2.symbol().setColor(QColor("#00FF00"))  # Cor verde
-                regra2.symbol().setSize(2.5)  # Tamanho do símbolo
-                root_rule.appendChild(regra2)
+                    # RBMC inativa
+                    regra2 = QgsRuleBasedRenderer.Rule(QgsSymbol.defaultSymbol(layer.geometryType()))
+                    filtro2 = '"nome" in ' + str(tuple(OFF)) if len(OFF) > 0 else 'ELSE'
+                    regra2.setFilterExpression('"nome" in ' + str(tuple(ON)))
+                    regra2.setLabel("Operante")
+                    regra2.symbol().setColor(QColor("#00FF00"))  # Cor verde
+                    regra2.symbol().setSize(2.5)  # Tamanho do símbolo
+                    root_rule.appendChild(regra2)
 
-                # Aplicar a simbologia baseada em regras na camada
-                renderer = QgsRuleBasedRenderer(root_rule)
-                layer.setRenderer(renderer)
+                    # Aplicar a simbologia baseada em regras na camada
+                    renderer = QgsRuleBasedRenderer(root_rule)
+                    layer.setRenderer(renderer)
 
-            except:
-                print('Erro no processo requisição da URL!')
+                except:
+                    print('Erro no processo requisição da URL!')
 
             # Rotulação
             # Configurar as propriedades de rótulo
