@@ -232,19 +232,19 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                     # Criar a simbologia baseada em regras
                     root_rule = QgsRuleBasedRenderer.Rule(None)
 
-                    # RBMC ativa
+                    # RBMC inoperante
                     regra1 = QgsRuleBasedRenderer.Rule(QgsSymbol.defaultSymbol(layer.geometryType()))
-                    filtro1 = '"nome" in ' + str(tuple(OFF)) if len(OFF) > 0 else 'ELSE'
+                    filtro1 = '"nome" in ' + str(tuple(OFF)).replace(',)', ')') if len(OFF) > 0 else 'ELSE'
                     regra1.setFilterExpression(filtro1)  # Expressão de filtragem
                     regra1.setLabel("Inoperante")  # Rótulo da regra
                     regra1.symbol().setColor(QColor("#FF0000"))  # Cor vermelha
                     regra1.symbol().setSize(2.5)  # Tamanho do símbolo
                     root_rule.appendChild(regra1)
 
-                    # RBMC inativa
+                    # RBMC operante
                     regra2 = QgsRuleBasedRenderer.Rule(QgsSymbol.defaultSymbol(layer.geometryType()))
-                    filtro2 = '"nome" in ' + str(tuple(OFF)) if len(OFF) > 0 else 'ELSE'
-                    regra2.setFilterExpression('"nome" in ' + str(tuple(ON)))
+                    filtro2 = '"nome" in ' + str(tuple(ON)).replace(',)', ')') if len(ON) > 0 else 'ELSE'
+                    regra2.setFilterExpression(filtro2) 
                     regra2.setLabel("Operante")
                     regra2.symbol().setColor(QColor("#00FF00"))  # Cor verde
                     regra2.symbol().setSize(2.5)  # Tamanho do símbolo
