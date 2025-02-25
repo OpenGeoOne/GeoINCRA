@@ -264,13 +264,14 @@ class LayersFromPDF(QgsProcessingAlgorithm):
 
         lista_cod = []
         dic_cod = {}
+        ind_encravado = []
 
         # Dividir o texto em linhas
         lines = text.splitlines()
         sentinela = False
         sentinela2 = False
         cont = 0
-        pattern = r'^\s*[A-Z]{3,4}-[MPV]-\d{1,5}$'
+        pattern = r'^\s*[A-Z0-9]{3,4}-[MPV]-\d{1,5}$'
 
         for line in lines:
 
@@ -288,12 +289,15 @@ class LayersFromPDF(QgsProcessingAlgorithm):
                 sentinela2 = False
 
             if bool(re.fullmatch(pattern, line)):
-                codigo = line.strip()
                 if cont == 0:
+                    codigo = line.strip()
                     lista_cod.append(codigo)
                     sentinela2 = True
 
-            if sentinela2:
+            if 'Área encravada' in line:
+                ind_encravado.append(len(lista_cod))
+
+            elif sentinela2:
                 cont += 1
                 if cont == 1:
                     dic_cod[lista_cod[-1]] = {'lon':'', 'lat':'', 'h':'', 'cns':'', 'matr':'', 'confr': ''}
@@ -314,14 +318,14 @@ class LayersFromPDF(QgsProcessingAlgorithm):
                         dic_cod[lista_cod[-1]]['confr'] = confr
                     except:
                         dic_cod[lista_cod[-1]]['confr'] = line.strip()
-        print(dic_cod)
+            
+            
         if len(lista_cod) == 0 or dic['Denominação:'] == '':
             raise QgsProcessingException('PDF de entrada não é um Memorial do Sigef!')
 
-
         feedback.pushInfo('Alimentando camada Vértice (pontos)...')
         cont = 0
-        pnts = []
+        pnts = {}
         for codigo in lista_cod:
             lon = dic_cod[codigo]['lon'].replace('°', ' ').replace('"', ' ').replace("'", ' ').replace(',','.').split(' ')
             X = (abs(float(lon[0])) + float(lon[1])/60 + float(lon[2])/3600)*(-1 if dic_cod[lista_cod[-1]]['lon'][0] == '-' else 1)
@@ -329,7 +333,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
             Y = (abs(float(lat[0])) + float(lat[1])/60 + float(lat[2])/3600)*(-1 if dic_cod[lista_cod[-1]]['lat'][0] == '-' else 1)
             Z = float(dic_cod[codigo]['h'].replace(',','.'))
             feat = QgsFeature(Fields1)
-            pnts += [QgsPoint(X,Y,Z)]
+            pnts[codigo] = QgsPoint(X,Y,Z)
             feat.setGeometry(QgsGeometry(QgsPoint(X,Y,Z)))
             cont += 1
             feat['indice'] = cont
@@ -342,49 +346,60 @@ class LayersFromPDF(QgsProcessingAlgorithm):
             sink1.addFeature(feat, QgsFeatureSink.FastInsert)
             if feedback.isCanceled():
                 break
-
+        
         feedback.pushInfo('Alimentando camada Limite (linhas)...')
-        linha = []
-        anterior_cns = dic_cod[lista_cod[0]]['cns'].replace('NULL','')
-        anterior_mat = dic_cod[lista_cod[0]]['matr'].replace('NULL','')
-        anterior_confr = dic_cod[lista_cod[0]]['confr'].replace('NULL','')
+        # Se encravado, fatiar lista_cod
+        def fatiar_lista(a, ind):
+            ind = [0] + ind + [len(a)]
+            return [a[ind[i]:ind[i+1]] for i in range(len(ind)-1)]
+        
+        if len(ind_encravado) > 0:
+            listas_fat = fatiar_lista(lista_cod, ind_encravado)
+        else:
+            listas_fat = [lista_cod]
 
-        for k, codigo in enumerate(lista_cod):
-            linha += [pnts[k]]
-            cns = dic_cod[codigo]['cns'].replace('NULL','')
-            matricula = dic_cod[codigo]['matr'].replace('NULL','')
-            confrontante = dic_cod[codigo]['confr'].replace('NULL','')
-            if ((cns+matricula+confrontante) != (anterior_cns+anterior_mat+anterior_confr)):
-                feat = QgsFeature(Fields2)
-                feat.setGeometry(QgsGeometry(QgsLineString(linha)))
+        for lista_cod_fat in listas_fat:
+            linha = []
+            anterior_cns = dic_cod[lista_cod_fat[0]]['cns'].replace('NULL','')
+            anterior_mat = dic_cod[lista_cod_fat[0]]['matr'].replace('NULL','')
+            anterior_confr = dic_cod[lista_cod_fat[0]]['confr'].replace('NULL','')
+
+            for k, codigo in enumerate(lista_cod_fat):
+                linha += [pnts[codigo]]
+                cns = dic_cod[codigo]['cns'].replace('NULL','')
+                matricula = dic_cod[codigo]['matr'].replace('NULL','')
+                confrontante = dic_cod[codigo]['confr'].replace('NULL','')
+                if ((cns+matricula+confrontante) != (anterior_cns+anterior_mat+anterior_confr)):
+                    feat = QgsFeature(Fields2)
+                    feat.setGeometry(QgsGeometry(QgsLineString(linha)))
+                    feat['tipo'] = ''
+                    feat['confrontan'] = anterior_confr
+                    feat['cns'] = anterior_cns
+                    feat['matricula'] = anterior_mat
+                    sink2.addFeature(feat, QgsFeatureSink.FastInsert)
+                    anterior_mat = matricula
+                    anterior_cns = cns
+                    anterior_confr = confrontante
+                    linha = [pnts[codigo]]
+                if feedback.isCanceled():
+                    break
+
+            # Último segmento
+            feat = QgsFeature(Fields2)
+            if (cns+matricula+confrontante) == (anterior_cns+anterior_mat+anterior_confr):
+                linha += [pnts[lista_cod_fat[0]]]
                 feat['tipo'] = ''
                 feat['confrontan'] = anterior_confr
                 feat['cns'] = anterior_cns
                 feat['matricula'] = anterior_mat
-                sink2.addFeature(feat, QgsFeatureSink.FastInsert)
-                anterior_mat = matricula
-                anterior_cns = cns
-                anterior_confr = confrontante
-                linha = [pnts[k]]
-            if feedback.isCanceled():
-                break
-
-        # Último segmento
-        feat = QgsFeature(Fields2)
-        if (cns+matricula+confrontante) == (anterior_cns+anterior_mat+anterior_confr):
-            linha += [pnts[0]]
-            feat['tipo'] = ''
-            feat['confrontan'] = anterior_confr
-            feat['cns'] = anterior_cns
-            feat['matricula'] = anterior_mat
-        else:
-            linha = [pnts[k], pnts[0]]
-            feat['tipo'] = ''
-            feat['confrontan'] = confrontante
-            feat['cns'] = cns
-            feat['matricula'] = matricula
-        feat.setGeometry(QgsGeometry(QgsLineString(linha)))
-        sink2.addFeature(feat, QgsFeatureSink.FastInsert)
+            else:
+                linha = [pnts[lista_cod_fat[k]], pnts[lista_cod_fat[0]]]
+                feat['tipo'] = ''
+                feat['confrontan'] = confrontante
+                feat['cns'] = cns
+                feat['matricula'] = matricula
+            feat.setGeometry(QgsGeometry(QgsLineString(linha)))
+            sink2.addFeature(feat, QgsFeatureSink.FastInsert)
 
         # Conversões
         dic_nat_ser = {'Particular':1, 'Contrato com Administração Pública':2}
@@ -406,9 +421,23 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         feat['resp_tec'] = dic['Responsável Técnico(a):']
         feat['reg_prof'] = dic['Conselho Profissional:']
 
+        
+        # Lista de pontos
+        for k, lista_cod_fat in enumerate(listas_fat):
+            lista_pontos = []
+            for codigo in lista_cod_fat:
+                lista_pontos += [pnts[codigo]]
+            lista_pontos+[lista_pontos[0]]
+            
+            # Anel externo
+            if k == 0:
+                anel_ext = QgsLineString(lista_pontos)
+                pol = QgsPolygon(anel_ext)
+            else: # interno
+                anel_int = QgsLineString(lista_pontos)
+                pol.addInteriorRing(anel_int)
+
         mPol = QgsMultiPolygon()
-        anel = QgsLineString(pnts+[pnts[0]])
-        pol = QgsPolygon(anel)
         mPol.addGeometry(pol)
         newGeom = QgsGeometry(mPol)
         feat.setGeometry(newGeom)
