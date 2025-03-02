@@ -39,7 +39,7 @@ from qgis.core import (QgsProcessing,
 					   QgsProcessingAlgorithm,
 					   QgsProcessingParameterFileDestination)
 
-from math import floor
+from math import floor, modf
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
 import os
@@ -138,7 +138,7 @@ class createTemplate(QgsProcessingAlgorithm):
                 self.DEC_PREC,
                 self.tr('Casas decimais das precisões e altitude'),
                 type = QgsProcessingParameterNumber.Type.Integer,
-                defaultValue = 3,
+                defaultValue = 2,
                 minValue = 2
             )
         )
@@ -376,10 +376,11 @@ class createTemplate(QgsProcessingAlgorithm):
 				else:
 					pols = [geom2.asPolygon()]
 				for pol in pols:
-					for pnt in pol[0]:
-						if vert == pnt:
-							corresp = True
-							break
+					for parte in pol:
+						for pnt in parte:
+							if vert == pnt:
+								corresp = True
+								break
 					if corresp:
 						break
 			if not corresp:
@@ -405,31 +406,17 @@ class createTemplate(QgsProcessingAlgorithm):
 
 
 		def dd2dms(dd, n_digits=3):
-			if dd != 0:
-				graus = int(floor(abs(dd)))
-				resto = round(abs(dd) - graus, 10)
-				minutos = int(floor(60*resto))
-				resto = round(resto*60 - minutos, 10)
-				segundos = resto*60
-				if round(segundos,n_digits) == 60:
-					minutos += 1
-					segundos = 0
-				if minutos == 60:
-					graus += 1
-					minutos = 0
-				if dd < 0:
-					texto = '{:02d}'.format(graus) + ' '
-				else:
-					texto = '{:02d}'.format(graus) + ' '
-				texto = texto + '{:02d}'.format(minutos) + " "
-				if n_digits < 1:
-					texto = texto + '{:02d}'.format(int(segundos)) + ' '
-				else:
-					texto = texto + ('{:0' + str(3+n_digits) + '.' + str(n_digits) + 'f}').format(segundos) + ' '
-				return texto.replace('.',',')
-			else:
-				texto = "00 00 " + ('{:0' + str(3+n_digits) + '.' + str(n_digits) + 'f}').format(0)
-				return texto.replace('.',',')
+			dd = abs(dd)
+			frac, graus = modf(dd)
+			frac, minutos = modf(frac * 60)
+			segundos = round(frac * 60, n_digits)
+			if segundos == 60:
+				minutos += 1
+				segundos = 0
+			if minutos == 60:
+				graus += 1
+				minutos = 0
+			return f"{int(graus):02d} {int(minutos):02d} {segundos:0{3+n_digits}.{n_digits}f}".replace('.', ',')
 
 		# Preencher cabeçalho
 		arq =  open(output_path,'w')
@@ -468,9 +455,9 @@ class createTemplate(QgsProcessingAlgorithm):
 						vert = feat2.geometry().asPoint()
 						if vert == pnt:
 							codigo = feat2['vertice']
-							longitude = dd2dms(vert.x(), dec_coord) + 'W'
+							longitude = dd2dms(vert.x(), dec_coord) + ' W'
 							sigma_x = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_x']).replace('.',',')
-							latitude = dd2dms(vert.y(), dec_coord) + 'S' if vert.y() < 0 else dd2dms(vert.y(), 3) + 'N'
+							latitude = dd2dms(vert.y(), dec_coord) + ' S' if vert.y() < 0 else dd2dms(vert.y(), 3) + ' N'
 							sigma_y = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_y']).replace('.',',')
 							z = float(feat2.geometry().constGet().z())
 							if z == 'nan' or z == 0:
