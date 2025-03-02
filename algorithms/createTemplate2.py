@@ -30,23 +30,22 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessing,
 					   QgsProcessingException,
 					   QgsGeometry,
-                       QgsProcessingParameterNumber,
+					   QgsProcessingParameterNumber,
 					   QgsExpressionContextUtils,
 					   QgsExpressionContext,
 					   QgsProcessingParameterFeatureSource,
 					   QgsFeatureRequest,
 					   QgsProcessingAlgorithm,
-					   QgsExpression,
-					   QgsExpressionContext,
 					   QgsProcessingParameterFileDestination)
 
-from math import floor
+from math import floor, modf
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
 import subprocess
-import os
-from pathlib import Path
+import os, re
 import shutil
+import platform
+from pathlib import Path
 
 
 class createTemplate2(QgsProcessingAlgorithm):
@@ -88,11 +87,11 @@ class createTemplate2(QgsProcessingAlgorithm):
 					  </div>
 					  <div align="right">
 					  <p align="right">
-                      <a href="https://geoone.com.br/pvgeoincra2/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
-                      </p>
-                      <p align="right">
-                      <a href="https://portal.geoone.com.br/m/lessons/georreferenciamento-de-imveis-rurais-com-o-plugin-geoincra-1690158094835"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
-                      </p>
+					  <a href="https://geoone.com.br/pvgeoincra2/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
+					  </p>
+					  <p align="right">
+					  <a href="https://portal.geoone.com.br/m/lessons/georreferenciamento-de-imveis-rurais-com-o-plugin-geoincra-1690158094835"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
+					  </p>
 					  <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
 					  <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
 					  </div>
@@ -126,24 +125,24 @@ class createTemplate2(QgsProcessingAlgorithm):
 		)
 
 		self.addParameter(
-            QgsProcessingParameterNumber(
-                self.DEC_COORD,
-                self.tr('Casas decimais das coordenadas'),
-                type = QgsProcessingParameterNumber.Type.Integer,
-                defaultValue = 4,
-                minValue = 3
-            )
-        )
+			QgsProcessingParameterNumber(
+				self.DEC_COORD,
+				self.tr('Casas decimais das coordenadas'),
+				type = QgsProcessingParameterNumber.Type.Integer,
+				defaultValue = 3,
+				minValue = 3
+			)
+		)
 
 		self.addParameter(
-            QgsProcessingParameterNumber(
-                self.DEC_PREC,
-                self.tr('Casas decimais das precisões e altitude'),
-                type = QgsProcessingParameterNumber.Type.Integer,
-                defaultValue = 3,
-                minValue = 2
-            )
-        )
+			QgsProcessingParameterNumber(
+				self.DEC_PREC,
+				self.tr('Casas decimais das precisões e altitude'),
+				type = QgsProcessingParameterNumber.Type.Integer,
+				defaultValue = 2,
+				minValue = 2
+			)
+		)
 
 		self.addParameter(
 			QgsProcessingParameterFileDestination(
@@ -152,6 +151,157 @@ class createTemplate2(QgsProcessingAlgorithm):
 				self.tr('Planilha OpenDocument (*.ods)')
 			)
 		)
+
+	def vld_0(self, vertice, limite, parcela):
+		if parcela is None or parcela.featureCount() != 1:
+			raise QgsProcessingException('A camada Parcela deve conter exatamente uma feição selecionada!')
+		if vertice is None or vertice.featureCount() == 0:
+			raise QgsProcessingException('A camada Vértice não pode estar vazia!')
+		if limite is None or limite.featureCount() == 0:
+			raise QgsProcessingException('A camada Limite não pode estar vazia!')
+
+	def vld_1(self,vertice):
+		atributos_validos = all(
+			0 <= feat['sigma_x'] <= 10 and
+			0 <= feat['sigma_y'] <= 10 and
+			0 <= feat['sigma_z'] <= 10 and
+			feat['metodo_pos'] in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PT9', 'PA1', 'PA2', 'PA3', 'PS1', 'PS2', 'PS3', 'PS4', 'PB1', 'PB2') and
+			feat['tipo_verti'] in ('M', 'P', 'V') and
+			len(str(feat['vertice'])) >= 7 and
+			str(feat['vertice']).strip().upper() != 'NULL'
+			for feat in vertice.getFeatures()
+		)
+		if not atributos_validos:
+			raise QgsProcessingException('Verifique os valores dos atributos na camada Vértice!')
+
+	def vld_2(self,limite,vertice):
+		pontos_vertice = {feat.geometry().asPoint() for feat in vertice.getFeatures()}
+		for feat in limite.getFeatures():
+			if feat['tipo'] not in ('LA1', 'LA2', 'LA3', 'LA4', 'LA5', 'LA6', 'LA7', 'LN1', 'LN2', 'LN3', 'LN4', 'LN5', 'LN6'):
+				raise QgsProcessingException('Verifique os valores do atributo "tipo" na camada Limite!')
+			if len(feat['confrontan']) < 3:
+				raise QgsProcessingException('Verifique os valores do atributo "confrontante"!')
+			for ponto in feat.geometry().asPolyline():
+				if ponto not in pontos_vertice:
+					raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada Limite não tem correspondente na camada Vértice!'.format(ponto.y(), ponto.x()))
+
+	def vld_3(self,parcela,vertice):
+		pontos_vertice = {feat.geometry().asPoint() for feat in vertice.getFeatures()}
+		for feat in parcela.getFeatures():
+			if feat.geometry().isMultipart():
+				pols = feat.geometry().asMultiPolygon()
+			else:
+				pols = [feat.geometry().asPolygon()]
+			for pol in pols:
+				for ponto in pol[0]:
+					if ponto not in pontos_vertice:
+						raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada Parcela não tem correspondente na camada Vértice!'.format(ponto.y(), ponto.x()))
+
+
+	def dd2dms(self, dd, n_digits=3):
+		dd = abs(dd)
+		frac, graus = modf(dd)
+		frac, minutos = modf(frac * 60)
+		segundos = round(frac * 60, n_digits)
+		if segundos == 60:
+			minutos += 1
+			segundos = 0
+		if minutos == 60:
+			graus += 1
+			minutos = 0
+		return f"{int(graus):02d} {int(minutos):02d} {segundos:0{3+n_digits}.{n_digits}f}".replace('.', ',')
+
+
+	def vertice (self,pnt,vertice,dec_coord,dec_prec):
+		dec_prec = str(dec_prec)
+		for feat in vertice.getFeatures():
+			vert = feat.geometry().asPoint()
+			if vert == pnt:
+				codigo = feat['vertice'].strip()
+				longitude = self.dd2dms(vert.x(), dec_coord) + ' W'
+				sigma_x = ('{:.'+ dec_prec + 'f}').format(feat['sigma_x']).replace('.',',')
+				latitude = self.dd2dms(vert.y(), dec_coord) + ' S' if vert.y() < 0 else dd2dms(vert.y(), 3) + ' N'
+				sigma_y = ('{:.'+ dec_prec + 'f}').format(feat['sigma_y']).replace('.',',')
+				z = float(feat.geometry().constGet().z())
+				if str(z) != 'nan':
+					altitude = ('{:.'+ dec_prec + 'f}').format(z).replace('.',',')
+				else:
+					altitude = '0,00'
+					feedback.pushInfo('Advertência: Ponto de código {} está com altitude igual a 0 (zero). Verifique!'.format(codigo))
+				sigma_z = ('{:.'+ dec_prec + 'f}').format(feat['sigma_z']).replace('.',',')
+				metodo_pos = feat['metodo_pos']
+				return codigo,longitude,sigma_x,latitude,sigma_y,altitude, sigma_z,metodo_pos
+
+	def limite (self,pnt,pnt_seg,limite):
+		for feat in limite.getFeatures():
+			linha = feat.geometry().asPolyline()
+			for k2, vert in enumerate(linha[:-1]):
+				if vert == pnt and linha[k2 + 1] == pnt_seg:
+					tipo = feat['tipo']
+					confrontan = feat['confrontan'].strip()
+					cns = str(feat['cns']).replace('NULL', '').strip()
+					matricula = str(feat['matricula']).replace('NULL', '').strip()
+					return tipo,confrontan,cns,matricula
+		raise QgsProcessingException(f'Erro de topologia: Limite não encontrado para ({pnt.y()}, {pnt.x()}) -> ({pnt_seg.y()}, {pnt_seg.x()})')
+
+	def generate_table_substitution(self,k, feat, vertice, limite, dec_coord, dec_prec):
+		pnt_str = []
+		for k1, pnt in enumerate(feat[:-1]):
+			codigo, longitude, sigma_x, latitude, sigma_y, altitude, sigma_z, metodo_pos = self.vertice(pnt, vertice, dec_coord, dec_prec)
+			pnt_seg = feat[k1 + 1]
+			tipo, confrontan, cns, matricula = self.limite(pnt, pnt_seg, limite)
+			k = k1 + 12
+
+			values = [codigo, longitude, sigma_x, latitude, sigma_y, altitude, sigma_z, metodo_pos, tipo, cns, matricula, confrontan]
+
+			pnt_str.append(self.format_doc_values(k, values))
+
+		return "\n".join(pnt_str)
+
+	def setInf (self,n,vertice, limite, data, feat, dec_coord, dec_prec, table_prefix):
+		pnt_str = self.generate_table_substitution(n, feat, vertice, limite, dec_coord, dec_prec)
+
+		table_marker = f'#{table_prefix}_{n+1}' if n != 0 else r'#table_1\b'
+		data = re.sub(table_marker, pnt_str, data)
+
+		return data
+
+	def format_doc_values(self, k, values):
+		fields = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
+		return "\n".join(f'\tdoc.setValue("{fields[i]}{k}", "{value}")' for i, value in enumerate(values))
+
+	def createSheets(self, mapping, data):
+		for i,feat in enumerate (mapping[0]):
+			if i==0:
+				act_sheets = f'\tdoc.activate("perimetro_1")\n#table_1\n'
+				data = data.replace('#table',act_sheets)
+			else:
+				add_sheets = f'\tdoc.copySheet("perimetro_1", "perimetro_1_{i+1}", "sobre")\n#copy_sheet\n'
+				act_sheets = f'\tdoc.activate("perimetro_1_{i+1}")\n\tdoc.setValue("B4", "{i+1:03d}")\n#table_1_{i+1}\n\n#activate_sheet\n'
+				data = data.replace('#copy_sheet',add_sheets)
+				data = data.replace('#activate_sheet',act_sheets)
+
+		k=1
+		for parcela, features in list(mapping.items())[1:]:
+			for feat in features:
+				k+=1
+				add_sheets = f'\tdoc.copySheet("perimetro_1", "perimetro_{k}", "sobre")\n#copy_sheet\n'
+				act_sheets = f'\tdoc.activate("perimetro_{k}")\n\tdoc.setValue("B4", "{parcela:03d}")\n\tdoc.setValue("B5", "Interno")\n#table_{k}\n\n#activate_sheet\n'
+				data = data.replace('#copy_sheet',add_sheets)
+				data = data.replace('#activate_sheet',act_sheets)
+		return data
+
+	def reorder_polygon_points(self,pontos):
+		ponto_inicial = None
+		max_latitude = -90  # Latitude mínima possível
+		for pnt in (pontos[:-1]):
+			if pnt.y() > max_latitude:
+				max_latitude = pnt.y()
+				ponto_inicial = pnt
+
+		index = pontos.index(ponto_inicial)
+		pontos_reordenados = pontos[index:] + pontos[1:index+1]
+		return(pontos_reordenados)
 
 	def processAlgorithm(self, parameters, context, feedback):
 
@@ -180,65 +330,71 @@ class createTemplate2(QgsProcessingAlgorithm):
 		if parcela is None:
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.PARCELA))
 
+		dec_coord = self.parameterAsInt(
+			parameters,
+			self.DEC_COORD,
+			context
+		)
+
+		dec_prec = self.parameterAsInt(
+			parameters,
+			self.DEC_PREC,
+			context
+		)
+
+
 		output_path = self.parameterAsString(
 			parameters,
 			self.OUTPUT,
 			context
 		)
 		if not output_path:
-			raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
-
-		dec_coord = self.parameterAsInt(
-            parameters,
-            self.DEC_COORD,
-            context
-        )
-
-		dec_prec = self.parameterAsInt(
-            parameters,
-            self.DEC_PREC,
-            context
-        )
-
-
-		#path and create macro
-		liboffice_path = "C:/Program Files/LibreOffice/program/"
-		liboffice_exe = 'soffice.exe'
-		path_libfile = os.path.join(liboffice_path, liboffice_exe)
-
-		path_macro = os.path.join(Path.home(), "AppData\\Roaming\\LibreOffice\\4\\user\\Scripts\\python")
-		if not os.path.isdir(path_macro): # verifica se diretorio ja existe
-			os.makedirs(path_macro) # cria pasta caso nao exista
-			feedback.pushInfo ('Pasta criada com sucesso para a macro!  {}'.format(path_macro))
-
-
-		path_ods = os.path.join(Path.home(), "AppData\\Roaming\\QGIS\\QGIS3\\profiles\\default\\python\\plugins\\GeoINCRA\\algorithms\\shp\\sigef_planilha_modelo_1.2_rc5.ods")
-		shutil.copy(os.path.join(Path.home(),"AppData\\Roaming\\QGIS\\QGIS3\\profiles\\default\\python\\plugins\\GeoINCRA\\algorithms\\shp\\macro.py"),os.path.join(path_macro,'qgis_macro.py'))
-
+			raise QgsProcessingException('Caminho de saída inválido!')
 
 		# Validações
-
-		# Checar preenchimento dos atributos da camada vértice
+		self.vld_0(vertice, limite, parcela)
 		self.vld_1(vertice)
-
-
-		# Camada parcela deve ter apenas uma feição selecionada
-		if parcela.featureCount() != 1:
-			raise QgsProcessingException ('Camada parcela deve ter apenas uma feição selecionada!')
-		else:
-			feature = [feature for feature in parcela.getFeatures()][0]
-
-
-		# Verificar se cada vértice da camada limite (linha) tem o correspondente da camada vétice (ponto)
 		self.vld_2(limite,vertice)
-
-		# Verificar se cada vértice da camada parcela (polígono) tem o correspondente da camada vétice (ponto)
 		self.vld_3(parcela,vertice)
 
-		# construir macro
+		# Detectando o sistema operacional
+		system_os = platform.system()
+
+        # Definição de caminhos para LibreOffice
+		if system_os == "Windows":
+			libreoffice_path = Path("C:/Program Files/LibreOffice/program/soffice.exe")
+		elif system_os == "Linux":
+			libreoffice_path = Path("/usr/bin/soffice")
+		elif system_os == "Darwin":  # macOS
+			libreoffice_path = Path("/Applications/LibreOffice.app/Contents/MacOS/soffice")
+		else:
+			raise OSError("Sistema operacional não suportado")
+
+        # Definição de caminho para macros no LibreOffice
+		if system_os == "Windows":
+			path_macro = Path.home() / "AppData/Roaming/LibreOffice/4/user/Scripts/python"
+			src_macro = Path.home() / "AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/macro.py"
+			path_ods = Path.home() / "AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/sigef_planilha_modelo_1.2_rc5.ods"
+		else:
+			path_macro = Path.home() / ".config/libreoffice/4/user/Scripts/python"
+			src_macro = Path.home() / ".local/share/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/macro.py"
+			path_ods = Path.home() / ".local/share/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/sigef_planilha_modelo_1.2_rc5.ods"
+
+        # Criando diretório, se não existir
+		path_macro.mkdir(parents=True, exist_ok=True)
+
+        # Copiando macro do QGIS para LibreOffice
+		dst_macro = path_macro / 'qgis_macro.py'
+		shutil.copy(src_macro, dst_macro)
+
+
+		# map
 		nat_ser = {1:'Particular', 2:'Contrato com Administração Pública'}
-		pessoa, situacao  = {1:'Física', 2:'Jurídica'}, {1:'Imóvel Registrado', 2:'Área Titulada não Registrada', 3:'Área não Titulada'}
+		pessoa  = {1:'Física', 2:'Jurídica'}
+		situacao = {1:'Imóvel Registrado', 2:'Área Titulada não Registrada', 3:'Área não Titulada'}
 		natureza = {1:'Assentamento',2:'Assentamento Parcela',3:'Estrada',4:'Ferrovia',5:'Floresta Pública',6:'Gleba Pública',7:'Particular',8:'Perímetro Urbano',9:'Terra Indígena',10:'Terreno de Marinha',11:'Terreno Marginal',12:'Território Quilombola',13:'Unidade de Conservação'}
+
+		feature = next(parcela.getFeatures())
 
 		with open(os.path.join(path_macro,'qgis_macro.py'),'r') as arq:
 			data = arq.read()
@@ -254,199 +410,44 @@ class createTemplate2(QgsProcessingAlgorithm):
 			municipio = str(feature['municipio']).replace('NULL', '').replace('\n','') +'-'+ str(feature['uf']).replace('NULL', '').replace('\n','')
 			data = data.replace("Municipio", municipio)
 
+
+
 		geom = feature.geometry()
-		if geom.isMultipart():
-			polygons = geom.asMultiPolygon()
-		else:
-			polygons = [geom.asPolygon()]
+		polygons = geom.asMultiPolygon() if geom.isMultipart() else [geom.asPolygon()]
 
-		if len(polygons) != 1:
-			data = self.createSheets(data,polygons)
+		mapping = {0: []}
+		for i, features in enumerate(polygons):
+			mapping[0].append(self.reorder_polygon_points(features[0]))
+			reorder = [self.reorder_polygon_points(feat) for feat in features[1:]]
+			if reorder:
+				mapping[i + 1] = reorder
 
+		data = self.createSheets(mapping, data)
 
+		for n, feat in enumerate(mapping[0]):
+			data = self.setInf (n,vertice, limite, data, feat, dec_coord, dec_prec,table_prefix="table_1")
 
-		# createSpreadshee
+		k=0
+		for prm ,features in list(mapping.items())[1:]:
+			for feat in features:
+				k+=1
+				data = self.setInf (k,vertice, limite, data, feat, dec_coord, dec_prec,table_prefix="table")
 
-		for n, pol in enumerate(polygons):
-			pnt_str = ''
-			for k1, pnt in enumerate(pol[0][:-1]):
-				codigo,longitude,sigma_x,latitude,sigma_y,altitude, sigma_z,metodo_pos = self.vertice (pnt,vertice,dec_coord,dec_prec)
-				pnt_seg = pol[0][k1 + 1]
-				try:
-					tipo,confrontan,cns,matricula = self.limite(pnt,pnt_seg,limite)
-				except:
-					raise QgsProcessingException ('Verifique possível erro de topologia!')
-				k = k1+12
-				pnt_str +='\tdoc.setValue("A{}", "{}")\n'.format(k,codigo)
-				pnt_str +='\tdoc.setValue("B{}", "{}")\n'.format(k,longitude)
-				pnt_str +='\tdoc.setValue("C{}", "{}")\n'.format(k,sigma_x)
-				pnt_str +='\tdoc.setValue("D{}", "{}")\n'.format(k,latitude)
-				pnt_str +='\tdoc.setValue("E{}", "{}")\n'.format(k,sigma_y)
-				pnt_str +='\tdoc.setValue("F{}", "{}")\n'.format(k,altitude)
-				pnt_str +='\tdoc.setValue("G{}", "{}")\n'.format(k,sigma_z)
-				pnt_str +='\tdoc.setValue("H{}", "{}")\n'.format(k,metodo_pos)
-				pnt_str +='\tdoc.setValue("I{}", "{}")\n'.format(k,tipo)
-				pnt_str +='\tdoc.setValue("J{}", "{}")\n'.format(k,cns)
-				pnt_str +='\tdoc.setValue("K{}", "{}")\n'.format(k,matricula)
-				pnt_str +='\tdoc.setValue("L{}", "{}")\n'.format(k,confrontan)
-
-
-
-			data = data.replace('#table_{}'.format(n+1),pnt_str)
-			data = data.replace('output_path', output_path)
+		data = data.replace('output_path', output_path)
 
 		with open(os.path.join(path_macro,'qgis_macro.py'),'w') as arq:
 			arq.write(data)
 
 		#executa macro
 		try:
-			subprocess.call(f"{path_libfile} "
-                		" --invisible "
-                		f"{path_ods} "
-               			'vnd.sun.star.script:qgis_macro.py$create_table?language=Python&location=user'
-               			)
+			subprocess.call(f"{libreoffice_path} "
+						" --invisible "
+						f"{path_ods} "
+						'vnd.sun.star.script:qgis_macro.py$create_table?language=Python&location=user'
+						)
 		except:
 			raise QgsProcessingException("Verifique se a versão do seu LibreOffice ou o seu SO estão atualizados!")
-		os.remove(os.path.join(path_macro,'qgis_macro.py'))
 
-		return {}
+		os.remove(os.path.join(path_macro,'qgis_macro.py')) # Remove a macro temporária
 
-	def vld_1(self,vertice):
-		for feat in vertice.getFeatures():
-			if feat['sigma_x'] < 0 or feat['sigma_x'] > 10 or feat['sigma_x'] == None:
-				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_x"!')
-			if feat['sigma_y'] < 0 or feat['sigma_y'] > 10 or feat['sigma_y'] == None:
-				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_y"!')
-			if feat['sigma_z'] < 0 or feat['sigma_z'] > 10 or feat['sigma_z'] == None:
-				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_z"!')
-			if feat['metodo_pos'] not in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PT9', 'PA1', 'PA2', 'PA3', 'PS1', 'PS2', 'PS3', 'PS4', 'PB1', 'PB2'):
-				raise QgsProcessingException ('Verifique os valores do atrituto "metodo_pos"!')
-			if feat['tipo_verti'] not in ('M', 'P', 'V'):
-				raise QgsProcessingException ('Verifique os valores do atrituto "tipo_vertice"!')
-			if len(str(feat['vertice'])) < 7:
-				raise QgsProcessingException ('Verifique os valores do atrituto "código do vértice"!')
-			if str(feat['vertice']) in ('', ' ', 'NULL'):
-				raise QgsProcessingException ('O atrituto "código do vértice" deve ser preenchido!')
-
-	def vld_2(self,limite,vertice):
-		for feat1 in limite.getFeatures():
-			# Checar preenchimento dos atributos
-			if feat1['tipo'] not in ('LA1', 'LA2', 'LA3', 'LA4', 'LA5', 'LA6', 'LA7', 'LN1', 'LN2', 'LN3', 'LN4', 'LN5', 'LN6'):
-				raise QgsProcessingException ('Verifique os valores do atributo "tipo"!')
-			if len(feat1['confrontan']) < 3:
-				raise QgsProcessingException ('Verifique os valores do atrituto "confrontante"!')
-			# Topologia
-			linha = feat1.geometry().asPolyline()
-			for pnt in linha:
-				corresp = False
-				for feat2 in vertice.getFeatures():
-					vert = feat2.geometry().asPoint()
-					if vert == pnt:
-						corresp = True
-						continue
-				if not corresp:
-					raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada limite não possui correspondente na camada vértice!'.format(pnt.y(), pnt.x()))
-
-	def vld_3(self,parcela,vertice):
-		for feat1 in parcela.getFeatures():
-			geom1 = feat1.geometry()
-			if geom1.isMultipart():
-				pols = geom1.asMultiPolygon()
-			else:
-				pols = [geom1.asPolygon()]
-			for pol in pols:
-				for pnt in pol[0]:
-					corresp = False
-					for feat2 in vertice.getFeatures():
-						vert = feat2.geometry().asPoint()
-						if vert == pnt:
-							corresp = True
-							continue
-					if not corresp:
-						raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada parcela não possui correspondente na camada vértice!'.format(pnt.y(), pnt.x()))
-
-	def createSheets(self,data,pols):
-		add_sheets = ''
-		act_sheets = ''
-		for i in range(len(pols)):
-			if i!=0:
-				add_sheets +='\tdoc.copySheet("perimetro_{}","perimetro_{}","sobre")\n'.format(i,i+1)
-				act_sheets +='\tdoc.activate("perimetro_{}")\n'.format(i+1)
-				act_sheets +='#table_{}\n'.format(i+1)
-
-		data = data.replace('#copy_sheet',add_sheets)
-		data = data.replace('#activate_sheet',act_sheets)
-		return data
-
-
-	def vertice (self,pnt,vertice,dec_coord,dec_prec):
-
-
-		dec_prec = str(dec_prec)
-		# dec_coord = str(dec_coord)
-		# expr1 = QgsExpression("to_dms($y, 'y', {}, 'aligned')".format(dec_coord))
-		# expr2 = QgsExpression("to_dms($x, 'x', {}, 'aligned')".format(dec_coord))
-		# context = QgsExpressionContext()
-		# context.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(vertice))
-		def dd2dms(dd, n_digits=3):
-			if dd != 0:
-				graus = int(floor(abs(dd)))
-				resto = round(abs(dd) - graus, 10)
-				minutos = int(floor(60*resto))
-				resto = round(resto*60 - minutos, 10)
-				segundos = resto*60
-				if round(segundos,n_digits) == 60:
-					minutos += 1
-					segundos = 0
-				if minutos == 60:
-					graus += 1
-					minutos = 0
-				if dd < 0:
-					texto = '{:02d}'.format(graus) + ' '
-				else:
-					texto = '{:02d}'.format(graus) + ' '
-				texto = texto + '{:02d}'.format(minutos) + " "
-				if n_digits < 1:
-					texto = texto + '{:02d}'.format(int(segundos)) + ' '
-				else:
-					texto = texto + ('{:0' + str(3+n_digits) + '.' + str(n_digits) + 'f}').format(segundos) + ' '
-				return texto.replace('.',',')
-			else:
-				texto = "00 00 " + ('{:0' + str(3+n_digits) + '.' + str(n_digits) + 'f}').format(0)
-				return texto.replace('.',',')
-
-		for feat in vertice.getFeatures():
-			# context.setFeature(feat)
-			vert = feat.geometry().asPoint()
-			if vert == pnt:
-				codigo = feat['vertice'].replace('\n','')
-				#longitude = str(expr2.evaluate(context)).replace("°"," ").replace("′"," ").replace('″',' ')
-				longitude = dd2dms(vert.x(), dec_coord) + 'W'
-				#longitude = longitude.replace("°"," ").replace("'"," ").replace('"',' ')
-				sigma_x = ('{:.'+ dec_prec + 'f}').format(feat['sigma_x']).replace('.',',')
-				#latitude = str(expr1.evaluate(context)).replace("°"," ").replace("′"," ").replace('″',' ')
-				latitude = dd2dms(vert.y(), dec_coord) + 'S' if vert.y() < 0 else dd2dms(vert.y(), 3) + 'N'
-				#latitude = latitude.replace("°"," ").replace("'"," ").replace('"',' ')
-				sigma_y = ('{:.'+ dec_prec + 'f}').format(feat['sigma_y']).replace('.',',')
-				z = float(feat.geometry().constGet().z())
-				if str(z) != 'nan':
-					altitude = ('{:.'+ dec_prec + 'f}').format(z).replace('.',',')
-				else:
-					altitude = '0,00'
-					feedback.pushInfo('Advertência: Ponto de código {} está com altitude igual a 0 (zero). Verifique!'.format(codigo))
-				sigma_z = ('{:.'+ dec_prec + 'f}').format(feat['sigma_z']).replace('.',',')
-				metodo_pos = feat['metodo_pos']
-				return codigo,longitude,sigma_x,latitude,sigma_y,altitude, sigma_z,metodo_pos
-
-	def limite (self,pnt,pnt_seg,limite):
-		for feat in limite.getFeatures():
-			linha = feat.geometry().asPolyline()
-			for k2, vert in enumerate(linha[:-1]):
-				vert_seg = linha[k2 + 1]
-				if vert == pnt and vert_seg == pnt_seg:
-					tipo = feat['tipo']
-					confrontan = feat['confrontan'].replace('\n','')
-					cns = str(feat['cns']).replace('NULL', '').replace('\n','')
-					matricula = str(feat['matricula']).replace('NULL', '').replace('\n','')
-
-					return tipo,confrontan,cns,matricula
+		return {self.OUTPUT: output_path}
