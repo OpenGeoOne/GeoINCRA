@@ -21,8 +21,7 @@ def create_table(args=None):
 
 #copy_sheet
 
-	doc.activate("perimetro_1")
-#table_1
+#table
 
 #activate_sheet
 
