@@ -227,7 +227,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 					altitude = ('{:.'+ dec_prec + 'f}').format(z).replace('.',',')
 				else:
 					altitude = '0,00'
-					feedback.pushInfo('Advertência: Ponto de código {} está com altitude igual a 0 (zero). Verifique!'.format(codigo))
+					feedback.reportError('Advertência: Ponto de código {} está com altitude igual a 0 (zero). Verifique!'.format(codigo))
 				sigma_z = ('{:.'+ dec_prec + 'f}').format(feat['sigma_z']).replace('.',',')
 				metodo_pos = feat['metodo_pos']
 				return codigo,longitude,sigma_x,latitude,sigma_y,altitude, sigma_z,metodo_pos
