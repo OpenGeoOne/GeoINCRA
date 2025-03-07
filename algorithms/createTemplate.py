@@ -198,7 +198,7 @@ class createTemplate(QgsProcessingAlgorithm):
 				raise QgsProcessingException('Verifique os valores do atributo "confrontante"!')
 			for ponto in feat.geometry().asPolyline():
 				if ponto not in pontos_vertice:
-					raise QgsProcessingException(f'Ponto {ponto} da camada Limite não tem correspondente na camada Vértice!')
+					raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada Limite não tem correspondente na camada Vértice!'.format(ponto.y(), ponto.x()))
 
 	def vld_3(self,parcela,vertice):
 		pontos_vertice = {feat.geometry().asPoint() for feat in vertice.getFeatures()}
@@ -210,7 +210,7 @@ class createTemplate(QgsProcessingAlgorithm):
 			for pol in pols:
 				for ponto in pol[0]:
 					if ponto not in pontos_vertice:
-						raise QgsProcessingException(f'Ponto {ponto} da camada Parcela não tem correspondente na camada Vértice!')
+						raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada Parcela não tem correspondente na camada Vértice!'.format(ponto.y(), ponto.x()))
 
 	def vld_z (self, vertice):
 		for feat1 in vertice.getFeatures():
