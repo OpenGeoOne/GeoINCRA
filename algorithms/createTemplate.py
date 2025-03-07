@@ -39,7 +39,7 @@ from qgis.core import (QgsProcessing,
 					   QgsProcessingAlgorithm,
 					   QgsProcessingParameterFileDestination)
 
-from math import floor, modf
+from math import modf
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
 import os
@@ -167,6 +167,130 @@ class createTemplate(QgsProcessingAlgorithm):
             )
         )
 
+	def vld_0(self, vertice, limite, parcela):
+		if parcela is None or parcela.featureCount() != 1:
+			raise QgsProcessingException('A camada Parcela deve conter exatamente uma feição selecionada!')
+		if vertice is None or vertice.featureCount() == 0:
+			raise QgsProcessingException('A camada Vértice não pode estar vazia!')
+		if limite is None or limite.featureCount() == 0:
+			raise QgsProcessingException('A camada Limite não pode estar vazia!')
+
+	def vld_1(self,vertice):
+		atributos_validos = all(
+			0 <= feat['sigma_x'] <= 10 and
+			0 <= feat['sigma_y'] <= 10 and
+			0 <= feat['sigma_z'] <= 10 and
+			feat['metodo_pos'] in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PT9', 'PA1', 'PA2', 'PA3', 'PS1', 'PS2', 'PS3', 'PS4', 'PB1', 'PB2') and
+			feat['tipo_verti'] in ('M', 'P', 'V') and
+			len(str(feat['vertice'])) >= 7 and
+			str(feat['vertice']).strip().upper() != 'NULL'
+			for feat in vertice.getFeatures()
+		)
+		if not atributos_validos:
+			raise QgsProcessingException('Verifique os valores dos atributos na camada Vértice!')
+
+	def vld_2(self,limite,vertice):
+		pontos_vertice = {feat.geometry().asPoint() for feat in vertice.getFeatures()}
+		for feat in limite.getFeatures():
+			if feat['tipo'] not in ('LA1', 'LA2', 'LA3', 'LA4', 'LA5', 'LA6', 'LA7', 'LN1', 'LN2', 'LN3', 'LN4', 'LN5', 'LN6'):
+				raise QgsProcessingException('Verifique os valores do atributo "tipo" na camada Limite!')
+			if len(feat['confrontan']) < 3:
+				raise QgsProcessingException('Verifique os valores do atributo "confrontante"!')
+			for ponto in feat.geometry().asPolyline():
+				if ponto not in pontos_vertice:
+					raise QgsProcessingException(f'Ponto {ponto} da camada Limite não tem correspondente na camada Vértice!')
+
+	def vld_3(self,parcela,vertice):
+		pontos_vertice = {feat.geometry().asPoint() for feat in vertice.getFeatures()}
+		for feat in parcela.getFeatures():
+			if feat.geometry().isMultipart():
+				pols = feat.geometry().asMultiPolygon()
+			else:
+				pols = [feat.geometry().asPolygon()]
+			for pol in pols:
+				for ponto in pol[0]:
+					if ponto not in pontos_vertice:
+						raise QgsProcessingException(f'Ponto {ponto} da camada Parcela não tem correspondente na camada Vértice!')
+
+	def vld_z (self, vertice):
+		for feat1 in vertice.getFeatures():
+			z = float(feat1.geometry().constGet().z())
+			if str(z) == 'nan' or z == 0:
+				raise QgsProcessingException('Cota Z não preenchida ou igual a zero no ponto de coordenadas ({}, {})!'.format(pnt.y(), pnt.x()))
+
+	def dd2dms(self, dd, n_digits=3):
+
+		dd = abs(dd)
+		frac, graus = modf(dd)
+		frac, minutos = modf(frac * 60)
+		segundos = round(frac * 60, n_digits)
+
+		if segundos == 60:
+			minutos += 1
+			segundos = 0
+		if minutos == 60:
+			graus += 1
+			minutos = 0
+
+		return f"{int(graus):02d} {int(minutos):02d} {segundos:0{3+n_digits}.{n_digits}f}".replace('.', ',')
+
+
+	def vertice (self,pnt,vertice,dec_coord,dec_prec):
+		dec_prec = str(dec_prec)
+		for feat in vertice.getFeatures():
+			vert = feat.geometry().asPoint()
+			if vert == pnt:
+				codigo = feat['vertice'].strip()
+				longitude = self.dd2dms(vert.x(), dec_coord) + ' W'
+				sigma_x = ('{:.'+ dec_prec + 'f}').format(feat['sigma_x']).replace('.',',')
+				latitude = self.dd2dms(vert.y(), dec_coord) + ' S' if vert.y() < 0 else dd2dms(vert.y(), 3) + ' N'
+				sigma_y = ('{:.'+ dec_prec + 'f}').format(feat['sigma_y']).replace('.',',')
+				z = float(feat.geometry().constGet().z())
+				if str(z) != 'nan':
+					altitude = ('{:.'+ dec_prec + 'f}').format(z).replace('.',',')
+				else:
+					altitude = '0,00'
+					feedback.reportError('Advertência: Ponto de código {} está com altitude igual a 0 (zero). Verifique!'.format(codigo))
+				sigma_z = ('{:.'+ dec_prec + 'f}').format(feat['sigma_z']).replace('.',',')
+				metodo_pos = feat['metodo_pos']
+				return codigo,longitude,sigma_x,latitude,sigma_y,altitude, sigma_z,metodo_pos
+
+	def limite (self,pnt,pnt_seg,limite):
+		for feat in limite.getFeatures():
+			linha = feat.geometry().asPolyline()
+			for k2, vert in enumerate(linha[:-1]):
+				if vert == pnt and linha[k2 + 1] == pnt_seg:
+					tipo = feat['tipo']
+					confrontan = feat['confrontan'].strip()
+					cns = str(feat['cns']).replace('NULL', '').strip()
+					matricula = str(feat['matricula']).replace('NULL', '').strip()
+					return tipo,confrontan,cns,matricula
+		raise QgsProcessingException(f'Erro de topologia: Limite não encontrado para ({pnt.y()}, {pnt.x()}) -> ({pnt_seg.y()}, {pnt_seg.x()})')
+
+	def setInf(self, k, vertice, limite, arq, feat, dec_coord, dec_prec,prefix):
+		pnt_str = []
+		arq.write(prefix)
+		for k1, pnt in enumerate(feat[:-1]):
+			codigo, longitude, sigma_x, latitude, sigma_y, altitude, sigma_z, metodo_pos = self.vertice(pnt, vertice, dec_coord, dec_prec)
+			pnt_seg = feat[k1 + 1]
+			tipo, confrontan, cns, matricula = self.limite(pnt, pnt_seg, limite)
+
+			arq.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(codigo, longitude, sigma_x, latitude, sigma_y, altitude, sigma_z, metodo_pos, tipo, cns.replace('\n',''), matricula.replace('\n','') , confrontan.replace('\n','')))
+
+		return arq
+
+	def reorder_polygon_points(self,pontos):
+		ponto_inicial = None
+		max_latitude = -90  # Latitude mínima possível
+		for pnt in (pontos[:-1]):
+			if pnt.y() > max_latitude:
+				max_latitude = pnt.y()
+				ponto_inicial = pnt
+
+		index = pontos.index(ponto_inicial)
+		pontos_reordenados = pontos[index:] + pontos[1:index+1]
+		return(pontos_reordenados)
+
 	def processAlgorithm(self, parameters, context, feedback):
 
 		vertice = self.parameterAsSource(
@@ -194,309 +318,103 @@ class createTemplate(QgsProcessingAlgorithm):
 		if parcela is None:
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.PARCELA))
 
+		dec_coord = self.parameterAsInt(
+			parameters,
+			self.DEC_COORD,
+			context
+		)
+
+		dec_prec = self.parameterAsInt(
+			parameters,
+			self.DEC_PREC,
+			context
+		)
+
+		abrir = self.parameterAsBool(
+		   parameters,
+		   self.ABRIR,
+		   context
+		)
+
+		ver_z = self.parameterAsBool(
+		   parameters,
+		   self.VER_Z,
+		   context
+		)
+
+
 		output_path = self.parameterAsString(
 			parameters,
 			self.OUTPUT,
 			context
 		)
 		if not output_path:
-			raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
+			raise QgsProcessingException('Caminho de saída inválido!')
 
-		dec_coord = self.parameterAsInt(
-            parameters,
-            self.DEC_COORD,
-            context
-        )
-
-		dec_prec = self.parameterAsInt(
-            parameters,
-            self.DEC_PREC,
-            context
-        )
-
-		dec_prec = str(dec_prec)
 
 		# Validações
-
-        # Verificar estrutura do GeoRural
-		modeloBD = True
-		campos_vertices = ['tipo_verti', 'vertice', 'indice']
-		campos_limites = ['confrontan', 'matricula', 'tipo', 'cns']
-		campos_area = ['nome', 'nat_serv', 'pessoa', 'cpf_cnpj', 'denominacao', 'situacao', 'natureza', 'sncr', 'matricula', 'cod_cartorio', 'municipio', 'uf']
-		for campo in campos_vertices:
-			if campo not in [field.name() for field in vertice.fields()]:
-				modeloBD = False
-				break
-		for campo in campos_limites:
-			if campo not in [field.name() for field in limite.fields()]:
-				modeloBD = False
-				break
-		for campo in campos_area:
-			if campo not in [field.name() for field in parcela.fields()]:
-				modeloBD = False
-				break
-
-		if not modeloBD:
-			raise QgsProcessingException('Verifique se suas camadas estão com os nomes dos campos corretos para o modelo GeoRural! Mais informações: https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA')
-		else:
-			feedback.pushInfo('Banco de dados GeoRural identificado...' )
-
-		# Checar preenchimento dos atributos da camada vértice
-		for feat in vertice.getFeatures():
-			if feat['sigma_x'] < 0 or feat['sigma_x'] > 7.5 or feat['sigma_x'] == None:
-				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_x"!')
-			if feat['sigma_y'] < 0 or feat['sigma_y'] > 7.5 or feat['sigma_y'] == None:
-				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_y"!')
-			if feat['sigma_z'] < 0 or feat['sigma_z'] > 7.5 or feat['sigma_z'] == None:
-				raise QgsProcessingException ('Verifique os valores do atrituto "sigma_z"!')
-			if feat['metodo_pos'] not in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PT9', 'PA1', 'PA2', 'PA3', 'PS1', 'PS2', 'PS3', 'PS4', 'PB1', 'PB2'):
-				raise QgsProcessingException ('Verifique os valores do atrituto "metodo_pos"!')
-			if feat['tipo_verti'] not in ('M', 'P', 'V'):
-				raise QgsProcessingException ('Verifique os valores do atrituto "tipo_vertice"!')
-			if len(feat['vertice']) < 7:
-				raise QgsProcessingException ('Verifique os valores do atrituto "código do vértice"!')
-			if str(feat['vertice']) in ('', ' ', 'NULL'):
-				raise QgsProcessingException ('O atrituto "código do vértice" deve ser preenchido!')
-
-        # Checar relação entre atributos
-
-        # Checar preenchimento dos sigmas de acordo com o tipo de vértice
-
-		# Camada parcela deve ter apenas uma feição selecionada
-		if parcela.featureCount() != 1:
-			raise QgsProcessingException ('Camada parcela deve ter apenas uma feição selecionada!')
-
-		# Verificar se cada vértice da camada limite (linha) tem o correspondente da camada vétice (ponto)
-		for feat1 in limite.getFeatures():
-			# Checar preenchimento dos atributos
-			if feat1['tipo'] not in ('LA1', 'LA2', 'LA3', 'LA4', 'LA5', 'LA6', 'LA7', 'LN1', 'LN2', 'LN3', 'LN4', 'LN5', 'LN6'):
-				raise QgsProcessingException ('Verifique os valores do atributo "tipo"!')
-			if len(str(feat1['confrontan'])) < 3:
-				raise QgsProcessingException ('Verifique os valores do atrituto "confrontante"!')
-			# Topologia
-			linha = feat1.geometry().asPolyline()
-			for pnt in linha:
-				corresp = False
-				for feat2 in vertice.getFeatures():
-					vert = feat2.geometry().asPoint()
-					if vert == pnt:
-						corresp = True
-						continue
-				if not corresp:
-					raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada limite não possui correspondente na camada vértice!'.format(pnt.y(), pnt.x()))
-
-        # Verificar orientação dos confrontantes
-		for feat1 in limite.getFeatures():
-			geom1 =  feat1.geometry()
-			ultimo_pnt = geom1.asPolyline()[-1]
-			for feat2 in limite.getFeatures():
-				if feat1.id() != feat2.id():
-					geom2 = feat2.geometry()
-					primeiro_pnt = geom2.asPolyline()[0]
-					if ultimo_pnt == primeiro_pnt:
-						break
-			else:
-				raise QgsProcessingException('Problema de orientação dos confrontantes no Ponto de coordenadas ({}, {}) da camada limite!'.format(ultimo_pnt.y(), ultimo_pnt.x()))
-
-        # Verificar nós duplicados da camada vertice
-		pontos = []
-		for feat1 in vertice.getFeatures():
-			vert = feat1.geometry().asPoint()
-			if vert not in pontos:
-				pontos += [vert]
-			else:
-				raise QgsProcessingException('Nó duplicado na camada "vertice" no ponto de coordenadas ({}, {})!'.format(vert.y(), vert.x()))
-
-        # Verificar nós duplicados da camada limite
-		for feat1 in limite.getFeatures():
-			geom1 = feat1.geometry()
-			if geom1.isMultipart():
-				linha = feat1.geometry().asMultiPolyline()[0]
-			else:
-				linha = feat1.geometry().asPolyline()
-			pontos = []
-			for pnt in linha:
-				if pnt not in pontos:
-					pontos += [pnt]
-				else:
-					raise QgsProcessingException('Nó duplicado na camada "limite" no ponto de coordenadas ({}, {})!'.format(pnt.y(), pnt.x()))
-
-        # Verificar nós duplicados da camada parcela
-		for feat1 in parcela.getFeatures():
-			geom1 = feat1.geometry()
-			if geom1.isMultipart():
-				pol = feat1.geometry().asMultiPolygon()[0][0]
-			else:
-				pol = feat1.geometry().asPolygon()[0]
-			pontos = []
-			for pnt in pol[:-1]:
-				if pnt not in pontos:
-					pontos += [pnt]
-				else:
-					raise QgsProcessingException('Nó duplicado na camada "parcela" no ponto de coordenadas ({}, {})!'.format(pnt.y(), pnt.x()))
-
-        # Verificar geometrias duplicadas para camada limite
-		geoms = []
-		for feat1 in limite.getFeatures():
-			geom1 = feat1.geometry()
-			if geom1.asWkt() not in geoms:
-				geoms += [geom1.asWkt()]
-			else:
-				raise QgsProcessingException('Geometria de ID {} da camada "limite" está duplicada!'.format(feat1.id()))
-
-        # Verificar geometrias duplicadas para parcela
-		geoms = []
-		for feat1 in parcela.getFeatures():
-			geom1 = feat1.geometry()
-			if geom1.asWkt() not in geoms:
-				geoms += [geom1.asWkt()]
-			else:
-				raise QgsProcessingException('Geometria de ID {} da camada "parcela" está duplicada!'.format(feat1.id()))
-
-		ver_z = self.parameterAsBool(
-           parameters,
-           self.VER_Z,
-           context
-        )
+		self.vld_0(vertice, limite, parcela)
+		self.vld_1(vertice)
+		self.vld_2(limite,vertice)
+		self.vld_3(parcela,vertice)
 		if ver_z:
-            # Verificar altitude Z não preenchida
-			for feat1 in vertice.getFeatures():
-				z = float(feat1.geometry().constGet().z())
-				if str(z) == 'nan' or z == 0:
-					raise QgsProcessingException('Cota Z não preenchida ou igual a zero no ponto de coordenadas ({}, {})!'.format(pnt.y(), pnt.x()))
-
-        # Verificar se cada ponto da camada vértice tem o correspondente na camada parcela (polígono)
-		for feat1 in vertice.getFeatures():
-			vert = feat1.geometry().asPoint()
-			corresp = False
-			for feat2 in parcela.getFeatures():
-				geom2 = feat2.geometry()
-				if geom2.isMultipart():
-					pols = geom2.asMultiPolygon()
-				else:
-					pols = [geom2.asPolygon()]
-				for pol in pols:
-					for parte in pol:
-						for pnt in parte:
-							if vert == pnt:
-								corresp = True
-								break
-					if corresp:
-						break
-			if not corresp:
-				raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada vértice não possui correspondente na camada parcela!'.format( vert.y(), vert.x() ))
-
-        # Verificar se cada vértice da camada parcela (polígono) tem o correspondente da camada vétice (ponto)
-		for feat1 in parcela.getFeatures():
-			geom1 = feat1.geometry()
-			if geom1.isMultipart():
-				pols = geom1.asMultiPolygon()
-			else:
-				pols = [geom1.asPolygon()]
-			for pol in pols:
-				for pnt in pol[0]:
-					corresp = False
-					for feat2 in vertice.getFeatures():
-						vert = feat2.geometry().asPoint()
-						if vert == pnt:
-							corresp = True
-							continue
-					if not corresp:
-						raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada parcela não possui correspondente na camada vértice!'.format(pnt.y(), pnt.x()))
-
-
-		def dd2dms(dd, n_digits=3):
-			dd = abs(dd)
-			frac, graus = modf(dd)
-			frac, minutos = modf(frac * 60)
-			segundos = round(frac * 60, n_digits)
-			if segundos == 60:
-				minutos += 1
-				segundos = 0
-			if minutos == 60:
-				graus += 1
-				minutos = 0
-			return f"{int(graus):02d} {int(minutos):02d} {segundos:0{3+n_digits}.{n_digits}f}".replace('.', ',')
+			# Verificar altitude Z não preenchida
+			self.vld_z (vertice)
 
 		# Preencher cabeçalho
 		arq =  open(output_path,'w')
 
+		# map
 		nat_ser = {1:'Particular', 2:'Contrato com Administração Pública'}
-		pessoa, situacao  = {1:'Física', 2:'Jurídica'}, {1:'Imóvel Registrado', 2:'Área Titulada não Registrada', 3:'Área não Titulada'}
+		pessoa  = {1:'Física', 2:'Jurídica'}
+		situacao = {1:'Imóvel Registrado', 2:'Área Titulada não Registrada', 3:'Área não Titulada'}
 		natureza = {1:'Assentamento',2:'Assentamento Parcela',3:'Estrada',4:'Ferrovia',5:'Floresta Pública',6:'Gleba Pública',7:'Particular',8:'Perímetro Urbano',9:'Terra Indígena',10:'Terreno de Marinha',11:'Terreno Marginal',12:'Território Quilombola',13:'Unidade de Conservação'}
 
-		arq.write('Natureza do Serviço: ' + (nat_ser[feat1['nat_serv']] if feat1['nat_serv'] in nat_ser else '')  + '\n')
-		arq.write('Tipo Pessoa: ' + (pessoa[feat1['pessoa']] if feat1['pessoa'] in pessoa else '') + '\n')
-		arq.write('Nome: ' + str(feat1['nome']).replace('NULL', '').replace('\n','') + '\n')
-		arq.write('CPF: ' + str(feat1['cpf_cnpj']).replace('NULL', '').replace('\n','') + '\n')
-		arq.write('Denominação: ' + str(feat1['denominacao']).replace('NULL', '').replace('\n','') + '\n')
-		arq.write('Situação: ' + (situacao[feat1['situacao']] if feat1['situacao'] in situacao else '') + '\n')
-		arq.write('Natureza da área: ' + (natureza[feat1['natureza']] if feat1['natureza'] in natureza else '') + '\n')
-		arq.write('Código do Imóvel (SNCR/INCRA): ' + str(feat1['sncr']).replace('NULL', '').replace('\n','') + '\n')
-		arq.write('Código do cartório (CNS): ' + str(feat1['cod_cartorio']).replace('NULL', '').replace('\n','') + '\n')
-		arq.write('Matricula: ' + str(feat1['matricula']).replace('NULL', '').replace('\n','') + '\n')
-		arq.write('Município: ' + str(feat1['municipio']).replace('NULL', '').replace('\n','') + '\n')
-		arq.write('UF: ' + str(feat1['uf']).replace('\n','') + '\n')
+		feature = next(parcela.getFeatures())
 
-		# Preenchimento das Parcelas
-		cont_parc = 0
-		for feat1 in parcela.getFeatures():
-			geom1 = feat1.geometry()
-			if geom1.isMultipart():
-				pols = geom1.asMultiPolygon()
-			else:
-				pols = [geom1.asPolygon()]
-			for pol in pols:
-				cont_parc += 1
-				arq.write('\n\nPerímetro {}\n'.format(cont_parc))
-				for k1, pnt in enumerate(pol[0][:-1]):
-					pnt_seg = pol[0][k1 + 1]
-					for feat2 in vertice.getFeatures():
-						vert = feat2.geometry().asPoint()
-						if vert == pnt:
-							codigo = feat2['vertice']
-							longitude = dd2dms(vert.x(), dec_coord) + ' W'
-							sigma_x = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_x']).replace('.',',')
-							latitude = dd2dms(vert.y(), dec_coord) + ' S' if vert.y() < 0 else dd2dms(vert.y(), 3) + ' N'
-							sigma_y = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_y']).replace('.',',')
-							z = float(feat2.geometry().constGet().z())
-							if z == 'nan' or z == 0:
-								feedback.pushInfo('Advertência: Ponto de código {} está com altitude igual a 0 (zero). Verifique!'.format(codigo))
-							if str(z) != 'nan':
-								altitude = ('{:.'+ dec_prec + 'f}').format(z).replace('.',',')
-							else:
-								altitude = ('{:.'+ dec_prec + 'f}').format(0).replace('.',',')
-							sigma_z = ('{:.'+ dec_prec + 'f}').format(feat2['sigma_z']).replace('.',',')
-							metodo_pos = feat2['metodo_pos']
-							break
-					for feat3 in limite.getFeatures():
-						linha = feat3.geometry().asPolyline()
-						sentinela = False
-						for k2, vert in enumerate(linha[:-1]):
-							vert_seg = linha[k2 + 1]
-							if vert == pnt and vert_seg == pnt_seg:
-								tipo = feat3['tipo']
-								confrontan = str(feat3['confrontan']).replace('NULL', '').replace('\n','')
-								cns = str(feat3['cns']).replace('NULL', '')
-								matricula = str(feat3['matricula']).replace('NULL', '')
-								sentinela = True
-								break
-						if sentinela:
-							break
-					arq.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(codigo, longitude, sigma_x, latitude, sigma_y, altitude, sigma_z, metodo_pos, tipo, cns.replace('\n',''), matricula.replace('\n','') , confrontan.replace('\n','')))
+		arq.write('Natureza do Serviço: ' + (nat_ser[feature['nat_serv']] if feature['nat_serv'] in nat_ser else '')  + '\n')
+		arq.write('Tipo Pessoa: ' + (pessoa[feature['pessoa']] if feature['pessoa'] in pessoa else '') + '\n')
+		arq.write('Nome: ' + str(feature['nome']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('CPF: ' + str(feature['cpf_cnpj']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('Denominação: ' + str(feature['denominacao']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('Situação: ' + (situacao[feature['situacao']] if feature['situacao'] in situacao else '') + '\n')
+		arq.write('Natureza da área: ' + (natureza[feature['natureza']] if feature['natureza'] in natureza else '') + '\n')
+		arq.write('Código do Imóvel (SNCR/INCRA): ' + str(feature['sncr']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('Código do cartório (CNS): ' + str(feature['cod_cartorio']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('Matricula: ' + str(feature['matricula']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('Município: ' + str(feature['municipio']).replace('NULL', '').replace('\n','') + '\n')
+		arq.write('UF: ' + str(feature['uf']).replace('\n',''))
+
+
+		geom = feature.geometry()
+		polygons = geom.asMultiPolygon() if geom.isMultipart() else [geom.asPolygon()]
+
+		mapping = {0: []}
+		for i, features in enumerate(polygons):
+			mapping[0].append(self.reorder_polygon_points(features[0]))
+			reorder = [self.reorder_polygon_points(feat) for feat in features[1:]]
+			if reorder:
+				mapping[i + 1] = reorder
+
+
+		for n, feat in enumerate(mapping[0]):
+			prefix = f'\n\nperimetro_1_{n+1}\nParcela número:{n+1:03d}\nLado: Externo\n\n'
+			arq = self.setInf (n,vertice, limite, arq, feat, dec_coord, dec_prec, prefix)
+
+		k=0
+		for prm ,features in list(mapping.items())[1:]:
+			for feat in features:
+				k+=1
+				prefix = f'\n\nperimetro_{prm+1}\nParcela número:{k:03d}\nLado: Interno (área encravada)\n\n'
+				arq = self.setInf (k,vertice, limite, arq, feat, dec_coord, dec_prec, prefix)
 
 		arq.close()
 
-		abrir = self.parameterAsBool(
-           parameters,
-           self.ABRIR,
-           context
-        )
-
 		if abrir:
-		    try:
-		    	os.popen(output_path)
-		    except:
-		    	feedback.pushInfo('Abra o arquivo de saída na pasta {}'.format(output_path))
+			try:
+				os.popen(output_path)
+			except:
+				feedback.pushInfo('Abra o arquivo de saída na pasta {}'.format(output_path))
 
-		return {}
+
+		return {self.OUTPUT: output_path}
