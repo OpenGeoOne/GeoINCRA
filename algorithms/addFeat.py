@@ -29,7 +29,7 @@ __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessing,
                        QgsProcessingParameterField,
-                       QgsFeatureSink,
+                       QgsWkbTypes,
                        QgsProcessingException,
                        QgsCoordinateReferenceSystem,
                        QgsCoordinateTransform,
@@ -189,8 +189,8 @@ class addFeat(QgsProcessingAlgorithm):
         if not source_in:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
 
-        #if source_in.sourceCrs() != QgsCoordinateReferenceSystem('EPSG:4674'):
-            #raise QgsProcessingException('A camada de entrada deve estar em SIRGAS 2000 (EPSG:4674)!')
+        if source_in.wkbType() != QgsWkbTypes.PointZ:
+            raise QgsProcessingException('Camada de pontos de entrada deve ter geometria do tipo PointZ!')
 
         sigma_x = self.parameterAsFields(parameters, self.sigma_x, context)
         if sigma_x:
