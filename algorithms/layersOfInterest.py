@@ -46,25 +46,29 @@ class LayersOfInterest(QgsProcessingAlgorithm):
 
     mapping ={
                0: 'Áreas de Conservação (ICMBio)',
-               1: 'Terras Indígenas 2009 (IBGE)',
-               2: 'Terras Indígenas 2017 (IBGE)',
-               3: 'Unidades da Federação (IBGE)',
-               4: 'Municípios (IBGE)',
-               5: 'Estações GPS (IBGE)',
-               6: 'Faixa de domínio (DNIT)',
-               7: 'RBMC (IBGE)',
+               1: 'Áreas Embargadas (ICMBio)',
+               2: 'Áreas Urbanizadas 2019 (IBGE)',
+               3: 'Terras Indígenas 2009 (IBGE)',
+               4: 'Terras Indígenas 2017 (IBGE)',
+               5: 'Unidades da Federação (IBGE)',
+               6: 'Municípios (IBGE)',
+               7: 'Estações GPS (IBGE)',
+               8: 'Faixa de domínio (DNIT)',
+               9: 'RBMC (IBGE)',
             }
 
 
     links = {
                   mapping[0]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='ICMBio:limiteucsfederais_a' url='https://geoservicos.inde.gov.br/geoserver/ICMBio/ows?layers=limiteucsfederais_a&styles=&bbox=-73.99121093750001,-32.92391970862839,-25.290946960449205,5.271910667501984&width=329&height=245&tiled=true&srs=EPSG:4326&transparent=true' url='https://geoservicos.inde.gov.br/geoserver/ICMBio/ows?version=1.1.0&layers=limiteucsfederais_a&styles=&bbox=-73.99121093750001,-32.92391970862839,-25.290946960449205,5.271910667501984&width=329&height=245&tiled=true&srs=EPSG:4326&transparent=true' version='auto'",
-                  mapping[1]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:Terras_indigenas' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
-                  mapping[2]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:andb2022_ct30103' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
-                  mapping[3]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='PNADC:uf_poligono' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
-                  mapping[4]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CCAR:BC250_2017_Municipio_A' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
-                  mapping[5]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:ANMS2010_09_estacoes_GPS_2010' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
-                  mapping[6]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:faixa_dominio_dnit_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
-                  mapping[7]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:RBMC_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
+                  mapping[1]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='ICMBio:embargos_icmbio' url='https://geoservicos.inde.gov.br/geoserver/ICMBio/ows' url='https://geoservicos.inde.gov.br/geoserver/ICMBio/ows?version=2.0.0' version='auto'",
+                  mapping[2]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:AU_2022_AreasUrbanizadas2019_Brasil' url='https://geoservicos.ibge.gov.br/geoserver/ows' url='https://geoservicos.ibge.gov.br/geoserver/ows?service=wfs&version=1.3.0&request=GetCapabilities' http-header:referer=''",
+                  mapping[3]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:andb2022_ct30103' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
+                  mapping[4]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:andb2022_ct30103' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
+                  mapping[5]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='PNADC:uf_poligono' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
+                  mapping[6]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CCAR:BC250_2017_Municipio_A' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
+                  mapping[7]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:ANMS2010_09_estacoes_GPS_2010' url='https://geoservicos.ibge.gov.br/geoserver/ows' version='auto'",
+                  mapping[8]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:faixa_dominio_dnit_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
+                  mapping[9]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:RBMC_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
             }
 
     def initAlgorithm(self, config):
