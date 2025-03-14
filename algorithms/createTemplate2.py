@@ -384,7 +384,6 @@ class createTemplate2(QgsProcessingAlgorithm):
 			src_macro = Path.home() / "Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/macro.py"
 			path_ods = Path.home() / "Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/sigef_planilha_modelo_1.2_rc5.ods"
 
-#'/Users/profcazaroli/
         # Criando diretório, se não existir
 		path_macro.mkdir(parents=True, exist_ok=True)
 
