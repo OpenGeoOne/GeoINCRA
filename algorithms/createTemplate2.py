@@ -375,11 +375,16 @@ class createTemplate2(QgsProcessingAlgorithm):
 			path_macro = Path.home() / "AppData/Roaming/LibreOffice/4/user/Scripts/python"
 			src_macro = Path.home() / "AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/macro.py"
 			path_ods = Path.home() / "AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/sigef_planilha_modelo_1.2_rc5.ods"
+		elif system_os == "Darwin":
+			path_macro = Path.home() / "Library/Application Support/LibreOffice/4/user/Scripts/python"
+			src_macro = Path.home() / "Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/macro.py"
+			path_ods = Path.home() / "Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/sigef_planilha_modelo_1.2_rc5.ods"
 		else:
-			path_macro = Path.home() / ".config/libreoffice/4/user/Scripts/python"
-			src_macro = Path.home() / ".local/share/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/macro.py"
-			path_ods = Path.home() / ".local/share/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/sigef_planilha_modelo_1.2_rc5.ods"
+			path_macro = Path.home() / "Library/Application Support/LibreOffice/4/user/Scripts/python"
+			src_macro = Path.home() / "Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/macro.py"
+			path_ods = Path.home() / "Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins/GeoINCRA/algorithms/shp/sigef_planilha_modelo_1.2_rc5.ods"
 
+#'/Users/profcazaroli/
         # Criando diretório, se não existir
 		path_macro.mkdir(parents=True, exist_ok=True)
 
