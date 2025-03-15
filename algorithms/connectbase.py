@@ -27,8 +27,7 @@ __date__ = '2022-02-13'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsProcessing,
-                       QgsProject,
+from qgis.core import (QgsProject,
                        QgsFeatureRequest,
                        QgsVectorLayer,
                        QgsField,
@@ -36,12 +35,12 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterExtent,
                        QgsEditorWidgetSetup,
                        QgsCoordinateReferenceSystem,
-                       QgsRectangle,
                        QgsProcessingUtils,
                        QgsProcessingParameterEnum,
+                       QgsProcessingParameterBoolean,
+                       QgsProcessingException,
                        QgsFeatureSink,
                        QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink)
 
 import os
@@ -54,6 +53,7 @@ class ConnectBase(QgsProcessingAlgorithm):
     INPUT = 'INPUT'
     OUTPUT = 'OUTPUT'
     EXTENT = 'EXTENT'
+    GEOONE = 'GEOONE'
     WFS = 'WFS'
 
     mapping ={ 0: 'Imóveis Certificados SIGEF - Particular',
@@ -102,6 +102,14 @@ class ConnectBase(QgsProcessingAlgorithm):
         )
 
         self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.GEOONE,
+                self.tr('Consultar base da GeoOne (caso o SIGEF esteja offline)'),
+                defaultValue= False
+            )
+        )
+
+        self.addParameter(
             QgsProcessingParameterFeatureSink(
                 self.OUTPUT,
                 self.tr('Resultado da consulta ao INCRA')
@@ -118,6 +126,14 @@ class ConnectBase(QgsProcessingAlgorithm):
         if not extensao:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.EXTENT))
 
+        request = QgsFeatureRequest().setFilterRect(extensao)
+
+        geoone = self.parameterAsBool(
+            parameters,
+            self.GEOONE,
+            context
+        )
+
         crsSrc = QgsCoordinateReferenceSystem(QgsProject().instance().crs())
         crsDest = QgsCoordinateReferenceSystem('EPSG:4326')
         proj2geo = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
@@ -128,43 +144,75 @@ class ConnectBase(QgsProcessingAlgorithm):
         name = self.layer_name[option]
         link = self.links[layer]
 
-        path = os.path.dirname(__file__) + "/shp" + "/BR_UF_2020.shp"
-        estado = QgsVectorLayer(path, "BR_UF_2020", "ogr")
+        if not geoone:
+            path = os.path.dirname(__file__) + "/shp" + "/BR_UF_2020.shp"
+            estado = QgsVectorLayer(path, "BR_UF_2020", "ogr")
 
-        uris = list()
-        for feat in estado.getFeatures():
-             if feat.geometry().intersects(extensao):
+            uris = list()
+            for feat in estado.getFeatures():
+                if feat.geometry().intersects(extensao):
 
-                 uri_default="""pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1'  srsname='EPSG:4326' typename='name_' url='link' version='auto'"""
-                 uri_default = uri_default.replace('name_',name)
-                 uri_default = uri_default.replace('link',link)
-                 uri_default = uri_default.replace('xx',feat['SIGLA_UF'])
-                 uris.append(uri_default)
+                    uri_default="""pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1'  srsname='EPSG:4326' typename='name_' url='link' version='auto'"""
+                    uri_default = uri_default.replace('name_',name)
+                    uri_default = uri_default.replace('link',link)
+                    uri_default = uri_default.replace('xx',feat['SIGLA_UF'])
+                    uris.append(uri_default)
 
-        source = QgsVectorLayer(uris[0], "my wfs layer", "WFS")
-        (sink, dest_id) = self.parameterAsSink(
-            parameters,
-            self.OUTPUT,
-            context,
-            source.fields(),
-            source.wkbType(),
-            source.sourceCrs()
-        )
-        if sink is None:
-            raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
+            source = QgsVectorLayer(uris[0], "my wfs layer", "WFS")
+            (sink, dest_id) = self.parameterAsSink(
+                parameters,
+                self.OUTPUT,
+                context,
+                source.fields(),
+                source.wkbType(),
+                source.sourceCrs()
+            )
+            if sink is None:
+                raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
 
-        for uri in uris:
-            vlayer = QgsVectorLayer(uri, "wfs_layer", "WFS")
+            for uri in uris:
+                vlayer = QgsVectorLayer(uri, "wfs_layer", "WFS")
 
-            request = QgsFeatureRequest().setFilterRect(extensao)
+                for feature in vlayer.getFeatures(request):
+                    if feedback.isCanceled():
+                        break
+                    sink.addFeature(feature, QgsFeatureSink.FastInsert)
+        else:
+                    
+            # Verificar tamanho da extensão
+            y_min = extensao.yMinimum()
+            y_max = extensao.yMaximum()
+            x_min = extensao.xMinimum()
+            x_max = extensao.xMaximum()
 
-            for current, feature in enumerate(vlayer.getFeatures(request)):
-                # Stop the algorithm if cancel button has been clicked
-                if feedback.isCanceled():
-                    break
+            if (x_max - x_min) > 1 or (y_max - y_min) > 1:
+                raise QgsProcessingException('Faça a consulta para um retângulo de MENOR extensão!')
+            
+            layer_uri ={    0: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:certificado_sigef_privado' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
+                            1: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:certificado_sigef_publico' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
+                            2: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:certificados_SNCI_privado' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
+                            3: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:certificados_SNCI_publico' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
+                            4: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:assentamentos' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
+                            5: 'ms:quilombolas_xx',
+                            6: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4326' typename='GeoINCRA:parcelageo' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
+            }
 
-                # Add a feature in the sink
-                sink.addFeature(feature, QgsFeatureSink.FastInsert)
+            vlayer = QgsVectorLayer(layer_uri[option], "wfs_layer", "WFS")
+            (sink, dest_id) = self.parameterAsSink(
+                parameters,
+                self.OUTPUT,
+                context,
+                vlayer.fields(),
+                vlayer.wkbType(),
+                vlayer.sourceCrs()
+            )
+            if sink is None:
+                raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
+
+            for feature in vlayer.getFeatures(request):
+                    if feedback.isCanceled():
+                        break
+                    sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
 
         layer = QgsProcessingUtils.mapLayerFromString(dest_id, context)
