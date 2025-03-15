@@ -38,6 +38,7 @@ from qgis.core import (QgsProject,
                        QgsProcessingUtils,
                        QgsProcessingParameterEnum,
                        QgsProcessingParameterBoolean,
+                       QgsProcessingLayerPostProcessorInterface,
                        QgsProcessingException,
                        QgsFeatureSink,
                        QgsProcessingAlgorithm,
@@ -172,13 +173,12 @@ class ConnectBase(QgsProcessingAlgorithm):
 
             for uri in uris:
                 vlayer = QgsVectorLayer(uri, "wfs_layer", "WFS")
-
                 for feature in vlayer.getFeatures(request):
                     if feedback.isCanceled():
                         break
                     sink.addFeature(feature, QgsFeatureSink.FastInsert)
         else:
-                    
+
             # Verificar tamanho da extensão
             y_min = extensao.yMinimum()
             y_max = extensao.yMaximum()
@@ -187,13 +187,13 @@ class ConnectBase(QgsProcessingAlgorithm):
 
             if (x_max - x_min) > 1 or (y_max - y_min) > 1:
                 raise QgsProcessingException('Faça a consulta para um retângulo de MENOR extensão!')
-            
+
             layer_uri ={    0: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:certificado_sigef_privado' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
                             1: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:certificado_sigef_publico' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
                             2: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:certificados_SNCI_privado' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
                             3: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:certificados_SNCI_publico' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
                             4: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:assentamentos' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
-                            5: 'ms:quilombolas_xx',
+                            5: "pagingEnabled='default' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:quilombolas' url='http://geoonecloud.com/geoserver/ows' version='auto'",
                             6: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4326' typename='GeoINCRA:parcelageo' url='http://geoonecloud.com/geoserver/GeoINCRA/wfs' version='auto'",
             }
 
@@ -210,10 +210,14 @@ class ConnectBase(QgsProcessingAlgorithm):
                 raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
 
             for feature in vlayer.getFeatures(request):
-                    if feedback.isCanceled():
-                        break
-                    sink.addFeature(feature, QgsFeatureSink.FastInsert)
+                if feedback.isCanceled():
+                    break
+                sink.addFeature(feature, QgsFeatureSink.FastInsert)
 
+        global renamer
+        suffix = ' - GeoOne' if geoone else ' - INCRA'
+        renamer = Renamer(layer + suffix)
+        context.layerToLoadOnCompletionDetails(dest_id).setPostProcessor(renamer)
 
         layer = QgsProcessingUtils.mapLayerFromString(dest_id, context)
         self.addField(layer)
@@ -297,3 +301,11 @@ class ConnectBase(QgsProcessingAlgorithm):
                       </div>
                     </div>'''
         return txt + footer
+
+class Renamer (QgsProcessingLayerPostProcessorInterface):
+    def __init__(self, layer_name):
+        self.name = layer_name
+        super().__init__()
+
+    def postProcessLayer(self, layer, context, feedback):
+        layer.setName(self.name)
