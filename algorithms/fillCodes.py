@@ -33,7 +33,6 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterString,
                        QgsProcessingParameterNumber,
                        QgsProcessingParameterBoolean,
-                       QgsFeature,
                        QgsSettings,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterVectorLayer)
