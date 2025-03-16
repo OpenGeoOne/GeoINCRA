@@ -127,8 +127,6 @@ class ConnectBase(QgsProcessingAlgorithm):
         if not extensao:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.EXTENT))
 
-        request = QgsFeatureRequest().setFilterRect(extensao)
-
         geoone = self.parameterAsBool(
             parameters,
             self.GEOONE,
@@ -139,6 +137,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         crsDest = QgsCoordinateReferenceSystem('EPSG:4326')
         proj2geo = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
         extensao = proj2geo.transform(extensao)
+        request = QgsFeatureRequest().setFilterRect(extensao)
 
         option = self.parameterAsEnum(parameters, self.WFS, context)
         layer = self.mapping[option]
@@ -150,7 +149,7 @@ class ConnectBase(QgsProcessingAlgorithm):
             estado = QgsVectorLayer(path, "BR_UF_2020", "ogr")
 
             uris = list()
-            for feat in estado.getFeatures():
+            for feat in estado.getFeatures(request):
                 if feat.geometry().intersects(extensao):
 
                     uri_default="""pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1'  srsname='EPSG:4326' typename='name_' url='link' version='auto'"""
@@ -208,8 +207,7 @@ class ConnectBase(QgsProcessingAlgorithm):
             )
             if sink is None:
                 raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
-
-            for feature in vlayer.getFeatures(request):
+            for feature in vlayer.getFeatures(request): 
                 if feedback.isCanceled():
                     break
                 sink.addFeature(feature, QgsFeatureSink.FastInsert)
