@@ -105,7 +105,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterBoolean(
                 self.GEOONE,
-                self.tr('Consultar base da GeoOne (caso o SIGEF esteja offline)'),
+                self.tr('Consultar base da GeoOne (caso o acervo fundiário esteja Offline)'),
                 defaultValue= False
             )
         )
