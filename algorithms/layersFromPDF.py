@@ -271,7 +271,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         sentinela = False
         sentinela2 = False
         cont = 0
-        pattern = r'^\s*[A-Z0-9]{3,4}-[MPV]-\d{1,5}$'
+        pattern = r'\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,5}(?:,\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,5})*' #r'^\s*[A-Z0-9]{3,4}-[MPV]-\d{1,5}$'
 
         for line in lines:
 
@@ -318,8 +318,8 @@ class LayersFromPDF(QgsProcessingAlgorithm):
                         dic_cod[lista_cod[-1]]['confr'] = confr
                     except:
                         dic_cod[lista_cod[-1]]['confr'] = line.strip()
-            
-            
+
+
         if len(lista_cod) == 0 or dic['Denominação:'] == '':
             raise QgsProcessingException('PDF de entrada não é um Memorial do Sigef!')
 
@@ -346,13 +346,13 @@ class LayersFromPDF(QgsProcessingAlgorithm):
             sink1.addFeature(feat, QgsFeatureSink.FastInsert)
             if feedback.isCanceled():
                 break
-        
+
         feedback.pushInfo('Alimentando camada Limite (linhas)...')
         # Se encravado, fatiar lista_cod
         def fatiar_lista(a, ind):
             ind = [0] + ind + [len(a)]
             return [a[ind[i]:ind[i+1]] for i in range(len(ind)-1)]
-        
+
         if len(ind_encravado) > 0:
             listas_fat = fatiar_lista(lista_cod, ind_encravado)
         else:
@@ -421,14 +421,14 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         feat['resp_tec'] = dic['Responsável Técnico(a):']
         feat['reg_prof'] = dic['Conselho Profissional:']
 
-        
+
         # Lista de pontos
         for k, lista_cod_fat in enumerate(listas_fat):
             lista_pontos = []
             for codigo in lista_cod_fat:
                 lista_pontos += [pnts[codigo]]
             lista_pontos+[lista_pontos[0]]
-            
+
             # Anel externo
             if k == 0:
                 anel_ext = QgsLineString(lista_pontos)
