@@ -49,17 +49,34 @@ from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
 import os, re
-import pip
-try:
-    from PyPDF2 import PdfReader
-except ImportError:
-    print('PyPDF2 não está instalado. Tentando instalar "PyPDF2" utilizando "pip"...')
+import platform
+# Detectando o sistema operacional e instalando PyPDF2
+system_os = platform.system()
+if system_os == "Linux":
+    import subprocess
+    import sys
     try:
-        # Executa o pip usando subprocess
-        pip.main(["install","PyPDF2"])
         from PyPDF2 import PdfReader
-    except Exception as e:
-        print(f"Houve um erro ao tentar instalar o PyPDF2: {e}")
+    except ImportError:
+        print('PyPDF2 não está instalado. Tentando instalar "PyPDF2" utilizando "pip"...')
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "PyPDF2"])
+            from PyPDF2 import PdfReader
+        except Exception as e:
+            print(f"Houve um erro ao tentar instalar o PyPDF2: {e}")
+else: # "Windows","Darwin" (MacOS)
+    import pip
+    try:
+        from PyPDF2 import PdfReader
+    except ImportError:
+        print('PyPDF2 não está instalado. Tentando instalar "PyPDF2" utilizando "pip"...')
+        try:
+            # Executa o pip usando subprocess
+            pip.main(["install","PyPDF2"])
+            from PyPDF2 import PdfReader
+        except Exception as e:
+            print(f"Houve um erro ao tentar instalar o PyPDF2: {e}")
+
 
 class LayersFromPDF(QgsProcessingAlgorithm):
 
