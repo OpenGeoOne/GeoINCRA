@@ -153,10 +153,14 @@ class LayersFromPDF(QgsProcessingAlgorithm):
             except:
                 feedback.pushInfo('PyPDF2 não está instalado. Tentando instalar "PyPDF2" utilizando "pip"...')
                 try:
-                    subprocess.check_call([sys.executable, "-m", "pip", "install", "PyPDF2"])
+                    subprocess.check_call([sys.executable, "-m", "pip", "install", "PyPDF2"],
+                                           stdout=subprocess.DEVNULL,
+                                           stderr=subprocess.DEVNULL)
                     from PyPDF2 import PdfReader
-                except Exception as e:
-                    raise QgsProcessingException(f"Houve um erro ao tentar instalar o PyPDF2: {e}")
+                except subprocess.CalledProcessError as e:
+                    feedback.reportError(f"Erro ao instalar o pacote pacote PyPDF2. Você pode tentar instalar manualmente via OSGeo4W Shell:\n"
+                             f"python3 -m pip install PyPDF2")
+                    raise QgsProcessingException(f"Falha ao instalar o pacote PyPDF2: {e}")
         else: # "Windows","Darwin" (MacOS)
             import pip
             try:
@@ -168,7 +172,9 @@ class LayersFromPDF(QgsProcessingAlgorithm):
                     pip.main(["install","PyPDF2"])
                     from PyPDF2 import PdfReader
                 except Exception as e:
-                    raise QgsProcessingException(f"Houve um erro ao tentar instalar o PyPDF2: {e}")
+                    feedback.reportError(f"Erro ao instalar o pacote pacote PyPDF2. Você pode tentar instalar manualmente via OSGeo4W Shell:\n"
+                             f"pip install PyPDF2")
+                    raise QgsProcessingException(f"Falha ao instalar o pacote PyPDF2: {e}")
         feedback.pushInfo('Biblioteca PyPDF2 importada com sucesso...')
 
         # Sistema de Referência de Coordenadas
