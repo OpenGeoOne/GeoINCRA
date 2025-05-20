@@ -107,7 +107,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
         QgsProcessingParameterFile(
             self.ODS,
             self.tr('Planilha ODS do Sigef'),
-            fileFilter= 'Planilha ODF (*.ods)'
+            fileFilter= 'Planilha ODF (*.ods *.ODS)'
             )
         )
 
