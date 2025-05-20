@@ -48,6 +48,8 @@ from qgis.core import (QgsProcessing,
 from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
+import zipfile
+import xml.etree.ElementTree as ET
 import os
 
 
@@ -134,29 +136,91 @@ class LayersFromSheet(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
 
-        fonte = self.parameterAsString(
+        arquivo_ods = self.parameterAsString(
             parameters,
             self.ODS,
             context
         )
 
-        if fonte is None:
+        if arquivo_ods is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.ODS))
 
-        layer = QgsVectorLayer(fonte+'|layername=perimetro_1', "planilha", "ogr")
-        if not layer.isValid():
-            raise QgsProcessingException("Erro ao carregar a planilha ODS!")
+        # Abrir o .ods
+        feedback.pushInfo('Lendo dados da planilha ODS...')
+        with zipfile.ZipFile(arquivo_ods, 'r') as ods:
+            with ods.open('content.xml') as content_file:
+                tree = ET.parse(content_file)
+                root = tree.getroot()
+        
+        # Namespace do OpenDocument
+        ns = {
+            'table': 'urn:oasis:names:tc:opendocument:xmlns:table:1.0',
+            'text': 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'
+        }
 
-        # Verificar número de perímetros da ODS
-        cont = 1
-        while layer.isValid():
-            cont += 1
-            layer = QgsVectorLayer(fonte + '|layername=perimetro_' + str(cont), "planilha", "ogr")
-        num_tab = cont - 1
+        dic_perimetros = {}
+        lista_perimetros = []
+
+        for tabela in root.findall('.//table:table', ns):
+            nome_aba = tabela.get('{urn:oasis:names:tc:opendocument:xmlns:table:1.0}name')
+            if 'perimetro' in nome_aba:
+                lista_perimetros += [nome_aba]
+                dic_perimetros[nome_aba] = {'nome':'', 'lado':'', 'src':'', 'mc': '', 'hemisf': ''}
+                vertices_lista = []
+                for linha_idx, linha in enumerate(tabela.findall('table:table-row', ns)):
+                    colunas = linha.findall('table:table-cell', ns)
+                    linha_lista = []
+                    for col_idx, celula in enumerate(colunas):
+                        textos = celula.findall('text:p', ns)
+                        valor = ' '.join([t.text for t in textos if t.text])
+                        if linha_idx > 10:
+                            # print(f"[{linha_idx},{col_idx}] = {valor}")
+                            linha_lista += [valor] if valor else ['']
+                        elif linha_idx == 2 and col_idx == 1:
+                            dic_perimetros[nome_aba]['nome'] = valor  if valor else ''
+                        elif linha_idx == 4 and col_idx == 1:
+                            dic_perimetros[nome_aba]['lado'] = valor if valor else ''
+                        elif linha_idx == 8 and col_idx == 1:
+                            dic_perimetros[nome_aba]['src'] = valor if valor else ''
+                        elif linha_idx == 8 and col_idx == 3:
+                            dic_perimetros[nome_aba]['mc'] = valor if valor else ''
+                        elif linha_idx == 8 and col_idx == 5:
+                            dic_perimetros[nome_aba]['hemisf'] = valor if valor else ''
+                    if linha_lista:
+                        if linha_lista[0] != '':
+                            if len(linha_lista) == 14:
+                                vertices_lista += [linha_lista[0:-2]]
+                            else:
+                                vertices_lista += [linha_lista[0:9] + ['', ''] + [linha_lista[10]]]
+                dic_perimetros[nome_aba]['vertices'] = vertices_lista
+
+        # Número de perímetros da ODS
+        num_tab = len(lista_perimetros)
+        if num_tab < 1:
+            raise QgsProcessingException("Verifique se a planilha ODS carregada segue o modelo do SIGEF/INCRA!")
+
+        # Pegar dados de SRC
+        feedback.pushInfo('Lendo Sistema de Referência de Coordenadas (SRC)...')
+        try:
+            src = dic_perimetros[lista_perimetros[0]]['src']
+            hemisf = dic_perimetros[lista_perimetros[0]]['hemisf']
+            mc = dic_perimetros[lista_perimetros[0]]['mc']
+            if src == 'Geográfica':
+                SRC = QgsCoordinateReferenceSystem('EPSG:4674')
+            else:
+                fuso = round((183+int(mc))/6)
+                if hemisf[0].upper() == 'S':
+                    SRC = QgsCoordinateReferenceSystem('EPSG:' + str(31960+fuso))
+                elif hemisf[0].upper() == 'N':
+                    SRC = QgsCoordinateReferenceSystem('EPSG:' + str(31954+fuso))
+        except:
+            raise QgsProcessingException("Erro ao carregar a planilha ODS!")
+    
+        feedback.pushInfo('O SRC da planilha é {}'.format(SRC.authid()))
 
         # Pegar dados do imóvel
         feedback.pushInfo('Obtendo dados da planilha ODS...')
-        idendificacao = QgsVectorLayer(fonte+'|layername=identificacao', "planilha", "ogr")
+        idendificacao = QgsVectorLayer(arquivo_ods + '|layername=identificacao', "planilha", "ogr")
         dic_nat_ser = {'Particular':1, 'Contrato com Administração Pública':2}
         dic_pessoa, dic_situacao  = {'Física':1, 'Jurídica':2}, {'Imóvel Registrado':1, 'Área Titulada não Registrada':2, 'Área não Titulada':3}
         dic_natureza = {'Assentamento':1,'Assentamento Parcela':2,'Estrada':3,'Ferrovia':4,'Floresta Pública':5,'Gleba Pública':6,'Particular':7,'Perímetro Urbano':8,'Terra Indígena':9,'Terreno de Marinha':10,'Terreno Marginal':11,'Território Quilombola':12,'Unidade de Conservação':13}
@@ -189,29 +253,6 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                 except:
                     municipio = ''
                     uf = ''
-
-        # Pegar dados de SRC do perímetro
-        feedback.pushInfo('Lendo dados de SRC...')
-        layer = QgsVectorLayer(fonte+'|layername=perimetro_1', "planilha", "ogr")
-        lista = []
-        for k, lin in enumerate(layer.getFeatures()):
-            if k == 4:
-                lado = lin[1]
-            elif k == 8:
-                src = lin[1]
-                mc = float(lin[3])
-                hemisf = lin[5]
-
-        # Sistema de Referência de Coordenadas
-        if src == 'Geográfica':
-            SRC = QgsCoordinateReferenceSystem('EPSG:4674')
-        else:
-            fuso = round((183+mc)/6)
-            if hemisf[0].upper() == 'S':
-                SRC = QgsCoordinateReferenceSystem('EPSG:' + str(31960+fuso))
-            elif hemisf[0].upper() == 'N':
-                SRC = QgsCoordinateReferenceSystem('EPSG:' + str(31954+fuso))
-        feedback.pushInfo('O SRC da planilha é {}'.format(SRC.authid()))
 
         # Criar camada de Pontos
         feedback.pushInfo('Criando camada Vértice...')
@@ -294,16 +335,12 @@ class LayersFromSheet(QgsProcessingAlgorithm):
         if sink3 is None:
             raise QgsProcessingException(self.invalidSinkError(parameters, self.PARCELA))
 
-        for tabela in range(num_tab):
+        for perimetro in lista_perimetros:
+            
+            feedback.pushInfo('Alimentando camada Vértice (pontos) do {}...'.format(perimetro))
 
-            layer = QgsVectorLayer(fonte+'|layername=perimetro_{}'.format(tabela+1), "planilha", "ogr")
-            lista = []
-            for k, lin in enumerate(layer.getFeatures()):
-                if k > 10:
-                    lista += [lin.attributes()]
+            lista = dic_perimetros[perimetro]['vertices']
 
-
-            feedback.pushInfo('Alimentando camada Vértice (pontos) do Perímetro {}...'.format(tabela+1))
             cont = 0
             pnts = []
             for item in lista:
@@ -333,7 +370,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                     break
 
 
-            feedback.pushInfo('Alimentando camada Limite (linha) do Perímetro {}...'.format(tabela+1))
+            feedback.pushInfo('Alimentando camada Limite (linha) do {}...'.format(perimetro))
             linha = []
             anterior_cns = str(lista[0][9]).replace('NULL','')
             anterior_mat = str(lista[0][10]).replace('NULL','')
@@ -377,7 +414,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
             sink2.addFeature(feat, QgsFeatureSink.FastInsert)
 
 
-            feedback.pushInfo('Alimentando camada Parcela (polígono) do Perímetro {}...'.format(tabela+1))
+            feedback.pushInfo('Alimentando camada Parcela (polígono) do {}...'.format(perimetro))
             feat = QgsFeature(Fields3)
             feat['nome'] = nome
             feat['nat_serv'] = nat_serv
