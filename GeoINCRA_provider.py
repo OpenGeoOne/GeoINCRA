@@ -47,7 +47,7 @@ from .algorithms.layersFromSheet import LayersFromSheet
 from .algorithms.layersOfInterest import LayersOfInterest
 from .algorithms.layersFromPDF import LayersFromPDF
 from .algorithms.dividedByRoad import DividedByRoad
-
+from .algorithms.conversorMemorial import ConversorMemorial
 
 
 class GeoINCRAProvider(QgsProcessingProvider):
@@ -82,6 +82,8 @@ class GeoINCRAProvider(QgsProcessingProvider):
         self.addAlgorithm(LayersOfInterest())
         self.addAlgorithm(LayersFromPDF())
         self.addAlgorithm(DividedByRoad())
+        self.addAlgorithm(ConversorMemorial())
+
 
     def id(self):
         """
