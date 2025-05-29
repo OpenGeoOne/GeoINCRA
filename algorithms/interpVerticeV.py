@@ -92,6 +92,7 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
         return txt + footer
 
     VERTICES = 'VERTICES'
+    SELEC = 'SELEC'
     TIPO = 'TIPO'
     SALVAR = 'SALVAR'
 
@@ -102,6 +103,14 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
                 self.VERTICES,
                 self.tr('Camada Vértice'),
                 [QgsProcessing.TypeVectorPoint])
+        )
+
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.SELEC,
+                self.tr('Apenas pontos selecionados'),
+                defaultValue= False
+            )
         )
 
         self.addParameter(
@@ -123,13 +132,19 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
 
-        vertices = self.parameterAsVectorLayer(
+        vertice = self.parameterAsVectorLayer(
             parameters,
             self.VERTICES,
             context
         )
-        if vertices is None:
+        if vertice is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.VERTICES))
+
+        selecionados = self.parameterAsBool(
+            parameters,
+            self.SELEC,
+            context
+        )
 
         Interp = self.parameterAsEnum(
             parameters,
@@ -137,12 +152,12 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
             context
         )
 
-        vertices.startEditing()
-        campos = vertices.fields()
+        vertice.startEditing()
+        campos = vertice.fields()
 
         # Verificar se existe ponto virtual com método de posicionamento PA1, PA2 ou PA3
         existe = False
-        for feat in vertices.getFeatures():
+        for feat in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
             if feat['tipo_verti'] == 'V' and feat['metodo_pos'] in ('PA1','PA2','PA3'):
                 existe = True
                 break
@@ -150,7 +165,7 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
             raise QgsProcessingException('Não existe vértice do tipo V obtida pelo método PA1 (paralela), PA2 (interseção) ou PA3 (Projeção Técnica)!')
 
         # Verificar se as precisões dos pontos foram preenchidas
-        for feat in vertices.getFeatures():
+        for feat in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
             if feat['tipo_verti'] != 'V':
                 if feat['sigma_x'] < 0 or feat['sigma_x'] > 10 or feat['sigma_x'] == None:
                     raise QgsProcessingException ('Verifique os valores do atrituto "sigma_x"!')
@@ -164,7 +179,7 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
                     raise QgsProcessingException ('Verifique os valores do atrituto "tipo_vertice"!')
 
         # Verificar se as cotas dos pontos do tipo não Virtual foram preenchidas
-        for feat in vertices.getFeatures():
+        for feat in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
             pnt = feat.geometry().constGet()
             if feat['tipo_verti'] != 'V' and str(pnt.z()) == 'nan':
                 raise QgsProcessingException('Coordenada Z do vértice de ID = {} deve ser preenchida!'.format(feat.id()))
@@ -177,13 +192,13 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
         def MediaInvDist(v1, dist1, v2, dist2):
             return (v1/dist1 + v2/dist2)/(1/dist1 + 1/dist2)
 
-        for feat1 in vertices.getFeatures():
+        for feat1 in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
             if feat1['tipo_verti'] == 'V' and feat1['metodo_pos'] in ('PA1','PA2'):
                 pnt1 = feat1.geometry().constGet()
                 prox1 = {'dist':1e9, 'z': None, 'stdx': None, 'stdy': None, 'stdz': None, 'id': None}
                 prox2 = {'dist':1e9, 'z': None, 'stdx': None, 'stdy': None, 'stdz': None, 'id': None}
                 # Pegar os dois pontos mais próximos
-                for feat2 in vertices.getFeatures():
+                for feat2 in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
                     if not feat2['tipo_verti'] == 'V':
                         pnt2 = feat2.geometry().constGet()
                         dist = norma2(pnt1, pnt2)*1e5
@@ -199,11 +214,11 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
                 Std_z_interp = MediaInvDist(prox1['stdz'], prox1['dist'], prox2['stdz'], prox2['dist'])
                 newPoint = QgsGeometry(QgsPoint(pnt1.x(), pnt1.y(), float(Z_interp)))
                 if Interp in (0,2):
-                    vertices.changeGeometry(feat1.id(), newPoint)
+                    vertice.changeGeometry(feat1.id(), newPoint)
                 if Interp in (0,1):
-                    vertices.changeAttributeValue(feat1.id(), campos.indexFromName('sigma_x'), float(Std_x_interp))
-                    vertices.changeAttributeValue(feat1.id(), campos.indexFromName('sigma_y'), float(Std_y_interp))
-                    vertices.changeAttributeValue(feat1.id(), campos.indexFromName('sigma_z'), float(Std_z_interp))
+                    vertice.changeAttributeValue(feat1.id(), campos.indexFromName('sigma_x'), float(Std_x_interp))
+                    vertice.changeAttributeValue(feat1.id(), campos.indexFromName('sigma_y'), float(Std_y_interp))
+                    vertice.changeAttributeValue(feat1.id(), campos.indexFromName('sigma_z'), float(Std_z_interp))
 
         salvar = self.parameterAsBool(
            parameters,
@@ -214,6 +229,6 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
            raise QgsProcessingException(self.invalidSourceError(parameters, self.SAVE))
 
         if salvar:
-           vertices.commitChanges() # salva as edições
+           vertice.commitChanges() # salva as edições
 
         return {}
