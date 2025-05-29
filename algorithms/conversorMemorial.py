@@ -445,7 +445,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         <tr style="">
           <td style="padding: 0cm 5.4pt; width: 247.85pt;"
      valign="top" width="330">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Área ({})').format('m²' if calculo in (0,2,4) else 'ha') ) + ''': </b>[AREA]<o:p></o:p></p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Área ({})').format(INSERIR ÁREA!!!!!!!!!!!!!!!!!) ) + ''': </b>[AREA]<o:p></o:p></p>
           </td>
           <td style="padding: 0cm 5.4pt; width: 176.85pt;"
      valign="top" width="236">
@@ -616,7 +616,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         arq.close()
 
         return {self.HTML: output}
-        
+
 
     def self.str2HTML(self, texto):
         if texto:
