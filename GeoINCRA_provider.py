@@ -46,6 +46,7 @@ from .algorithms.createTemplate2 import createTemplate2
 from .algorithms.layersFromSheet import LayersFromSheet
 from .algorithms.layersOfInterest import LayersOfInterest
 from .algorithms.layersFromPDF import LayersFromPDF
+from .algorithms.dividedByRoad import DividedByRoad
 
 
 
@@ -80,6 +81,7 @@ class GeoINCRAProvider(QgsProcessingProvider):
         self.addAlgorithm(LayersFromSheet())
         self.addAlgorithm(LayersOfInterest())
         self.addAlgorithm(LayersFromPDF())
+        self.addAlgorithm(DividedByRoad())
 
     def id(self):
         """
