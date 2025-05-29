@@ -243,7 +243,7 @@ class createTemplate(QgsProcessingAlgorithm):
 				codigo = feat['vertice'].strip()
 				longitude = self.dd2dms(vert.x(), dec_coord) + ' W'
 				sigma_x = ('{:.'+ dec_prec + 'f}').format(feat['sigma_x']).replace('.',',')
-				latitude = self.dd2dms(vert.y(), dec_coord) + ' S' if vert.y() < 0 else self.dd2dms(vert.y(), 3) + ' N'
+				latitude = self.dd2dms(vert.y(), dec_coord) + str(' S' if vert.y() < 0 else self.dd2dms(vert.y(), 3) + ' N')
 				sigma_y = ('{:.'+ dec_prec + 'f}').format(feat['sigma_y']).replace('.',',')
 				z = float(feat.geometry().constGet().z())
 				if str(z) != 'nan':
