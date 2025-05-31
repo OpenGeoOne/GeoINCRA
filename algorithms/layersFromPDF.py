@@ -69,7 +69,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
 
     def displayName(self):
 
-        return self.tr('Ler Memorial do Sigef')
+        return self.tr('Memorial do Sigef para Camadas')
 
     def group(self):
 
