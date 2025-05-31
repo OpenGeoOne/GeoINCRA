@@ -33,6 +33,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingException,
                        QgsProcessingAlgorithm,
                        QgsWkbTypes,
+                       QgsProcessingParameterDateTime,
                        QgsCoordinateReferenceSystem,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterFileDestination,
@@ -50,6 +51,7 @@ from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
 import os, re
+from datetime import datetime
 import platform
 
 class ConversorMemorial(QgsProcessingAlgorithm):
@@ -57,6 +59,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
     PDF = 'PDF'
     PERIMETRO = 'PERIMETRO'
     HTML = 'HTML'
+    #DATA = 'DATA'
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
@@ -69,7 +72,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
 
     def displayName(self):
 
-        return self.tr('Conversor de Memorial Sigef')
+        return self.tr('Conversor de Memorial do Sigef')
 
     def group(self):
 
@@ -107,10 +110,18 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         self.addParameter(
         QgsProcessingParameterFile(
             self.PDF,
-            self.tr('Memorial Descritivo Sigef (PDF)'),
+            self.tr('Memorial Tabular do Sigef (PDF)'),
             fileFilter= 'Arquivo PDF (*.pdf)'
             )
         )
+
+        """ self.addParameter(
+            QgsProcessingParameterDateTime(
+                self.DATA,
+                self.tr('Data do memorial'),
+                type = QgsProcessingParameterDateTime.Date,
+            )
+        ) """
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
@@ -128,6 +139,8 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             self.PDF,
             context
         )
+
+        # dataAss = self.parameterAsString(parameters, self.DATA, context)
 
         if pdf_path is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.PDF))
@@ -193,6 +206,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         'Cartório (CNS):': '',
         'Área (Sistema Geodésico Local)': '',
         'Perímetro (m)': '',
+        'Data Certificação': '',
         }
 
         chaves = list(dic.keys())
@@ -209,11 +223,10 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         pattern = r'\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,5}(?:,\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,5})*' #r'^\s*[A-Z0-9]{3,4}-[MPV]-\d{1,5}$'
 
         for line in lines:
-            print(line)
             if sentinela:
                 dic[item] = line
                 sentinela = False
-
+            
             for item in dic:
                 if item in line:
                     sentinela = True
@@ -235,7 +248,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             elif sentinela2:
                 cont += 1
                 if cont == 1:
-                    dic_cod[lista_cod[-1]] = {'lon':'', 'lat':'', 'h':'', 'cns':'', 'matr':'', 'confr': '', 'az': '', 'dist': ''}
+                    dic_cod[lista_cod[-1]] = {'lon':'', 'lat':'', 'h':'', 'cns':'', 'matr':'', 'confr': '', 'az': '', 'dist': '', 'texto_confr': ''}
                 if cont == 2:
                     dic_cod[lista_cod[-1]]['lon'] = line.strip()
                 if cont == 3:
@@ -255,6 +268,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                         dic_cod[lista_cod[-1]]['cns'] = cns
                         dic_cod[lista_cod[-1]]['matr'] = matr
                         dic_cod[lista_cod[-1]]['confr'] = confr
+                        dic_cod[lista_cod[-1]]['texto_confr'] = line
                     except:
                         dic_cod[lista_cod[-1]]['confr'] = line.strip()
 
@@ -262,30 +276,8 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         if len(lista_cod) == 0 or dic['Denominação:'] == '':
             raise QgsProcessingException('PDF de entrada não é um Memorial do Sigef!')
 
-
         feedback.pushInfo('Alimentando arquivo HTML...')
-        # cont = 0
-        # pnts = {}
-        # for codigo in lista_cod:
-        #     lon = dic_cod[codigo]['lon'].replace('°', ' ').replace('"', ' ').replace("'", ' ').replace(',','.').split(' ')
-        #     X = (abs(float(lon[0])) + float(lon[1])/60 + float(lon[2])/3600)*(-1 if dic_cod[lista_cod[-1]]['lon'][0] == '-' else 1)
-        #     lat = dic_cod[codigo]['lat'].replace('°', ' ').replace('"', ' ').replace("'", ' ').replace(',','.').split(' ')
-        #     Y = (abs(float(lat[0])) + float(lat[1])/60 + float(lat[2])/3600)*(-1 if dic_cod[lista_cod[-1]]['lat'][0] == '-' else 1)
-        #     Z = float(dic_cod[codigo]['h'].replace(',','.'))
-        #     feat = QgsFeature(Fields1)
-        #     pnts[codigo] = QgsPoint(X,Y,Z)
-        #     feat.setGeometry(QgsGeometry(QgsPoint(X,Y,Z)))
-        #     cont += 1
-        #     feat['indice'] = cont
-        #     feat['vertice'] = codigo
-        #     feat['tipo_verti'] = codigo.split('-')[1]
-        #     feat['metodo_pos'] = ''
-        #     feat['sigma_x'] = None
-        #     feat['sigma_y'] = None
-        #     feat['sigma_z'] = None
-        #     sink1.addFeature(feat, QgsFeatureSink.FastInsert)
-        #     if feedback.isCanceled():
-        #         break
+        
 
         # Se encravado, fatiar lista_cod
         def fatiar_lista(a, ind):
@@ -297,86 +289,22 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         else:
             listas_fat = [lista_cod]
 
-        for lista_cod_fat in listas_fat:
-            linha = []
-            anterior_cns = dic_cod[lista_cod_fat[0]]['cns'].replace('NULL','')
-            anterior_mat = dic_cod[lista_cod_fat[0]]['matr'].replace('NULL','')
-            anterior_confr = dic_cod[lista_cod_fat[0]]['confr'].replace('NULL','')
+        
+        # for lista_cod_fat in listas_fat:
+        lista_cod_fat = listas_fat[0]
+        coordenadas = 3
 
-            for k, codigo in enumerate(lista_cod_fat):
-                linha += [pnts[codigo]]
-                cns = dic_cod[codigo]['cns'].replace('NULL','')
-                matricula = dic_cod[codigo]['matr'].replace('NULL','')
-                confrontante = dic_cod[codigo]['confr'].replace('NULL','')
-                if ((cns+matricula+confrontante) != (anterior_cns+anterior_mat+anterior_confr)):
-                    feat = QgsFeature(Fields2)
-                    feat.setGeometry(QgsGeometry(QgsLineString(linha)))
-                    feat['tipo'] = ''
-                    feat['confrontan'] = anterior_confr
-                    feat['cns'] = anterior_cns
-                    feat['matricula'] = anterior_mat
-                    sink2.addFeature(feat, QgsFeatureSink.FastInsert)
-                    anterior_mat = matricula
-                    anterior_cns = cns
-                    anterior_confr = confrontante
-                    linha = [pnts[codigo]]
-                if feedback.isCanceled():
-                    break
-
-            # Último segmento
-            feat = QgsFeature(Fields2)
-            if (cns+matricula+confrontante) == (anterior_cns+anterior_mat+anterior_confr):
-                linha += [pnts[lista_cod_fat[0]]]
-                feat['tipo'] = ''
-                feat['confrontan'] = anterior_confr
-                feat['cns'] = anterior_cns
-                feat['matricula'] = anterior_mat
-            else:
-                linha = [pnts[lista_cod_fat[k]], pnts[lista_cod_fat[0]]]
-                feat['tipo'] = ''
-                feat['confrontan'] = confrontante
-                feat['cns'] = cns
-                feat['matricula'] = matricula
-            # feat.setGeometry(QgsGeometry(QgsLineString(linha)))
-            # sink2.addFeature(feat, QgsFeatureSink.FastInsert)
-
-
-        # feedback.pushInfo('Alimentando camada Parcela (polígono)...')
-        # feat = QgsFeature(Fields3)
-        # feat['nome'] = dic['Proprietário(a):']
-        # feat['pessoa'] =  1 if dic['CPF:'] != '' else 2
-        # feat['cpf_cnpj'] = dic['CPF:'] if dic['CPF:'] != '' else dic['CNJP:']
-        # feat['denominacao'] = dic['Denominação:']
-        # feat['natureza'] = dic_natureza[dic['Natureza da Área:']]
-        # feat['sncr'] = dic['Código INCRA/SNCR:']
-        # feat['matricula'] = dic['Matrícula do imóvel:']
-        # feat['cod_cartorio'] = dic['Cartório (CNS):']
-        # feat['municipio'] = dic['Município/UF:'].split('-')[0]
-        # feat['uf'] = dic['Município/UF:'].split('-')[-1]
-        # feat['resp_tec'] = dic['Responsável Técnico(a):']
-        # feat['reg_prof'] = dic['Conselho Profissional:']
-
-
-        # Lista de pontos
-        for k, lista_cod_fat in enumerate(listas_fat):
-            lista_pontos = []
-            for codigo in lista_cod_fat:
-                lista_pontos += [pnts[codigo]]
-            lista_pontos+[lista_pontos[0]]
-
-            # Anel externo
-            if k == 0:
-                anel_ext = QgsLineString(lista_pontos)
-                pol = QgsPolygon(anel_ext)
-            else: # interno
-                anel_int = QgsLineString(lista_pontos)
-                pol.addInteriorRing(anel_int)
-
-        mPol = QgsMultiPolygon()
-        mPol.addGeometry(pol)
-        newGeom = QgsGeometry(mPol)
-        feat.setGeometry(newGeom)
-        sink3.addFeature(feat, QgsFeatureSink.FastInsert)
+        # Modelo de coordenadas
+        def CoordN (x, y, z):
+            if coordenadas == 0:
+                txt = '''<b>longitude  [Xn]</b> e <b>latitude  [Yn]</b>'''
+            elif coordenadas == 1:
+                txt = '''<b>latitude  [Yn]</b> e <b>longitude  [Xn]</b>'''
+            elif coordenadas == 2:
+                txt = '''<b>longitude  [Xn]</b>, <b>latitude  [Yn]</b> e <b>h [Zn]m</b>'''
+            elif coordenadas == 3:
+                txt = '''<b>latitude  [Yn]</b>, <b>longitude  [Xn]</b> e <b>h [Zn]m</b>'''
+            return txt.replace('[Yn]', y).replace('[Xn]', x).replace('[Zn]', z)
 
         LOGO = 'png;base64,'+ GeoOne
         SLOGAN = 'Mapeamento automatizado, fácil e direto ao ponto!'
@@ -410,7 +338,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
           </td>
           <td style="padding: 0cm 5.4pt; width: 176.85pt;"
      valign="top" width="236">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Registro')) + ''':</b>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Código INCRA/SNCR')) + ''':</b>
     [REGISTRO]<o:p></o:p></p>
           </td>
         </tr>
@@ -438,14 +366,14 @@ class ConversorMemorial(QgsProcessingAlgorithm):
           <td colspan="2"
      style="padding: 0cm 5.4pt; width: 424.7pt;" valign="top"
      width="566">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Matrícula(s)')) + ''':</b>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Matrícula')) + ''':</b>
     [MATRICULAS]<o:p></o:p></p>
           </td>
         </tr>
         <tr style="">
           <td style="padding: 0cm 5.4pt; width: 247.85pt;"
      valign="top" width="330">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Área ({})').format(INSERIR ÁREA!!!!!!!!!!!!!!!!!) ) + ''': </b>[AREA]<o:p></o:p></p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Área (ha)')) + ''': </b>[AREA]<o:p></o:p></p>
           </td>
           <td style="padding: 0cm 5.4pt; width: 176.85pt;"
      valign="top" width="236">
@@ -468,10 +396,10 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         texto_var1 = self.str2HTML(self.tr('o vértice ')) + '''<b>[Vn]</b>, '''+ self.str2HTML(self.tr('de coordenadas ')) + '''[Coordn],
     [Descr_k]'''+ self.str2HTML(self.tr('deste, segue confrontando com [Confront_k], com os seguintes azimutes planos e distâncias: [Az_n] e [Dist_n]m até '))
 
-        texto_var2 = self.str2HTML(self.tr('o vértice ')) + '''<span> </span><b>[Vn]</b>, '''+ self.str2HTML(self.tr('de coordenadas ')) + '''[Coordn]; '''+ self.str2HTML(self.tr('[Az_n] and [Dist_n]m up to ', '[Az_n] e [Dist_n]m até '))
+        texto_var2 = self.str2HTML(self.tr('o vértice ')) + '''<span> </span><b>[Vn]</b>, ''' + self.str2HTML(self.tr('de coordenadas ')) + '''[Coordn]; '''+ self.str2HTML(self.tr('[Az_n] e [Dist_n]m até '))
 
         # Coordenadas Geo, cálculo em SGL e Azimute Puissant:
-        texto_calculo = self.tr('. Os azimutes foram calculados pela fórmula do Problema Geodésico Inverso segundo Puissant. As distâncias, área e perímetro foram calculados no Sistema Geodésico Local (SGL) com origem no centroide e altitude média do imóvel.')
+        texto_calculo = self.tr('. Os azimutes foram calculados pela fórmula do Problema Geodésico Inverso segundo Puissant. As distâncias, área e perímetro foram calculados no Sistema Geodésico Local (SGL) com origem na média das coordenadas do imóvel.')
 
         texto_final = self.str2HTML(self.tr('o vértice ')) + '''<b>[P-01]</b>, '''+ self.tr('de coordenadas') + ''' [Coord1],
     ''' + self.str2HTML(self.tr('ponto inicial da descrição deste perímetro. Todas as coordenadas aqui descritas estão georreferenciadas ao Sistema Geodésico de Referência (SGR)')) + ''' <b>[GRS]</b>
@@ -488,9 +416,6 @@ class ConversorMemorial(QgsProcessingAlgorithm):
      <p class="western"
       style="margin: 0cm 0cm 0.0001pt; text-align: center;"
       align="center">[OWNER]<o:p></o:p></p>
-     <p class="western"
-      style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-      align="center">[CPF]<o:p></o:p></p>
      <p class="western"
       style="margin: 0cm 0cm 0.0001pt; text-align: center;"
       align="center">''' + self.str2HTML(self.tr('PROPRIETÁRIO DO IMÓVEL')) + '''<o:p></o:p></p>
@@ -512,102 +437,70 @@ class ConversorMemorial(QgsProcessingAlgorithm):
     </body>
     </html>
     '''
-        # Inserindo dados iniciais do levantamento
-        if modeloBD == 'GR':
-            property = feat1['denominacao']
-            owner = feat1['nome']
-            cpf = feat1['cpf_cnpj']
-            state = feat1['uf']
-            transcript = feat1['matricula']
-            registry = feat1['sncr']
-            county = feat1['municipio']
-            survey_date = feat1['data']
-            tech_manager = feat1['resp_tec']
-            prof_id = feat1['reg_prof']
-        else:
-            property = feat1['property']
-            owner = feat1['owner']
-            try:
-                cpf = feat1['owner_id']
-            except:
-                cpf = ''
-            state = feat1['state']
-            transcript = feat1['transcript']
-            registry = feat1['registry']
-            county = feat1['county']
-            survey_date = feat1['survey_date']
-            tech_manager = feat1['tech_manager']
-            prof_id = feat1['prof_id']
-
-        geom1 = feat1.geometry()
-        if calculo in (0,1): # Projetadas (Ex: UTM)
-            geom1.transform(coordinateTransformer)
-            area1 = geom1.area()
-            perimeter1 = geom1.length()
-        else: # SGL
-            area1 = areaSGL(geom1, crsGeo)
-            perimeter1 = perimetroSGL(geom1, crsGeo)
-
-        if calculo in (1,3,5): # Transformação para hectares
-            area1 /= 1e4
-
-        itens = {'[IMOVEL]': self.str2HTML(property),
-                '[PROPRIETARIO]': self.str2HTML(owner),
-                '[UF]': self.str2HTML(state),
-                '[MATRICULAS]': self.str2HTML(transcript),
-                '[AREA]': ################ INSERIR AREA,
-                '[SRC]': 'SIRGAS2000',
-                '[REGISTRO]': self.str2HTML(registry),
-                '[MUNICIPIO]': self.str2HTML(county),
-                '[PERIMETRO]': ################ INSERIR PERIMETRO,
+        # Inserindo dados iniciais do levantamento       
+        itens = {'[IMOVEL]': self.str2HTML(dic['Denominação:']),
+                '[PROPRIETARIO]': self.str2HTML(dic['Proprietário(a):']),
+                '[MATRICULAS]': self.str2HTML(dic['Matrícula do imóvel:'] + ' | CNS: ' + 'Cartório (CNS):'),
+                '[AREA]': self.str2HTML(dic['Área (Sistema Geodésico Local)']),
+                '[SRC]': self.str2HTML('SIRGAS2000'),
+                '[REGISTRO]': self.str2HTML(dic['Código INCRA/SNCR:']),
+                '[MUNICIPIO]': self.str2HTML(dic['Município/UF:'].split('-')[0]),
+                '[UF]': self.str2HTML(dic['Município/UF:'].split('-')[-1]),
+                '[PERIMETRO]': self.str2HTML(dic['Perímetro (m)']),
                     }
+
         for item in itens:
                 texto_inicial = texto_inicial.replace(item, itens[item])
 
         LINHAS = texto_inicial
-        for w,t in enumerate(ListaCont):
-            linha0 = texto_var1
-            itens =    {'[Vn]': pnts[t[0]+1][2],
-                        '[Coordn]': CoordN(pnts[t[0]+1][0].x(), pnts[t[0]+1][0].y(), pnts[t[0]+1][3][2]) if coordenadas in (0,1,2,3) else CoordN(pnts[t[0]+1][3][0], pnts[t[0]+1][3][1], pnts[t[0]+1][3][2]),
-                        '[Az_n]': ################ INSERIR AZIMUTE,
-                        '[Dist_n]': ################ INSERIR DISTANCIA,
-                        '[Descr_k]': ListaDescr[w][0] + ', ' if ListaDescr[w][0] else '',
-                        '[Confront_k]': ListaDescr[w][1]
-                        }
-            for item in itens:
-                linha0 = linha0.replace(item, itens[item])
-            LINHAS += linha0
-            LIN0 = ''
-            for k in range(t[0]+1, t[0]+t[1]):
+        
+        mudou = True
+        for k,codigo in enumerate(lista_cod_fat):
+            if mudou:
+                linha0 = texto_var1
+                itens =    {'[Vn]': self.str2HTML(codigo),
+                            '[Coordn]': self.str2HTML(CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h'])),
+                            '[Az_n]': self.str2HTML(dic_cod[codigo]['az']),
+                            '[Dist_n]': self.str2HTML(dic_cod[codigo]['dist']),
+                            '[Confront_k]': self.str2HTML(dic_cod[codigo]['confr'])
+                            }
+                for item in itens:
+                    linha0 = linha0.replace(item, itens[item])
+                LINHAS += linha0
+                LIN0 = ''
+                if dic_cod[codigo]['texto_confr']  == dic_cod[lista_cod_fat[0 if k+1 == len(lista_cod_fat) else k+1]]['texto_confr']:
+                    mudou = False                    
+            else:
                 linha1 = texto_var2
-                itens = {'[Vn]': pnts[k+1][2],
-                        '[Coordn]': CoordN(pnts[k+1][0].x(), pnts[k+1][0].y(), pnts[k+1][3][2]) if coordenadas in (0,1,2,3) else CoordN(pnts[k+1][3][0], pnts[k+1][3][1], pnts[k+1][3][2]),
-                        '[Az_n]': self.str2HTML(self.tr(dd2dms(Az_lista[k], decimal_azim), dd2dms(Az_lista[k], decimal_azim).replace('.', ','))),
-                        '[Dist_n]': self.tr(format_dist.format(Dist[k]), format_dist.format(Dist[k]).replace(',', 'X').replace('.', ',').replace('X', '.'))
+                itens = {'[Vn]': self.str2HTML(codigo),
+                        '[Coordn]': self.str2HTML(CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h'])),
+                        '[Az_n]': self.str2HTML(dic_cod[codigo]['az']),
+                        '[Dist_n]': self.str2HTML(dic_cod[codigo]['dist'])
                         }
                 for item in itens:
                     linha1 = linha1.replace(item, itens[item])
                 LIN0 += linha1
+                if dic_cod[codigo]['texto_confr']  != dic_cod[lista_cod_fat[0 if k+1 == len(lista_cod_fat) else k+1]]['texto_confr']:
+                    mudou = True
             LINHAS += LIN0
 
         # Inserindo dados finais
-        itens = {   '[P-01]': pnts[1][2],
-                    '[Coord1]': CoordN(pnts[1][0].x(), pnts[1][0].y(), pnts[1][3][2])  if coordenadas in (0,1,2,3) else CoordN(pnts[1][3][0], pnts[1][3][1], pnts[1][3][2]),
-                    '[GRS]': SRC.split(' /')[0],
-                    '[FUSO]': str(FusoHemisf(centroideG)[0]),
-                    '[HEMISFERIO]': FusoHemisf(centroideG)[1],
-                    '[OWNER]': self.str2HTML(owner.upper()),
-                    '[CPF]': self.str2HTML(cpf.upper()),
-                    '[RESP_TEC]': self.str2HTML(tech_manager.upper()),
-                    '[CREA]': self.str2HTML(prof_id),
-                    '[LOCAL]': self.str2HTML((county) +' - ' + (state).upper()),
-                    '[DATA]': self.tr((survey_date.toPyDate()).strftime("%b %d, %Y"),
-                                       (survey_date.toPyDate()).strftime("%d de {} de %Y").format(str2HTML(self.tr(meses[survey_date.month()]))))
+        meses = {1: 'janeiro', 2:'fevereiro', 3: 'março', 4:'abril', 5:'maio', 6:'junho', 7:'julho', 8:'agosto', 9:'setembro', 10:'outubro', 11:'novembro', 12:'dezembro'}
+        dataAss = datetime.strptime(dic['Data Certificação'], '%d/%m/%Y %H:%M')
+        data_formatada = f"{dataAss.day:02d} de {meses[dataAss.month]} de {dataAss.year}"
+        codigo = lista_cod_fat[0]
+        itens = {   '[P-01]': self.str2HTML(codigo),
+                    '[Coord1]': self.str2HTML(CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h'])),
+                    '[GRS]': 'SIRGAS 2000',
+                    '[OWNER]': self.str2HTML(dic['Proprietário(a):']),
+                    '[RESP_TEC]': self.str2HTML(dic['Responsável Técnico(a):']),
+                    '[CREA]': self.str2HTML(dic['Formação:'] + ' // ' + dic['Conselho Profissional:']  + ' // ' + dic['Documento de RT:']),
+                    '[LOCAL]': self.str2HTML(dic['Município/UF:']),
+                    '[DATA]': self.str2HTML(data_formatada)
                     }
 
         for item in itens:
                 texto_final = texto_final.replace(item, itens[item])
-
         LINHAS += texto_final
 
         output = self.parameterAsFileOutput(parameters, self.HTML, context)
@@ -618,7 +511,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         return {self.HTML: output}
 
 
-    def self.str2HTML(self, texto):
+    def str2HTML(self, texto):
         if texto:
             dicHTML = {'Á': '&Aacute;',	'á': '&aacute;',	'Â': '&Acirc;',	'â': '&acirc;',	'À': '&Agrave;',	'à': '&agrave;',	'Å': '&Aring;',	'å': '&aring;',	'Ã': '&Atilde;',	'ã': '&atilde;',	'Ä': '&Auml;',	'ä': '&auml;', 'ú': '&uacute;', 'Ú': '&Uacute;', 'Æ': '&AElig;',	'æ': '&aelig;',	'É': '&Eacute;',	'é': '&eacute;',	'Ê': '&Ecirc;',	'ê': '&ecirc;',	'È': '&Egrave;',	'è': '&egrave;',	'Ë': '&Euml;',	'ë': '&Euml;',	'Ð': '&ETH;',	'ð': '&eth;',	'Í': '&Iacute;',	'í': '&iacute;',	'Î': '&Icirc;',	'î': '&icirc;',	'Ì': '&Igrave;',	'ì': '&igrave;',	'Ï': '&Iuml;',	'ï': '&iuml;',	'Ó': '&Oacute;',	'ó': '&oacute;',	'Ô': '&Ocirc;',	'ô': '&ocirc;',	'Ò': '&Ograve;', 'Õ': '&Otilde;', 'õ': '&otilde;',	'ò': '&ograve;',	'Ø': '&Oslash;',	'ø': '&oslash;',	'Ù': '&Ugrave;',	'ù': '&ugrave;',	'Ü': '&Uuml;',	'ü': '&uuml;',	'Ç': '&Ccedil;',	'ç': '&ccedil;',	'Ñ': '&Ntilde;',	'ñ': '&ntilde;',	'Ý': '&Yacute;',	'ý': '&yacute;',	'"': '&quot;', '”': '&quot;',	'<': '&lt;',	'>': '&gt;',	'®': '&reg;',	'©': '&copy;',	'\'': '&apos;', 'ª': '&ordf;', 'º': '&ordm;', '°':'&deg;', '²':'&sup2;', '¿':'&iquest;', '¡':'&iexcl;'}
             for item in dicHTML:
