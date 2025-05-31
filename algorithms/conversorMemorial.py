@@ -59,7 +59,6 @@ class ConversorMemorial(QgsProcessingAlgorithm):
     PDF = 'PDF'
     PERIMETRO = 'PERIMETRO'
     HTML = 'HTML'
-    #DATA = 'DATA'
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
@@ -99,7 +98,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                       <p align="right">
                       <a href="https://portal.geoone.com.br/m/lessons/georreferenciamento-de-imveis-rurais-com-o-plugin-geoincra-1690158094835"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
                       </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
@@ -139,8 +138,6 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             self.PDF,
             context
         )
-
-        # dataAss = self.parameterAsString(parameters, self.DATA, context)
 
         if pdf_path is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.PDF))
@@ -191,6 +188,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
 
         dic = {
         'Denominação:': '',
+        'Proprietário:': '',
         'Proprietário(a):': '',
         'Matrícula do imóvel:': '',
         'Natureza da Área:': '',
@@ -198,6 +196,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         'CNJP:': '',
         'Município/UF:': '',
         'Código INCRA/SNCR:': '',
+        'Responsável Técnico:': '',
         'Responsável Técnico(a):': '',
         'Formação:': '',
         'Conselho Profissional:': '',
@@ -223,10 +222,11 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         pattern = r'\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,5}(?:,\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,5})*' #r'^\s*[A-Z0-9]{3,4}-[MPV]-\d{1,5}$'
 
         for line in lines:
+
             if sentinela:
                 dic[item] = line
                 sentinela = False
-            
+
             for item in dic:
                 if item in line:
                     sentinela = True
@@ -277,8 +277,8 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             raise QgsProcessingException('PDF de entrada não é um Memorial do Sigef!')
 
         feedback.pushInfo('Alimentando arquivo HTML...')
-        
 
+        print(dic)
         # Se encravado, fatiar lista_cod
         def fatiar_lista(a, ind):
             ind = [0] + ind + [len(a)]
@@ -289,7 +289,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         else:
             listas_fat = [lista_cod]
 
-        
+
         # for lista_cod_fat in listas_fat:
         lista_cod_fat = listas_fat[0]
         coordenadas = 3
@@ -304,10 +304,10 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                 txt = '''<b>longitude  [Xn]</b>, <b>latitude  [Yn]</b> e <b>h [Zn]m</b>'''
             elif coordenadas == 3:
                 txt = '''<b>latitude  [Yn]</b>, <b>longitude  [Xn]</b> e <b>h [Zn]m</b>'''
-            return txt.replace('[Yn]', y).replace('[Xn]', x).replace('[Zn]', z)
+            return txt.replace('[Yn]', self.str2HTML(y)).replace('[Xn]', self.str2HTML(x)).replace('[Zn]', self.str2HTML(z))
 
         LOGO = 'png;base64,'+ GeoOne
-        SLOGAN = 'Mapeamento automatizado, fácil e direto ao ponto!'
+        SLOGAN = 'Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!'
 
         texto_inicial = '''
     <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -320,7 +320,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
     </head>
     <body>
     <div style="text-align: center;"><span style="font-weight: bold;"><br>
-    <img height="80" src="data:image/'''+ LOGO + '''">
+    <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" src="data:image/'''+ LOGO + '''"></a>
     <br><i>'''+ self.str2HTML(SLOGAN) + '''</i></span><br style="font-weight: bold;">
     <br></div>
     <p class="western"
@@ -332,58 +332,55 @@ class ConversorMemorial(QgsProcessingAlgorithm):
      border="0" cellpadding="0" cellspacing="0">
       <tbody>
         <tr style="">
-          <td style="padding: 0cm 5.4pt; width: 247.85pt;"
-     valign="top" width="330">
+          <td style="padding: 0cm 5.4pt;"
+     valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>'''+ self.str2HTML(self.tr('Imóvel')) + ''': </b>[IMOVEL]<o:p></o:p></p>
           </td>
-          <td style="padding: 0cm 5.4pt; width: 176.85pt;"
-     valign="top" width="236">
+          <td style="padding: 0cm 5.4pt;"
+     valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Código INCRA/SNCR')) + ''':</b>
     [REGISTRO]<o:p></o:p></p>
           </td>
         </tr>
         <tr style="">
           <td colspan="2"
-     style="padding: 0cm 5.4pt; width: 424.7pt;" valign="top"
-     width="566">
+     style="padding: 0cm 5.4pt;" valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Proprietário')) + ''':</b>
     [PROPRIETARIO]<o:p></o:p></p>
           </td>
         </tr>
         <tr style="">
-          <td style="padding: 0cm 5.4pt; width: 247.85pt;"
-     valign="top" width="330">
+          <td style="padding: 0cm 5.4pt;"
+     valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Município')) + ''':</b>
     [MUNICIPIO]<b><o:p></o:p></b></p>
           </td>
-          <td style="padding: 0cm 5.4pt; width: 176.85pt;"
-     valign="top" width="236">
+          <td style="padding: 0cm 5.4pt;"
+     valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Estado')) + ''':
           </b>[UF]<o:p></o:p></p>
           </td>
         </tr>
         <tr style="">
           <td colspan="2"
-     style="padding: 0cm 5.4pt; width: 424.7pt;" valign="top"
-     width="566">
+     style="padding: 0cm 5.4pt;" valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Matrícula')) + ''':</b>
     [MATRICULAS]<o:p></o:p></p>
           </td>
         </tr>
         <tr style="">
-          <td style="padding: 0cm 5.4pt; width: 247.85pt;"
-     valign="top" width="330">
+          <td style="padding: 0cm 5.4pt;"
+     valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Área (ha)')) + ''': </b>[AREA]<o:p></o:p></p>
           </td>
-          <td style="padding: 0cm 5.4pt; width: 176.85pt;"
-     valign="top" width="236">
+          <td style="padding: 0cm 5.4pt;"
+     valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Perímetro')) + ''' (m):</b> [PERIMETRO]<o:p></o:p></p>
           </td>
         </tr>
         <tr style="">
           <td colspan="2"
-     style="padding: 0cm 5.4pt; width: 424.7pt;" valign="top"
-     width="566">
+     style="padding: 0cm 5.4pt;" valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Sistema de Referência de Coordenadas')) + ''':</b> [SRC]<b><o:p></o:p></b></p>
           </td>
         </tr>
@@ -394,7 +391,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
      style="margin-bottom: 0.0001pt; text-align: justify;">'''+ self.str2HTML(self.tr('Inicia-se a descrição deste perímetro n'))
 
         texto_var1 = self.str2HTML(self.tr('o vértice ')) + '''<b>[Vn]</b>, '''+ self.str2HTML(self.tr('de coordenadas ')) + '''[Coordn],
-    [Descr_k]'''+ self.str2HTML(self.tr('deste, segue confrontando com [Confront_k], com os seguintes azimutes planos e distâncias: [Az_n] e [Dist_n]m até '))
+    '''+ self.str2HTML(self.tr('deste, segue confrontando com [Confront_k], com os seguintes azimutes planos e distâncias: [Az_n] e [Dist_n]m até '))
 
         texto_var2 = self.str2HTML(self.tr('o vértice ')) + '''<span> </span><b>[Vn]</b>, ''' + self.str2HTML(self.tr('de coordenadas ')) + '''[Coordn]; '''+ self.str2HTML(self.tr('[Az_n] e [Dist_n]m até '))
 
@@ -437,9 +434,10 @@ class ConversorMemorial(QgsProcessingAlgorithm):
     </body>
     </html>
     '''
-        # Inserindo dados iniciais do levantamento       
+        # Inserindo dados iniciais do levantamento
+        proprietario = dic['Proprietário(a):'] if dic['Proprietário(a):'] else dic['Proprietário:']
         itens = {'[IMOVEL]': self.str2HTML(dic['Denominação:']),
-                '[PROPRIETARIO]': self.str2HTML(dic['Proprietário(a):']),
+                '[PROPRIETARIO]': self.str2HTML(proprietario),
                 '[MATRICULAS]': self.str2HTML(dic['Matrícula do imóvel:'] + ' | CNS: ' + 'Cartório (CNS):'),
                 '[AREA]': self.str2HTML(dic['Área (Sistema Geodésico Local)']),
                 '[SRC]': self.str2HTML('SIRGAS2000'),
@@ -453,13 +451,13 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                 texto_inicial = texto_inicial.replace(item, itens[item])
 
         LINHAS = texto_inicial
-        
+
         mudou = True
         for k,codigo in enumerate(lista_cod_fat):
             if mudou:
                 linha0 = texto_var1
                 itens =    {'[Vn]': self.str2HTML(codigo),
-                            '[Coordn]': self.str2HTML(CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h'])),
+                            '[Coordn]': CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h']),
                             '[Az_n]': self.str2HTML(dic_cod[codigo]['az']),
                             '[Dist_n]': self.str2HTML(dic_cod[codigo]['dist']),
                             '[Confront_k]': self.str2HTML(dic_cod[codigo]['confr'])
@@ -469,11 +467,11 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                 LINHAS += linha0
                 LIN0 = ''
                 if dic_cod[codigo]['texto_confr']  == dic_cod[lista_cod_fat[0 if k+1 == len(lista_cod_fat) else k+1]]['texto_confr']:
-                    mudou = False                    
+                    mudou = False
             else:
                 linha1 = texto_var2
                 itens = {'[Vn]': self.str2HTML(codigo),
-                        '[Coordn]': self.str2HTML(CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h'])),
+                        '[Coordn]': CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h']),
                         '[Az_n]': self.str2HTML(dic_cod[codigo]['az']),
                         '[Dist_n]': self.str2HTML(dic_cod[codigo]['dist'])
                         }
@@ -490,11 +488,11 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         data_formatada = f"{dataAss.day:02d} de {meses[dataAss.month]} de {dataAss.year}"
         codigo = lista_cod_fat[0]
         itens = {   '[P-01]': self.str2HTML(codigo),
-                    '[Coord1]': self.str2HTML(CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h'])),
+                    '[Coord1]': CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h']),
                     '[GRS]': 'SIRGAS 2000',
-                    '[OWNER]': self.str2HTML(dic['Proprietário(a):']),
-                    '[RESP_TEC]': self.str2HTML(dic['Responsável Técnico(a):']),
-                    '[CREA]': self.str2HTML(dic['Formação:'] + ' // ' + dic['Conselho Profissional:']  + ' // ' + dic['Documento de RT:']),
+                    '[OWNER]': self.str2HTML(proprietario),
+                    '[RESP_TEC]': self.str2HTML(dic['Responsável Técnico(a):'] if dic['Responsável Técnico(a):'] else dic['Responsável Técnico:']),
+                    '[CREA]': self.str2HTML(dic['Formação:'] + ' | ' + dic['Conselho Profissional:']  + ' | ' + dic['Documento de RT:']),
                     '[LOCAL]': self.str2HTML(dic['Município/UF:']),
                     '[DATA]': self.str2HTML(data_formatada)
                     }
