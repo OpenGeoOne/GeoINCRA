@@ -28,26 +28,13 @@ __copyright__ = '(C) 2025 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication
 from PyQt5.QtCore import *
-from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingException,
+from qgis.core import (QgsProcessingException,
                        QgsProcessingAlgorithm,
-                       QgsWkbTypes,
                        QgsProcessingParameterEnum,
                        QgsCoordinateReferenceSystem,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterFileDestination,
-                       QgsProcessingParameterNumber,
-                       QgsVectorLayer,
-                       QgsFields,
-                       QgsField,
-                       QgsFeature,
-                       QgsGeometry,
-                       QgsLineString,
-                       QgsMultiPolygon,
-                       QgsPolygon,
-                       QgsPoint,
-                       QgsProcessingParameterFeatureSink)
+                       QgsProcessingParameterNumber)
 from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
@@ -117,10 +104,10 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             )
         )
 
-        opcoes = [self.tr('(lat,lon,h)'),
-                  self.tr('(lon,lat,h)'),
-                  self.tr('(lat,lon)'),
+        opcoes = [self.tr('(lon,lat,h)'),
+                  self.tr('(lat,lon,h)'),
                   self.tr('(lon,lat)'),
+                  self.tr('(lat,lon)'),
                   '(lon,lat,h)' + self.tr(' com sufixo'),
                   '(lat,lon,h)' + self.tr(' com sufixo'),
                   '(lon,lat)' + self.tr(' com sufixo'),
@@ -314,7 +301,6 @@ class ConversorMemorial(QgsProcessingAlgorithm):
 
         feedback.pushInfo('Alimentando arquivo HTML...')
 
-        print(dic)
         # Se encravado, fatiar lista_cod
         def fatiar_lista(a, ind):
             ind = [0] + ind + [len(a)]
@@ -336,6 +322,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             ind = 0
         lista_cod_fat = listas_fat[ind]
 
+        
         # Modelo de coordenadas
         def CoordN (x, y, z):
             if coordenadas > 3: # com sufixo
