@@ -48,6 +48,7 @@ from qgis.core import (QgsProcessing,
 from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
+from datetime import datetime
 import os, re
 import platform
 
@@ -95,7 +96,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
                       <p align="right">
                       <a href="https://portal.geoone.com.br/m/lessons/georreferenciamento-de-imveis-rurais-com-o-plugin-geoincra-1690158094835"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
                       </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
@@ -269,6 +270,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
 
         dic = {
         'Denominação:': '',
+        'Proprietário:': '',
         'Proprietário(a):': '',
         'Matrícula do imóvel:': '',
         'Natureza da Área:': '',
@@ -276,12 +278,16 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         'CNJP:': '',
         'Município/UF:': '',
         'Código INCRA/SNCR:': '',
+        'Responsável Técnico:': '',
         'Responsável Técnico(a):': '',
         'Formação:': '',
         'Conselho Profissional:': '',
         'Código de credenciamento:': '',
         'Documento de RT:': '',
         'Cartório (CNS):': '',
+        'Área (Sistema Geodésico Local)': '',
+        'Perímetro (m)': '',
+        'Data Certificação': '',
         }
 
         chaves = list(dic.keys())
@@ -324,13 +330,17 @@ class LayersFromPDF(QgsProcessingAlgorithm):
             elif sentinela2:
                 cont += 1
                 if cont == 1:
-                    dic_cod[lista_cod[-1]] = {'lon':'', 'lat':'', 'h':'', 'cns':'', 'matr':'', 'confr': ''}
+                    dic_cod[lista_cod[-1]] = {'lon':'', 'lat':'', 'h':'', 'cns':'', 'matr':'', 'confr': '', 'az': '', 'dist': '', 'texto_confr': ''}
                 if cont == 2:
                     dic_cod[lista_cod[-1]]['lon'] = line.strip()
                 if cont == 3:
                     dic_cod[lista_cod[-1]]['lat'] = line.strip()
                 if cont == 4:
                     dic_cod[lista_cod[-1]]['h'] = line.strip()
+                if cont == 6:
+                    dic_cod[lista_cod[-1]]['az'] = line.strip()
+                if cont == 7:
+                    dic_cod[lista_cod[-1]]['dist'] = line.strip()
                 if cont == 8:
                     try:
                         cns,mat,confr = line.strip().split('|')
@@ -340,6 +350,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
                         dic_cod[lista_cod[-1]]['cns'] = cns
                         dic_cod[lista_cod[-1]]['matr'] = matr
                         dic_cod[lista_cod[-1]]['confr'] = confr
+                        dic_cod[lista_cod[-1]]['texto_confr'] = line
                     except:
                         dic_cod[lista_cod[-1]]['confr'] = line.strip()
 
@@ -430,9 +441,23 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         dic_pessoa, dic_situacao  = {'Física':1, 'Jurídica':2}, {'Imóvel Registrado':1, 'Área Titulada não Registrada':2, 'Área não Titulada':3}
         dic_natureza = {'Assentamento':1,'Assentamento Parcela':2,'Estrada':3,'Ferrovia':4,'Floresta Pública':5,'Gleba Pública':6,'Particular':7,'Perímetro Urbano':8,'Terra Indígena':9,'Terreno de Marinha':10,'Terreno Marginal':11,'Território Quilombola':12,'Unidade de Conservação':13}
 
+        # Data da certificação
+        dic['Data Certificação']
+        try:
+            dataAss = datetime.strptime(dic['Data Certificação'], '%d/%m/%Y %H:%M')
+        except:
+            try:
+                dataAss = datetime.strptime(dic['Data Certificação'], '%d/%m/%y %H:%M')
+            except:
+                dataAss = None
+        if dataAss:
+            dataCert = dataAss.isoformat()
+        else:
+            dataCert = ''
+
         feedback.pushInfo('Alimentando camada Parcela (polígono)...')
         feat = QgsFeature(Fields3)
-        feat['nome'] = dic['Proprietário(a):']
+        feat['nome'] = dic['Proprietário(a):'] if dic['Proprietário(a):'] else dic['Proprietário:']
         feat['pessoa'] =  1 if dic['CPF:'] != '' else 2
         feat['cpf_cnpj'] = dic['CPF:'] if dic['CPF:'] != '' else dic['CNJP:']
         feat['denominacao'] = dic['Denominação:']
@@ -442,8 +467,9 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         feat['cod_cartorio'] = dic['Cartório (CNS):']
         feat['municipio'] = dic['Município/UF:'].split('-')[0]
         feat['uf'] = dic['Município/UF:'].split('-')[-1]
-        feat['resp_tec'] = dic['Responsável Técnico(a):']
+        feat['resp_tec'] = dic['Responsável Técnico(a):'] if dic['Responsável Técnico(a):'] else dic['Responsável Técnico:']
         feat['reg_prof'] = dic['Conselho Profissional:']
+        feat['data'] = dataCert
 
 
         # Lista de pontos
