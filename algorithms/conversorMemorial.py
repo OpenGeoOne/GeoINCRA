@@ -33,10 +33,11 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingException,
                        QgsProcessingAlgorithm,
                        QgsWkbTypes,
-                       QgsProcessingParameterDateTime,
+                       QgsProcessingParameterEnum,
                        QgsCoordinateReferenceSystem,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterFileDestination,
+                       QgsProcessingParameterNumber,
                        QgsVectorLayer,
                        QgsFields,
                        QgsField,
@@ -59,6 +60,8 @@ class ConversorMemorial(QgsProcessingAlgorithm):
     PDF = 'PDF'
     PERIMETRO = 'PERIMETRO'
     HTML = 'HTML'
+    COORD = 'COORD'
+    ANEL = 'ANEL'
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
@@ -114,13 +117,34 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             )
         )
 
-        """ self.addParameter(
-            QgsProcessingParameterDateTime(
-                self.DATA,
-                self.tr('Data do memorial'),
-                type = QgsProcessingParameterDateTime.Date,
+        opcoes = [self.tr('(lat,lon,h)'),
+                  self.tr('(lon,lat,h)'),
+                  self.tr('(lat,lon)'),
+                  self.tr('(lon,lat)'),
+                  '(lon,lat,h)' + self.tr(' com sufixo'),
+                  '(lat,lon,h)' + self.tr(' com sufixo'),
+                  '(lon,lat)' + self.tr(' com sufixo'),
+                  '(lat,lon)' + self.tr(' com sufixo')
+               ]
+
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                self.COORD,
+                self.tr('Padrão de Coordenadas'),
+				options = opcoes,
+                defaultValue= 5
             )
-        ) """
+        )
+
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.ANEL,
+                self.tr('Anel'),
+                type = QgsProcessingParameterNumber.Type.Integer,
+                minValue = 1,
+                optional = True
+                )
+            )
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
@@ -136,6 +160,18 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         pdf_path = self.parameterAsString(
             parameters,
             self.PDF,
+            context
+        )
+
+        coordenadas = self.parameterAsEnum(
+            parameters,
+            self.COORD,
+            context
+        )
+
+        anel = self.parameterAsInt(
+            parameters,
+            self.ANEL,
             context
         )
 
@@ -290,20 +326,37 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             listas_fat = [lista_cod]
 
 
-        # for lista_cod_fat in listas_fat:
-        lista_cod_fat = listas_fat[0]
-        coordenadas = 3
+        # Escolher anel
+        if anel:
+            if anel <= len(listas_fat):
+                ind = anel-1
+            else:
+                raise QgsProcessingException('Valor inválido para o número do anel!')
+        else:
+            ind = 0
+        lista_cod_fat = listas_fat[ind]
 
         # Modelo de coordenadas
         def CoordN (x, y, z):
+            if coordenadas > 3: # com sufixo
+                x = x[1:]+'W'
+                y = y[1:]+'S' if y[0] == '-' else y[1:]+'N'
             if coordenadas == 0:
-                txt = '''<b>longitude  [Xn]</b> e <b>latitude  [Yn]</b>'''
+                txt = '''<b>longitude [Xn]</b>, <b>latitude [Yn]</b> e <b>h [Zn]m</b>'''
             elif coordenadas == 1:
-                txt = '''<b>latitude  [Yn]</b> e <b>longitude  [Xn]</b>'''
+                txt = '''<b>latitude [Yn]</b>, <b>longitude [Xn]</b> e <b>h [Zn]m</b>'''
             elif coordenadas == 2:
-                txt = '''<b>longitude  [Xn]</b>, <b>latitude  [Yn]</b> e <b>h [Zn]m</b>'''
+                txt = '''<b>longitude [Xn]</b> e <b>latitude [Yn]</b>'''
             elif coordenadas == 3:
-                txt = '''<b>latitude  [Yn]</b>, <b>longitude  [Xn]</b> e <b>h [Zn]m</b>'''
+                txt = '''<b>latitude [Yn]</b> e <b>longitude [Xn]</b>'''
+            elif coordenadas == 4:
+                txt = '''<b>[Xn]</b>, <b>[Yn]</b> e <b>h [Zn]m</b>'''
+            elif coordenadas == 5:
+                txt = '''<b>[Yn]</b>, <b>[Xn]</b> e <b>h [Zn]m</b>'''
+            elif coordenadas == 6:
+                txt = '''<b>[Xn]</b> e <b>[Yn]</b>'''
+            elif coordenadas == 7:
+                txt = '''<b>[Yn]</b> e <b>[Xn]</b>'''
             return txt.replace('[Yn]', self.str2HTML(y)).replace('[Xn]', self.str2HTML(x)).replace('[Zn]', self.str2HTML(z))
 
         LOGO = 'png;base64,'+ GeoOne
@@ -399,8 +452,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         texto_calculo = self.tr('. Os azimutes foram calculados pela fórmula do Problema Geodésico Inverso segundo Puissant. As distâncias, área e perímetro foram calculados no Sistema Geodésico Local (SGL) com origem na média das coordenadas do imóvel.')
 
         texto_final = self.str2HTML(self.tr('o vértice ')) + '''<b>[P-01]</b>, '''+ self.tr('de coordenadas') + ''' [Coord1],
-    ''' + self.str2HTML(self.tr('ponto inicial da descrição deste perímetro. Todas as coordenadas aqui descritas estão georreferenciadas ao Sistema Geodésico de Referência (SGR)')) + ''' <b>[GRS]</b>
-    ''' + self.str2HTML(texto_calculo) + '''
+    ''' + self.str2HTML(self.tr('ponto inicial da descrição deste perímetro. Todas as coordenadas aqui descritas estão georreferenciadas ao Sistema Geodésico de Referência (SGR)')) + ''' <b>[GRS]</b>''' + self.str2HTML(texto_calculo) + '''
      <o:p></o:p></p>
     <p class="western"
      style="margin-bottom: 0.0001pt; text-align: right;"
@@ -482,10 +534,21 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                     mudou = True
             LINHAS += LIN0
 
-        # Inserindo dados finais
+        # Data do documento
         meses = {1: 'janeiro', 2:'fevereiro', 3: 'março', 4:'abril', 5:'maio', 6:'junho', 7:'julho', 8:'agosto', 9:'setembro', 10:'outubro', 11:'novembro', 12:'dezembro'}
-        dataAss = datetime.strptime(dic['Data Certificação'], '%d/%m/%Y %H:%M')
-        data_formatada = f"{dataAss.day:02d} de {meses[dataAss.month]} de {dataAss.year}"
+        try:
+            dataAss = datetime.strptime(dic['Data Certificação'], '%d/%m/%Y %H:%M')
+        except:
+            try:
+                dataAss = datetime.strptime(dic['Data Certificação'], '%d/%m/%y %H:%M')
+            except:
+                dataAss = None
+        if dataAss:
+            data_formatada = f"{dataAss.day:02d} de {meses[dataAss.month]} de {dataAss.year}"
+        else:
+            data_formatada = ''
+        
+        # Inserindo dados finais
         codigo = lista_cod_fat[0]
         itens = {   '[P-01]': self.str2HTML(codigo),
                     '[Coord1]': CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h']),
