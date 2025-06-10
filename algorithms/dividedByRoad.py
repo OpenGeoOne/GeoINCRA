@@ -287,8 +287,7 @@ class DividedByRoad(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         txt = '''Divide o polígono da Parcela de imóvel rural por uma Estrada do tipo linha ou polígono diretamente no banco de dados GeoRural, preenchendo automaticamente os vértices virtuais "V" do tipo "PA1 - Paralela" (opcional).
-        A estrada pode ser do tipo linha ou polígono. Se for do tipo linha, é necessário definir a sua medida da faixa de domínio em metros para o cálculo do offset.
-        Observação: Todas as camadas devem estar no mesmo SRC!'''
+        A estrada pode ser do tipo linha ou polígono. Se for do tipo linha, é necessário definir a sua medida da faixa de domínio em metros para o cálculo do offset.'''
         footer = '''<div>
                       <div align="center">
                       <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
