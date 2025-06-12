@@ -322,7 +322,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             ind = 0
         lista_cod_fat = listas_fat[ind]
 
-        
+
         # Modelo de coordenadas
         def CoordN (x, y, z):
             if coordenadas > 3: # com sufixo
@@ -490,7 +490,6 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                 texto_inicial = texto_inicial.replace(item, itens[item])
 
         LINHAS = texto_inicial
-
         mudou = True
         for k,codigo in enumerate(lista_cod_fat):
             if mudou:
@@ -504,7 +503,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                 for item in itens:
                     linha0 = linha0.replace(item, itens[item])
                 LINHAS += linha0
-                LIN0 = ''
+                #LIN0 = ''
                 if dic_cod[codigo]['texto_confr']  == dic_cod[lista_cod_fat[0 if k+1 == len(lista_cod_fat) else k+1]]['texto_confr']:
                     mudou = False
             else:
@@ -516,10 +515,11 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                         }
                 for item in itens:
                     linha1 = linha1.replace(item, itens[item])
-                LIN0 += linha1
+                LINHAS += linha1
+                #LIN0 += linha1
                 if dic_cod[codigo]['texto_confr']  != dic_cod[lista_cod_fat[0 if k+1 == len(lista_cod_fat) else k+1]]['texto_confr']:
                     mudou = True
-            LINHAS += LIN0
+
 
         # Data do documento
         meses = {1: 'janeiro', 2:'fevereiro', 3: 'março', 4:'abril', 5:'maio', 6:'junho', 7:'julho', 8:'agosto', 9:'setembro', 10:'outubro', 11:'novembro', 12:'dezembro'}
@@ -534,7 +534,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             data_formatada = f"{dataAss.day:02d} de {meses[dataAss.month]} de {dataAss.year}"
         else:
             data_formatada = ''
-        
+
         # Inserindo dados finais
         codigo = lista_cod_fat[0]
         itens = {   '[P-01]': self.str2HTML(codigo),
