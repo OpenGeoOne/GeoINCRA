@@ -365,7 +365,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
     <br></div>
     <p class="western"
      style="margin-bottom: 0.0001pt; text-align: center;"
-     align="center"><b><u><span style="font-size: 12pt;">'''+ self.str2HTML(self.tr('MEMORIAL DESCRITIVO')) + '''</span></u></b><o:p></o:p></p>
+     align="center"><b><u><span style="font-size: 12pt;">'''+ self.str2HTML(self.tr('MEMORIAL DESCRITIVO')) + '''</span></u></b></p>
     <p class="western" style="margin-bottom: 0.0001pt;"><o:p>&nbsp;</o:p></p>
     <table class="MsoTableGrid"
      style="border: medium none ; border-collapse: collapse;"
@@ -374,54 +374,53 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         <tr style="">
           <td style="padding: 0cm 5.4pt;"
      valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>'''+ self.str2HTML(self.tr('Imóvel')) + ''': </b>[IMOVEL]<o:p></o:p></p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>'''+ self.str2HTML(self.tr('Imóvel')) + ''': </b>[IMOVEL]</p>
           </td>
           <td style="padding: 0cm 5.4pt;"
      valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Código INCRA/SNCR')) + ''':</b>
-    [REGISTRO]<o:p></o:p></p>
+    [REGISTRO]</p>
           </td>
         </tr>
         <tr style="">
           <td colspan="2"
      style="padding: 0cm 5.4pt;" valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Proprietário')) + ''':</b>
-    [PROPRIETARIO]<o:p></o:p></p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Proprietário(a)')) + ''': </b>[PROPRIETARIO]</p>
           </td>
         </tr>
         <tr style="">
           <td style="padding: 0cm 5.4pt;"
      valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Município')) + ''':</b>
-    [MUNICIPIO]<b><o:p></o:p></b></p>
+    [MUNICIPIO]<b></b></p>
           </td>
           <td style="padding: 0cm 5.4pt;"
      valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Estado')) + ''':
-          </b>[UF]<o:p></o:p></p>
+          </b>[UF]</p>
           </td>
         </tr>
         <tr style="">
           <td colspan="2"
      style="padding: 0cm 5.4pt;" valign="top">
           <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Matrícula')) + ''':</b>
-    [MATRICULAS]<o:p></o:p></p>
+    [MATRICULAS]</p>
           </td>
         </tr>
         <tr style="">
           <td style="padding: 0cm 5.4pt;"
      valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Área (ha)')) + ''': </b>[AREA]<o:p></o:p></p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Área (ha)')) + ''': </b>[AREA]</p>
           </td>
           <td style="padding: 0cm 5.4pt;"
      valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Perímetro')) + ''' (m):</b> [PERIMETRO]<o:p></o:p></p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Perímetro')) + ''' (m):</b> [PERIMETRO]</p>
           </td>
         </tr>
         <tr style="">
           <td colspan="2"
      style="padding: 0cm 5.4pt;" valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Sistema de Referência de Coordenadas')) + ''':</b> [SRC]<b><o:p></o:p></b></p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Sistema de Referência de Coordenadas')) + ''':</b> [SRC]<b></b></p>
           </td>
         </tr>
       </tbody>
@@ -440,35 +439,35 @@ class ConversorMemorial(QgsProcessingAlgorithm):
 
         texto_final = self.str2HTML(self.tr('o vértice ')) + '''<b>[P-01]</b>, '''+ self.tr('de coordenadas') + ''' [Coord1],
     ''' + self.str2HTML(self.tr('ponto inicial da descrição deste perímetro. Todas as coordenadas aqui descritas estão georreferenciadas ao Sistema Geodésico de Referência (SGR)')) + ''' <b>[GRS]</b>''' + self.str2HTML(texto_calculo) + '''
-     <o:p></o:p></p>
+     </p>
     <p class="western"
      style="margin-bottom: 0.0001pt; text-align: right;"
-     align="right">[LOCAL], [DATA].<o:p></o:p></p>
+     align="right">[LOCAL], [DATA].</p>
 
      <p class="western" style="margin-bottom: 0.0001pt;"><o:p>&nbsp;</o:p></p>
      <p class="western"
       style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-      align="center">___________________________________________<o:p></o:p></p>
+      align="center">___________________________________________</p>
      <p class="western"
       style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-      align="center">[OWNER]<o:p></o:p></p>
+      align="center">[OWNER]</p>
      <p class="western"
       style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-      align="center">''' + self.str2HTML(self.tr('PROPRIETÁRIO DO IMÓVEL')) + '''<o:p></o:p></p>
+      align="center">''' + self.str2HTML(self.tr('PROPRIETÁRIO DO IMÓVEL')) + '''</p>
 
     <p class="western" style="margin-bottom: 0.0001pt;"><o:p>&nbsp;</o:p></p>
     <p class="western"
      style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-     align="center">___________________________________________<o:p></o:p></p>
+     align="center">___________________________________________</p>
     <p class="western"
      style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-     align="center">[RESP_TEC]<o:p></o:p></p>
+     align="center">[RESP_TEC]</p>
     <p class="western"
      style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-     align="center">[CREA]<o:p></o:p></p>
+     align="center">[CREA]</p>
     <p class="western"
      style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-     align="center">''' + self.str2HTML(self.tr('RESPONSÁVEL TÉCNICO')) + '''<o:p></o:p></p>
+     align="center">''' + self.str2HTML(self.tr('RESPONSÁVEL TÉCNICO')) + '''</p>
     <p class="MsoNormal"><o:p>&nbsp;</o:p></p>
     </body>
     </html>
@@ -550,7 +549,6 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         for item in itens:
                 texto_final = texto_final.replace(item, itens[item])
         LINHAS += texto_final
-
         output = self.parameterAsFileOutput(parameters, self.HTML, context)
         arq = open(output, 'w')
         arq.write(LINHAS)
