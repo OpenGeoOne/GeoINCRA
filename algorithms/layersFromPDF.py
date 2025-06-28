@@ -273,6 +273,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         'Proprietário:': '',
         'Proprietário(a):': '',
         'Matrícula do imóvel:': '',
+        'Transcrição do imóvel:': '',
         'Natureza da Área:': '',
         'CPF:': '',
         'CNJP:': '',
@@ -463,7 +464,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         feat['denominacao'] = dic['Denominação:']
         feat['natureza'] = dic_natureza[dic['Natureza da Área:']]
         feat['sncr'] = dic['Código INCRA/SNCR:']
-        feat['matricula'] = dic['Matrícula do imóvel:']
+        feat['matricula'] = dic['Matrícula do imóvel:'] if dic['Matrícula do imóvel:'] else dic['Transcrição do imóvel:']
         feat['cod_cartorio'] = dic['Cartório (CNS):']
         feat['municipio'] = dic['Município/UF:'].split('-')[0]
         feat['uf'] = dic['Município/UF:'].split('-')[-1]
