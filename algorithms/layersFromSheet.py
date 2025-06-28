@@ -151,7 +151,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
             with ods.open('content.xml') as content_file:
                 tree = ET.parse(content_file)
                 root = tree.getroot()
-        
+
         # Namespace do OpenDocument
         ns = {
             'table': 'urn:oasis:names:tc:opendocument:xmlns:table:1.0',
@@ -215,7 +215,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                     SRC = QgsCoordinateReferenceSystem('EPSG:' + str(31954+fuso))
         except:
             raise QgsProcessingException("Erro ao carregar a planilha ODS!")
-    
+
         feedback.pushInfo('O SRC da planilha é {}'.format(SRC.authid()))
 
         # Pegar dados do imóvel
@@ -264,6 +264,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                      'sigma_x' : QVariant.Double,
                      'sigma_y' : QVariant.Double,
                      'sigma_z' : QVariant.Double,
+                     'lote' : QVariant.String,
                      }
         for item in itens:
             Fields1.append(QgsField(item, itens[item]))
@@ -286,6 +287,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                      'confrontan': QVariant.String,
                      'cns': QVariant.String,
                      'matricula' : QVariant.String,
+                     'lote' : QVariant.String,
                      }
         for item in itens:
             Fields2.append(QgsField(item, itens[item]))
@@ -320,6 +322,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                      'resp_tec': QVariant.String,
                      'reg_prof': QVariant.String,
                      'data': QVariant.Date,
+                     'lote' : QVariant.String,
                      }
         for item in itens:
             Fields3.append(QgsField(item, itens[item]))
@@ -335,8 +338,8 @@ class LayersFromSheet(QgsProcessingAlgorithm):
         if sink3 is None:
             raise QgsProcessingException(self.invalidSinkError(parameters, self.PARCELA))
 
-        for perimetro in lista_perimetros:
-            
+        for contagem, perimetro in enumerate(lista_perimetros):
+
             feedback.pushInfo('Alimentando camada Vértice (pontos) do {}...'.format(perimetro))
 
             lista = dic_perimetros[perimetro]['vertices']
@@ -365,6 +368,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                 feat['sigma_x'] = float(item[2].replace(',','.'))
                 feat['sigma_y'] = float(item[4].replace(',','.'))
                 feat['sigma_z'] = float(item[6].replace(',','.'))
+                feat['lote'] = str(contagem+1)
                 sink1.addFeature(feat, QgsFeatureSink.FastInsert)
                 if feedback.isCanceled():
                     break
@@ -410,6 +414,8 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                 feat['confrontan'] = confrontante
                 feat['cns'] = cns
                 feat['matricula'] = matricula
+
+            feat['lote'] = str(contagem+1)
             feat.setGeometry(QgsGeometry(QgsLineString(linha)))
             sink2.addFeature(feat, QgsFeatureSink.FastInsert)
 
@@ -428,6 +434,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
             feat['cod_cartorio'] = cod_cartorio
             feat['municipio'] = municipio
             feat['uf'] = uf
+            feat['lote'] = str(contagem+1)
             mPol = QgsMultiPolygon()
             anel = QgsLineString(pnts+[pnts[0]])
             pol = QgsPolygon(anel)
