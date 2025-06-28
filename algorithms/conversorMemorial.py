@@ -214,6 +214,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         'Proprietário:': '',
         'Proprietário(a):': '',
         'Matrícula do imóvel:': '',
+        'Transcrição do imóvel:': '',
         'Natureza da Área:': '',
         'CPF:': '',
         'CNJP:': '',
@@ -403,7 +404,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         <tr style="">
           <td colspan="2"
      style="padding: 0cm 5.4pt;" valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Matrícula')) + ''':</b>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Matrícula/Transcrição')) + ''':</b>
     [MATRICULAS]</p>
           </td>
         </tr>
@@ -430,12 +431,12 @@ class ConversorMemorial(QgsProcessingAlgorithm):
      style="margin-bottom: 0.0001pt; text-align: justify;">'''+ self.str2HTML(self.tr('Inicia-se a descrição deste perímetro n'))
 
         texto_var1 = self.str2HTML(self.tr('o vértice ')) + '''<b>[Vn]</b>, '''+ self.str2HTML(self.tr('de coordenadas ')) + '''[Coordn],
-    '''+ self.str2HTML(self.tr('deste, segue confrontando com [Confront_k], com os seguintes azimutes planos e distâncias: [Az_n] e [Dist_n]m até '))
+    '''+ self.str2HTML(self.tr('deste, segue confrontando com [Confront_k], com os seguintes azimutes e distâncias: [Az_n] e [Dist_n]m até '))
 
         texto_var2 = self.str2HTML(self.tr('o vértice ')) + '''<span> </span><b>[Vn]</b>, ''' + self.str2HTML(self.tr('de coordenadas ')) + '''[Coordn]; '''+ self.str2HTML(self.tr('[Az_n] e [Dist_n]m até '))
 
         # Coordenadas Geo, cálculo em SGL e Azimute Puissant:
-        texto_calculo = self.tr('. Os azimutes foram calculados pela fórmula do Problema Geodésico Inverso segundo Puissant. As distâncias, área e perímetro foram calculados no Sistema Geodésico Local (SGL) com origem na média das coordenadas do imóvel.')
+        texto_calculo = self.tr('. Os azimutes foram calculados pela fórmula do Problema Geodésico Inverso segundo Puissant. As distâncias, área e perímetro foram calculados no Sistema Geodésico Local (SGL) com origem na média das coordenadas cartesianas geocêntricas do imóvel.')
 
         texto_final = self.str2HTML(self.tr('o vértice ')) + '''<b>[P-01]</b>, '''+ self.tr('de coordenadas') + ''' [Coord1],
     ''' + self.str2HTML(self.tr('ponto inicial da descrição deste perímetro. Todas as coordenadas aqui descritas estão georreferenciadas ao Sistema Geodésico de Referência (SGR)')) + ''' <b>[GRS]</b>''' + self.str2HTML(texto_calculo) + '''
@@ -474,9 +475,10 @@ class ConversorMemorial(QgsProcessingAlgorithm):
     '''
         # Inserindo dados iniciais do levantamento
         proprietario = dic['Proprietário(a):'] if dic['Proprietário(a):'] else dic['Proprietário:']
+        matricula = dic['Matrícula do imóvel:'] if dic['Matrícula do imóvel:'] else dic['Transcrição do imóvel:']
         itens = {'[IMOVEL]': self.str2HTML(dic['Denominação:']),
                 '[PROPRIETARIO]': self.str2HTML(proprietario),
-                '[MATRICULAS]': self.str2HTML(dic['Matrícula do imóvel:'] + ' | CNS: ' + 'Cartório (CNS):'),
+                '[MATRICULAS]': self.str2HTML(str(matricula) + ' | CNS: ' + dic['Cartório (CNS):']),
                 '[AREA]': self.str2HTML(dic['Área (Sistema Geodésico Local)']),
                 '[SRC]': self.str2HTML('SIRGAS2000'),
                 '[REGISTRO]': self.str2HTML(dic['Código INCRA/SNCR:']),
