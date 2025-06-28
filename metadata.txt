@@ -6,7 +6,7 @@
 name=GeoINCRA
 qgisMinimumVersion=3.10
 description=Georreferenciamento de Imóveis Rurais
-version=1.8.1
+version=1.8.2
 author=Tiago Prudencio, Leandro França
 email=suporte@geoone.com.br
 
@@ -21,6 +21,7 @@ repository=https://github.com/OpenGeoOne/GeoINCRA
 hasProcessingProvider=yes
 # Uncomment the following line and add your changelog:
 # changelog=
+	1.8.2 - improvement in memorial conversor tool transcription
 	1.8.1 - bug fix in memorial conversor tool
 	1.8.0 - new tools for converting Sigef PDF into Textual HTML and automating parcel division by road.
 	1.7.6 - bug fix in north hemisphere coordinates
