@@ -392,6 +392,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                     feat['confrontan'] = anterior_confr
                     feat['cns'] = anterior_cns
                     feat['matricula'] = anterior_mat
+                    feat['lote'] = str(contagem+1)
                     sink2.addFeature(feat, QgsFeatureSink.FastInsert)
                     anterior_mat = matricula
                     anterior_cns = cns
