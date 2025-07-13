@@ -21,7 +21,7 @@ repository=https://github.com/OpenGeoOne/GeoINCRA
 hasProcessingProvider=yes
 # Uncomment the following line and add your changelog:
 # changelog=
-	1.8.3 - bug fix in Layers From Sheet tool for filling "lote" attribute
+	1.8.3 - bug fix in Layers From Sheet tool for filling "lote" attribute and finding central meridian
 	1.8.2 - improvement in memorial conversor tool transcription
 	1.8.1 - bug fix in memorial conversor tool
 	1.8.0 - new tools for converting Sigef PDF into Textual HTML and automating parcel division by road.
