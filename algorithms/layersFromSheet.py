@@ -145,7 +145,23 @@ class LayersFromSheet(QgsProcessingAlgorithm):
         if arquivo_ods is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.ODS))
 
-        # Abrir o .ods
+
+        # Ler meridiano central da ODS
+        with zipfile.ZipFile(arquivo_ods, 'r') as ods:
+            with ods.open('content.xml') as content_file:
+                tree = ET.parse(content_file)
+                root = tree.getroot()
+        # Namespaces usados no content.xml
+        ns = {'form': 'urn:oasis:names:tc:opendocument:xmlns:form:1.0'}
+        # Procurar apenas o listbox com nome lstMeridianos
+        listbox_meridianos = root.find(".//form:listbox[@form:name='lstMeridianos']", ns)
+        if listbox_meridianos is not None:
+            for option in listbox_meridianos.findall('form:option', ns):
+                if option.get('{urn:oasis:names:tc:opendocument:xmlns:form:1.0}current-selected') == 'true':
+                    MC = option.get('{urn:oasis:names:tc:opendocument:xmlns:form:1.0}label')
+
+
+        # Iterar no arquivo ODS
         feedback.pushInfo('Lendo dados da planilha ODS...')
         with zipfile.ZipFile(arquivo_ods, 'r') as ods:
             with ods.open('content.xml') as content_file:
@@ -173,8 +189,8 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                     for col_idx, celula in enumerate(colunas):
                         textos = celula.findall('text:p', ns)
                         valor = ' '.join([t.text for t in textos if t.text])
+                        # print(f"[{linha_idx},{col_idx}] = {valor}")
                         if linha_idx > 10:
-                            # print(f"[{linha_idx},{col_idx}] = {valor}")
                             linha_lista += [valor] if valor else ['']
                         elif linha_idx == 2 and col_idx == 1:
                             dic_perimetros[nome_aba]['nome'] = valor  if valor else ''
@@ -183,7 +199,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                         elif linha_idx == 8 and col_idx == 1:
                             dic_perimetros[nome_aba]['src'] = valor if valor else ''
                         elif linha_idx == 8 and col_idx == 3:
-                            dic_perimetros[nome_aba]['mc'] = valor if valor else ''
+                            dic_perimetros[nome_aba]['mc'] = MC
                         elif linha_idx == 8 and col_idx == 5:
                             dic_perimetros[nome_aba]['hemisf'] = valor if valor else ''
                     if linha_lista:
