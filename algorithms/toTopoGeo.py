@@ -33,6 +33,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterBoolean,
                        QgsFeature,
                        QgsProcessingParameterFeatureSource,
+                       QgsFeatureRequest,
                        QgsProcessingParameterVectorLayer)
 
 from qgis.PyQt.QtGui import QIcon
@@ -188,6 +189,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             self.LINHAS_FIM,
             context)
 
+        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)
         origem3 = self.parameterAsSource(
             parameters,
             self.AREA_INI,
