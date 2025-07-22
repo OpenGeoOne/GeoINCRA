@@ -175,19 +175,32 @@ class createTemplate(QgsProcessingAlgorithm):
 		if limite is None or limite.featureCount() == 0:
 			raise QgsProcessingException('A camada Limite não pode estar vazia!')
 
-	def vld_1(self,vertice):
-		atributos_validos = all(
-			0 <= feat['sigma_x'] <= 10 and
-			0 <= feat['sigma_y'] <= 10 and
-			0 <= feat['sigma_z'] <= 10 and
-			feat['metodo_pos'] in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PT9', 'PA1', 'PA2', 'PA3', 'PS1', 'PS2', 'PS3', 'PS4', 'PB1', 'PB2') and
-			feat['tipo_verti'] in ('M', 'P', 'V') and
-			len(str(feat['vertice'])) >= 7 and
-			str(feat['vertice']).strip().upper() != 'NULL'
-			for feat in vertice.getFeatures()
-		)
-		if not atributos_validos:
-			raise QgsProcessingException('Verifique os valores dos atributos na camada Vértice!')
+	def vld_1(self, vertice):
+		for feat in vertice.getFeatures():
+			id_feat = feat.id()
+			sigma_x = feat['sigma_x']
+			sigma_y = feat['sigma_y']
+			sigma_z = feat['sigma_z']
+			metodo = feat['metodo_pos']
+			tipo = feat['tipo_verti']
+			vert = str(feat['vertice']).strip().upper()
+			if not (0 <= sigma_x <= 10):
+				raise QgsProcessingException(f'Erro no vértice {id_feat}: sigma_x fora do intervalo (0 a 10). Valor encontrado: {sigma_x}')
+			if not (0 <= sigma_y <= 10):
+				raise QgsProcessingException(f'Erro no vértice {id_feat}: sigma_y fora do intervalo (0 a 10). Valor encontrado: {sigma_y}')
+			if not (0 <= sigma_z <= 10):
+				raise QgsProcessingException(f'Erro no vértice {id_feat}: sigma_z fora do intervalo (0 a 10). Valor encontrado: {sigma_z}')
+			if metodo not in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9',
+							'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PT9',
+							'PA1', 'PA2', 'PA3', 'PS1', 'PS2', 'PS3', 'PS4', 'PB1', 'PB2'):
+				raise QgsProcessingException(f'Erro no vértice {id_feat}: método de posicionamento inválido: {metodo}')
+			if tipo not in ('M', 'P', 'V'):
+				raise QgsProcessingException(f'Erro no vértice {id_feat}: tipo de vértice inválido: {tipo}')
+			if len(vert) < 7:
+				raise QgsProcessingException(f'Erro no vértice {id_feat}: nome do vértice deve ter ao menos 7 caracteres. Valor encontrado: "{vert}"')
+			if vert == 'NULL':
+				raise QgsProcessingException(f'Erro no vértice {id_feat}: valor do código vértice está nulo ("NULL")')
+		return True  # Validação bem-sucedida
 
 	def vld_2(self,limite,vertice):
 		pontos_vertice = {feat.geometry().asPoint() for feat in vertice.getFeatures()}
