@@ -304,7 +304,6 @@ class FillCodes(QgsProcessingAlgorithm):
         # Listando valores para preenchimento
         dic = {}
         for feat in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
-            print('oi')
             codigo_vert = feat[att_vertice]
             if tipoModel == 'TopoGeo':
                 tipo = dic_tipo_vert[feat[att_tipo_verti]]
