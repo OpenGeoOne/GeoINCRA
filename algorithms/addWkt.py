@@ -73,6 +73,9 @@ class addWkt(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,CSV,vértice,vertice,PointZ'.split(',')
 
     def shortHelpString(self):
         txt = 'Esta ferramenta transforma um arquivo CSV de vértices do INCRA em uma camada do tipo PointZ.'
