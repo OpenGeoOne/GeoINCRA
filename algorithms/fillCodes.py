@@ -69,6 +69,9 @@ class FillCodes(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,código,vertices,preencher,credenciado,codigo,sequencia,marco,vértices,regularização,fundiária'.split(',')
 
     def shortHelpString(self):
         txt = '''Esta ferramenta preenche automaticamente o atributo "código do vértice" da camada "vértice", inserindo-se uma única vez o código do credenciado e o número inicial para cada tipo de vértice.
@@ -136,7 +139,7 @@ class FillCodes(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterBoolean(
                 self.MANTER,
-                self.tr('Manter atributos já preenchidos'),
+                self.tr('Manter atributos já preenchidos corretamente'),
                 defaultValue = True
             )
         )
@@ -287,9 +290,8 @@ class FillCodes(QgsProcessingAlgorithm):
                 indices += [ind]
             else:
                 raise QgsProcessingException('A sequência dos vértices deve ser preenchida para todas as feições!')
-        indices.sort()
-        if indices[-1] != len(indices):
-            raise QgsProcessingException('A sequência dos vértices deve ser preenchida corretamente!')
+        if len(indices) != len(set(indices)):
+            raise QgsProcessingException('Existe repetição no índice da sequência dos vértices!')
 
         # verificar se o campo "tipo de vértice" está preenchido
         for feat in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
