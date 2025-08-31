@@ -276,6 +276,9 @@ class ConnectBase(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,consultar,base do incra,wfs,certificados,quilombolas,SNCI,assentamentos,titulação,regularização,fundiária'.split(',')
 
     def shortHelpString(self):
         txt = "Conecta a base de dados do INCRA e carrega camada de imóveis a partir de um retângulo selecionado pelo usuário. Também é possível baixar dados dos imóveis certificados nos formatos CSV e SHP, obtendo-se mais informações complementares."
