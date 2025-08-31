@@ -77,6 +77,9 @@ class createTemplate2(QgsProcessingAlgorithm):
 
 	def icon(self):
 		return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+	
+	def tags(self):
+		return 'GeoOne,GeoRural,INCRA,Sigef,memorial,ODS,planilha,conversão,tranformar,descritivo,documento,regularização,fundiária'.split(',')
 
 	def shortHelpString(self):
 		txt = "Cria uma planilha ODS do SIGEF, preenchendo-a diretamente através de Macros, a partir das camadas do banco de dados GeoRural trabalhado no QGIS."
