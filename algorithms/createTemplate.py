@@ -76,6 +76,9 @@ class createTemplate(QgsProcessingAlgorithm):
 
 	def icon(self):
 		return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+	
+	def tags(self):
+		return 'GeoOne,GeoRural,INCRA,Sigef,memorial,ODS,planilha,TXT,conversão,tranformar,regularização,fundiária'.split(',')
 
 	def shortHelpString(self):
 		txt = "Cria um arquivo de Texto (TXT) com todas os dados necessários para preencher a planilha ODS do SIGEF."
