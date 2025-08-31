@@ -175,6 +175,9 @@ class LayersOfInterest(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,IBGE,DNIT,municípios,estados,brasil,faixa de domínio,RBMC,ICMBio,conservação,embargadas,gps,urbanizadas,rural,regularização,fundiária'.split(',')
 
     def shortHelpString(self):
         txt = 'Baixar camada de interesse a partir de uma extensão (retângulo).'
