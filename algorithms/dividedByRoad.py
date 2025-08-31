@@ -284,6 +284,9 @@ class DividedByRoad(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,separado,estrada,rodovia,glebas,divisão,cortar,multipoligono,parcelar,parcelas,regularização,fundiária'.split(',')
 
     def shortHelpString(self):
         txt = '''Divide o polígono da Parcela de imóvel rural por uma Estrada do tipo linha ou polígono diretamente no banco de dados GeoRural, preenchendo automaticamente os vértices virtuais "V" do tipo "PA1 - Paralela" (opcional).
