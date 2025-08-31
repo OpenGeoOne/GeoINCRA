@@ -69,6 +69,9 @@ class addFeat(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,alimentar,carregar,load,importar'.split(',')
 
     def shortHelpString(self):
         txt = 'Esta ferramenta carrega as feições selecionadas de uma camada de pontos para dentro da camada vértices do banco de dados GeoRural.'
@@ -269,7 +272,5 @@ class addFeat(QgsProcessingAlgorithm):
             feat.setGeometry(geom)
             (res, outFeats) = source_out.dataProvider().addFeatures([feat])
             feedback.setProgress(int(current * total))
-
-
 
         return {}
