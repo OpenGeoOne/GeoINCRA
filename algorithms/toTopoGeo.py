@@ -68,6 +68,9 @@ class ToTopoGeo(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,TopoGeo,geopackage,banco de dados,regularização,fundiária'.split(',')
 
     def shortHelpString(self):
         txt = '''Esta ferramenta copia as feições das camadas "vértices", "limites" e "parcela" do banco de dados <b>GeoRural</b> para as camdas "ponto limite", "elemento confrontante" e "área do imóvel" do banco <b>TopoGeo</b>, aproveitando-se os atributos em comum.
