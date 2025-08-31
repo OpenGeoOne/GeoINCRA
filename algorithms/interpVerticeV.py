@@ -70,6 +70,9 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,cota Z,virtual,PA1,PA2,sigmas,interpolação,interpolar,virtuais,IDW,paralela,parelelo,interseção de retas,regularização,fundiária'.split(',')
 
     def shortHelpString(self):
         txt = '''Esta ferramenta calcula e preenche automaticamente o valor da cota Z e os sigmas de vértices do tipo V (virtual) obtidos dos métodos de posicionamento "PA1:Paralela" e "PA2: interseção de retas". O cálculo da interpolação é dado a partir dos dois vértices mais próximos utilizando a média ponderada pelo inverso da distância.'''
