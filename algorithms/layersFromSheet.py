@@ -83,6 +83,9 @@ class LayersFromSheet(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,memorial,ODS,planilha,conversão,tranformar,descritivo,documento,cartório,matrícula,regularização,fundiária,layer,geopackage'.split(',')
 
     def shortHelpString(self):
         txt = 'Esta ferramenta importa uma <b>Planilha ODS</b> no padrão do SIGEF/INCRA, carregando as camadas vétice (ponto), limite (linha) e parcela (polígono) no modelo GeoRural.'
