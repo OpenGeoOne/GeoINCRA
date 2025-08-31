@@ -49,6 +49,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
     HTML = 'HTML'
     COORD = 'COORD'
     ANEL = 'ANEL'
+    CONFRONT = 'CONFRONT'
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
@@ -73,6 +74,9 @@ class ConversorMemorial(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,memorial,pdf,conversão,tranformar,descritivo,documento,cartório,matrícula,regularização,fundiária'.split(',')
 
     def shortHelpString(self):
         txt = '''Converte automaticamente o memorial descritivo tabular do SIGEF (PDF) em um texto narrativo mais fluido, mantendo os elementos técnicos exigidos, com formato adequado para leitura e uso em cartórios de registro de imóveis.
@@ -123,6 +127,21 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             )
         )
 
+        confront = ['Apenas Nome',
+                    'Nome e Matrícula',
+                    'Nome, Matrícula e CNS',
+                    'CNS, Matrícula e Nome'
+               ]
+
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                self.CONFRONT,
+                self.tr('Descrição dos confrontantes'),
+				options = confront,
+                defaultValue= 0
+            )
+        )
+
         self.addParameter(
             QgsProcessingParameterNumber(
                 self.ANEL,
@@ -153,6 +172,12 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         coordenadas = self.parameterAsEnum(
             parameters,
             self.COORD,
+            context
+        )
+
+        tipoDescrConfront = self.parameterAsEnum(
+            parameters,
+            self.CONFRONT,
             context
         )
 
@@ -287,7 +312,11 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                     try:
                         cns,mat,confr = line.strip().split('|')
                         cns = cns.split(':')[-1].strip()
-                        matr = mat.strip().split()[-1]
+                        matr = mat.strip().split()
+                        if len(matr) == 2:
+                            matr = matr[-1]
+                        else:
+                            matr = " ".join(matr[1:])
                         confr = confr.strip()
                         dic_cod[lista_cod[-1]]['cns'] = cns
                         dic_cod[lista_cod[-1]]['matr'] = matr
@@ -346,6 +375,20 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             elif coordenadas == 7:
                 txt = '''<b>[Yn]</b> e <b>[Xn]</b>'''
             return txt.replace('[Yn]', self.str2HTML(y)).replace('[Xn]', self.str2HTML(x)).replace('[Zn]', self.str2HTML(z))
+        
+        # Modelo de descrição de confrontantes
+        def DescrConfr (tipo, cns, mat, nome):
+            if tipo == 0: # Apenas Nome
+                return self.str2HTML(nome)
+            elif tipo == 1 and mat: # Nome e Matrícula
+                return self.str2HTML(nome + ' | Mat. ' + mat)
+            elif tipo == 2 and mat and cns: # Nome, Matrícula e CNS
+                return self.str2HTML(nome + ' | Mat. ' + mat + ' | CNS: ' + cns)
+            elif tipo == 3 and mat and cns: # CNS, Matrícula e Nome
+                return self.str2HTML('CNS: ' + cns + ' | Mat. ' + mat + ' | ' + nome )
+            else:
+                return self.str2HTML(nome)
+                
 
         LOGO = 'png;base64,'+ GeoOne
         SLOGAN = 'Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!'
@@ -499,7 +542,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                             '[Coordn]': CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h']),
                             '[Az_n]': self.str2HTML(dic_cod[codigo]['az']),
                             '[Dist_n]': self.str2HTML(dic_cod[codigo]['dist']),
-                            '[Confront_k]': self.str2HTML(dic_cod[codigo]['confr'])
+                            '[Confront_k]': DescrConfr (tipoDescrConfront, dic_cod[codigo]['cns'], dic_cod[codigo]['matr'], dic_cod[codigo]['confr'])
                             }
                 for item in itens:
                     linha0 = linha0.replace(item, itens[item])
