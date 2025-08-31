@@ -82,6 +82,9 @@ class LayersFromPDF(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,memorial,pdf,conversão,tranformar,descritivo,documento,cartório,matrícula,regularização,fundiária,layer,geopackage'.split(',')
 
     def shortHelpString(self):
         txt = 'Esta ferramenta faz a leitura do arquivo <b>PDF do Memorial Descritivo Tabular</b> do SIGEF/INCRA, convertendo nas camadas vétice (ponto), limite (linha) e parcela (polígono) no padrão GeoRural.'
