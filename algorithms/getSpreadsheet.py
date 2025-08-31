@@ -61,6 +61,9 @@ class getSpreadsheet(QgsProcessingAlgorithm):
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
+    
+    def tags(self):
+        return 'GeoOne,GeoRural,INCRA,Sigef,planilha,ODS,baixar,download,TXT,regularização,fundiária'.split(',')
 
     def shortHelpString(self):
         txt = "Gera uma planilha ODS vazia para preenchimento com os dados gerados no TXT."
