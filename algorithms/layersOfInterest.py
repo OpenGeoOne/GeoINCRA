@@ -45,15 +45,15 @@ class LayersOfInterest(QgsProcessingAlgorithm):
     WFS = 'WFS'
 
     mapping ={
-               0: 'Áreas de Conservação (ICMBio)',
+               0: 'Áreas de Conservação 2025 (ICMBio)',
                1: 'Áreas Embargadas (ICMBio)',
                2: 'Áreas Urbanizadas 2019 (IBGE)',
                3: 'Terras Indígenas 2017 (IBGE)',
                4: 'Unidades da Federação 2023 (IBGE)',
                5: 'Municípios 2023 (IBGE)',
                6: 'Estações GPS 2010 (IBGE)',
-               7: 'Faixa de domínio (DNIT)',
-               8: 'RBMC (IBGE)',
+               7: 'Faixa de domínio 2021 (DNIT)',
+               8: 'RBMC 2024 (IBGE)',
             }
 
 
