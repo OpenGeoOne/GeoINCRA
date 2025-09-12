@@ -153,7 +153,7 @@ class createTemplate2(QgsProcessingAlgorithm):
             QgsProcessingParameterBoolean(
                 self.VER_Z,
                 self.tr('Verificar preenchimento de cota Z'),
-                defaultValue = False
+                defaultValue = True
             )
         )
 
@@ -205,8 +205,11 @@ class createTemplate2(QgsProcessingAlgorithm):
 		for feat in limite.getFeatures():
 			if feat['tipo'] not in ('LA1', 'LA2', 'LA3', 'LA4', 'LA5', 'LA6', 'LA7', 'LN1', 'LN2', 'LN3', 'LN4', 'LN5', 'LN6'):
 				raise QgsProcessingException('Verifique os valores do atributo "tipo" na camada Limite!')
-			if len(feat['confrontan']) < 3:
-				raise QgsProcessingException('Verifique os valores do atributo "confrontante"!')
+			if feat['confrontan']:
+				if len(feat['confrontan']) < 3:
+					raise QgsProcessingException('Verifique os valores do atributo "confrontante" da camada limite!')
+			else:
+				raise QgsProcessingException('Verifique os valores do atributo "confrontante" da camada limite!')
 			for ponto in feat.geometry().asPolyline():
 				if ponto not in pontos_vertice:
 					raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada Limite não tem correspondente na camada Vértice!'.format(ponto.y(), ponto.x()))
