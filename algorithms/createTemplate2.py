@@ -32,6 +32,7 @@ from qgis.core import (QgsProcessing,
 					   QgsGeometry,
 					   QgsProcessingParameterNumber,
 					   QgsExpressionContextUtils,
+					   QgsProcessingParameterBoolean,
 					   QgsExpressionContext,
 					   QgsProcessingParameterFeatureSource,
 					   QgsFeatureRequest,
@@ -56,6 +57,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 	OUTPUT = 'OUTPUT'
 	DEC_COORD = 'DEC_COORD'
 	DEC_PREC = 'DEC_PREC'
+	VER_Z = 'VER_Z'
 
 	def tr(self, string):
 		return QCoreApplication.translate('Processing', string)
@@ -77,7 +79,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 
 	def icon(self):
 		return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
-	
+
 	def tags(self):
 		return 'GeoOne,GeoRural,INCRA,Sigef,memorial,ODS,planilha,conversão,tranformar,descritivo,documento,regularização,fundiária'.split(',')
 
@@ -148,6 +150,14 @@ class createTemplate2(QgsProcessingAlgorithm):
 		)
 
 		self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.VER_Z,
+                self.tr('Verificar preenchimento de cota Z'),
+                defaultValue = False
+            )
+        )
+
+		self.addParameter(
 			QgsProcessingParameterFileDestination(
 				self.OUTPUT,
 				self.tr('Planilha ODS'),
@@ -213,6 +223,13 @@ class createTemplate2(QgsProcessingAlgorithm):
 					if ponto not in pontos_vertice:
 						raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada Parcela não tem correspondente na camada Vértice!'.format(ponto.y(), ponto.x()))
 
+	def vld_z (self, vertice):
+		for feat1 in vertice.getFeatures():
+			z = float(feat1.geometry().constGet().z())
+			if str(z) == 'nan' or z == 0:
+				raise QgsProcessingException('Cota Z não preenchida ou igual a zero no ponto de coordenadas ({}, {})!'.format(pnt.y(), pnt.x()))
+			if z > 3000 or z < -10:
+				raise QgsProcessingException('Cota Z com valor "{}" na feição de id {} fora dos limites permitidos!'.format(z, feat1.id()))
 
 	def dd2dms(self, dd, n_digits=3):
 		dd = abs(dd)
@@ -358,6 +375,11 @@ class createTemplate2(QgsProcessingAlgorithm):
 			context
 		)
 
+		ver_z = self.parameterAsBool(
+		   parameters,
+		   self.VER_Z,
+		   context
+		)
 
 		output_path = self.parameterAsString(
 			parameters,
@@ -372,6 +394,9 @@ class createTemplate2(QgsProcessingAlgorithm):
 		self.vld_1(vertice)
 		self.vld_2(limite,vertice)
 		self.vld_3(parcela,vertice)
+		if ver_z:
+			# Verificar altitude Z não preenchida
+			self.vld_z (vertice)
 
 		# Detectando o sistema operacional
 		system_os = platform.system()
