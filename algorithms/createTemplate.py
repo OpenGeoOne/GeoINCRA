@@ -76,7 +76,7 @@ class createTemplate(QgsProcessingAlgorithm):
 
 	def icon(self):
 		return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
-	
+
 	def tags(self):
 		return 'GeoOne,GeoRural,INCRA,Sigef,memorial,ODS,planilha,TXT,conversão,tranformar,regularização,fundiária'.split(',')
 
@@ -150,7 +150,7 @@ class createTemplate(QgsProcessingAlgorithm):
             QgsProcessingParameterBoolean(
                 self.VER_Z,
                 self.tr('Verificar preenchimento de cota Z'),
-                defaultValue = False
+                defaultValue = True
             )
         )
 
@@ -210,8 +210,11 @@ class createTemplate(QgsProcessingAlgorithm):
 		for feat in limite.getFeatures():
 			if feat['tipo'] not in ('LA1', 'LA2', 'LA3', 'LA4', 'LA5', 'LA6', 'LA7', 'LN1', 'LN2', 'LN3', 'LN4', 'LN5', 'LN6'):
 				raise QgsProcessingException('Verifique os valores do atributo "tipo" na camada Limite!')
-			if len(feat['confrontan']) < 3:
-				raise QgsProcessingException('Verifique os valores do atributo "confrontante"!')
+			if feat['confrontan']:
+				if len(feat['confrontan']) < 3:
+					raise QgsProcessingException('Verifique os valores do atributo "confrontante" da camada limite!')
+			else:
+				raise QgsProcessingException('Verifique os valores do atributo "confrontante" da camada limite!')
 			for ponto in feat.geometry().asPolyline():
 				if ponto not in pontos_vertice:
 					raise QgsProcessingException('Ponto de coordenadas ({}, {}) da camada Limite não tem correspondente na camada Vértice!'.format(ponto.y(), ponto.x()))
@@ -233,6 +236,8 @@ class createTemplate(QgsProcessingAlgorithm):
 			z = float(feat1.geometry().constGet().z())
 			if str(z) == 'nan' or z == 0:
 				raise QgsProcessingException('Cota Z não preenchida ou igual a zero no ponto de coordenadas ({}, {})!'.format(pnt.y(), pnt.x()))
+			if z > 3000 or z < -10:
+				raise QgsProcessingException('Cota Z com valor "{}" na feição de id {} fora dos limites permitidos!'.format(z, feat1.id()))
 
 	def dd2dms(self, dd, n_digits=3):
 
@@ -266,7 +271,7 @@ class createTemplate(QgsProcessingAlgorithm):
 					altitude = ('{:.'+ dec_prec + 'f}').format(z).replace('.',',')
 				else:
 					altitude = '0,00'
-					feedback.reportError('Advertência: Ponto de código {} está com altitude igual a 0 (zero). Verifique!'.format(codigo))
+					# feedback.reportError('Advertência: Ponto de código {} está com altitude igual a 0 (zero). Verifique!'.format(codigo))
 				sigma_z = ('{:.'+ dec_prec + 'f}').format(feat['sigma_z']).replace('.',',')
 				metodo_pos = feat['metodo_pos']
 				return codigo,longitude,sigma_x,latitude,sigma_y,altitude, sigma_z,metodo_pos
@@ -346,18 +351,17 @@ class createTemplate(QgsProcessingAlgorithm):
 			context
 		)
 
+		ver_z = self.parameterAsBool(
+			parameters,
+			self.VER_Z,
+			context
+		)
+
 		abrir = self.parameterAsBool(
 		   parameters,
 		   self.ABRIR,
 		   context
 		)
-
-		ver_z = self.parameterAsBool(
-		   parameters,
-		   self.VER_Z,
-		   context
-		)
-
 
 		output_path = self.parameterAsString(
 			parameters,
