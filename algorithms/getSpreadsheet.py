@@ -108,7 +108,7 @@ class getSpreadsheet(QgsProcessingAlgorithm):
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
 
 
-        fonte = os.path.dirname(__file__) + "/shp" + "/sigef_planilha_modelo_1.2_rc5.ods"
+        fonte = os.path.dirname(__file__) + "/shp" + "/sigef_planilha_modelo_1.3_rc5.ods"
 
         try:
             shutil.copy(fonte, output)
@@ -116,7 +116,7 @@ class getSpreadsheet(QgsProcessingAlgorithm):
         except:
             try:
                 # Fazendo a requisição GET para obter o conteúdo do arquivo
-                url = "https://sigef.incra.gov.br/static/sigef_planilha_modelo_1.2_rc5.ods"
+                url = "https://sigef.incra.gov.br/static/sigef_planilha_modelo_1.3_rc5.ods"
                 response = requests.get(url)
                 # Verificando se a requisição foi bem-sucedida
                 if response.status_code == 200:
