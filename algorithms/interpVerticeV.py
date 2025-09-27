@@ -72,10 +72,10 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
     
     def tags(self):
-        return 'GeoOne,GeoRural,INCRA,Sigef,cota Z,virtual,PA1,PA2,sigmas,interpolação,interpolar,virtuais,IDW,paralela,parelelo,interseção de retas,regularização,fundiária'.split(',')
+        return 'GeoOne,GeoRural,INCRA,Sigef,cota Z,virtual,PA1,PA2,PA3,sigmas,interpolação,interpolar,virtuais,IDW,paralela,parelelo,interseção de retas,regularização,fundiária'.split(',')
 
     def shortHelpString(self):
-        txt = '''Esta ferramenta calcula e preenche automaticamente o valor da cota Z e os sigmas de vértices do tipo V (virtual) obtidos dos métodos de posicionamento "PA1:Paralela" e "PA2: interseção de retas". O cálculo da interpolação é dado a partir dos dois vértices mais próximos utilizando a média ponderada pelo inverso da distância.'''
+        txt = '''Esta ferramenta calcula e preenche automaticamente o valor da cota Z e os sigmas de vértices do tipo V (virtual) obtidos dos métodos de posicionamento "PA1:Paralela", "PA2: interseção de retas" e "PA3: Projeção Técnica". O cálculo da interpolação é dado a partir dos dois vértices mais próximos utilizando a média ponderada pelo inverso da distância.'''
 
         footer = '''<div>
                       <div align="center">
@@ -196,7 +196,7 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
             return (v1/dist1 + v2/dist2)/(1/dist1 + 1/dist2)
 
         for feat1 in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
-            if feat1['tipo_verti'] == 'V' and feat1['metodo_pos'] in ('PA1','PA2'):
+            if feat1['tipo_verti'] == 'V' and feat1['metodo_pos'] in ('PA1','PA2', 'PA3'):
                 pnt1 = feat1.geometry().constGet()
                 prox1 = {'dist':1e9, 'z': None, 'stdx': None, 'stdy': None, 'stdz': None, 'id': None}
                 prox2 = {'dist':1e9, 'z': None, 'stdx': None, 'stdy': None, 'stdz': None, 'id': None}
