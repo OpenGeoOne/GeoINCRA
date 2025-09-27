@@ -305,7 +305,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         sentinela = False
         sentinela2 = False
         cont = 0
-        pattern = r'\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,5}(?:,\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,5})*' #r'^\s*[A-Z0-9]{3,4}-[MPV]-\d{1,5}$'
+        pattern = r'\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,6}(?:,\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,6})*'
 
         for line in lines:
 
