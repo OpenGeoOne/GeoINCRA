@@ -198,7 +198,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
     def postProcessAlgorithm(self, context, feedback):
         layer = QgsProcessingUtils.mapLayerFromString(self.SAIDA, context)
         if layer.featureCount() > 0:
-            if self.OPTION == 7:
+            if self.OPTION == 8: # RBMC
                 # Simbologia
                 rbmc_dict = {}
                 # URL que você deseja acessar
@@ -294,7 +294,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
             layer.setLabelsEnabled(True)
             layer.triggerRepaint()
 
-        return {self.OUTPUT: self.SAIDA}
+        return {}
 
 class Renamer (QgsProcessingLayerPostProcessorInterface):
     def __init__(self, layer_name):
