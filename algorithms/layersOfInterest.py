@@ -267,7 +267,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
             label_settings = QgsPalLayerSettings()
             label_settings.fieldName = '"nome"'  # Substitua "nome" pelo nome do campo
             label_settings.isExpression = True
-            label_settings.placement = QgsPalLayerSettings.AroundPoint
+            # label_settings.placement = QgsPalLayerSettings.AroundPoint
             label_settings.enabled = True
 
             # Configurar o estilo do texto
