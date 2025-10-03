@@ -228,7 +228,8 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         'state': 'uf',
         'survey_date': 'data',
         'tech_manager':'resp_tec',
-        'prof_id':'reg_prof'
+        'prof_id':'reg_prof',
+        'parcel': 'lote',
         }
 
         # Conversão
