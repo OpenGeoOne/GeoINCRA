@@ -29,6 +29,7 @@ __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessing,
                        QgsProcessingParameterField,
+                       QgsProcessingParameterBoolean,
                        QgsWkbTypes,
                        QgsProcessingException,
                        QgsCoordinateReferenceSystem,
@@ -100,6 +101,7 @@ class addFeat(QgsProcessingAlgorithm):
     vertice = 'vertice'
     tipo_verti = 'tipo_verti'
     qrcode = 'qrcode'
+    VER_Z = 'VER_Z'
 
     def initAlgorithm(self, config=None):
 
@@ -182,6 +184,14 @@ class addFeat(QgsProcessingAlgorithm):
             )
         )
 
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.VER_Z,
+                self.tr('Verificar preenchimento de cota Z'),
+                defaultValue = True
+            )
+        )
+
     def processAlgorithm(self, parameters, context, feedback):
 
         source_in = self.parameterAsSource(
@@ -216,6 +226,7 @@ class addFeat(QgsProcessingAlgorithm):
         qrcode = self.parameterAsFields(parameters, self.qrcode, context)
         if qrcode:
             qrcode = qrcode[0]
+        ver_z = self.parameterAsBool(parameters, self.VER_Z, context)
 
         source_out = self.parameterAsVectorLayer(
             parameters,
@@ -241,12 +252,13 @@ class addFeat(QgsProcessingAlgorithm):
             if sigma_z:
                 sigma = float(feature[sigma_z].replace(',','.')) if isinstance(feature[sigma_z], str) else feature[sigma_z]
                 valida_sigma(sigma, 'z')
-            # Validando as altitudes de entrada
-            z = float(feature.geometry().constGet().z())
-            if str(z) == 'nan' or z == 0:
-                feedback.reportError('Cota Z não preenchida ou igual a zero para a feição de id {}!'.format(feature.id()))
-            if z > 3000 or z < -10:
-                raise QgsProcessingException('Cota Z com valor "{}" na feição de id "{}" fora dos limites permitidos!'.format(z, feature.id()))
+            if ver_z:
+                # Validando as altitudes de entrada
+                z = float(feature.geometry().constGet().z())
+                if str(z) == 'nan' or z == 0:
+                    feedback.reportError('Cota Z não preenchida ou igual a zero para a feição de id {}!'.format(feature.id()))
+                if z > 3000 or z < 0:
+                    raise QgsProcessingException('Cota Z com valor "{}" na feição de id "{}" fora dos limites permitidos!'.format(z, feature.id()))
 
 
         total = 100.0 / source_in.featureCount() if source_in.featureCount() else 0
