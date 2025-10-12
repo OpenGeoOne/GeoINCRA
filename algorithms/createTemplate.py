@@ -236,7 +236,7 @@ class createTemplate(QgsProcessingAlgorithm):
 			z = float(feat1.geometry().constGet().z())
 			if str(z) == 'nan' or z == 0:
 				raise QgsProcessingException('Cota Z não preenchida ou igual a zero no ponto de coordenadas na feição de id {}!'.format(feat1.id()))
-			if z > 3000 or z < -10:
+			if z > 3000 or z < 0:
 				raise QgsProcessingException('Cota Z com valor "{}" na feição de id {} fora dos limites permitidos!'.format(z, feat1.id()))
 
 	def dd2dms(self, dd, n_digits=3):
