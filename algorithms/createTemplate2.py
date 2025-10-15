@@ -182,6 +182,8 @@ class createTemplate2(QgsProcessingAlgorithm):
 			metodo = feat['metodo_pos']
 			tipo = feat['tipo_verti']
 			vert = str(feat['vertice']).strip().upper()
+			if sigma_x == None or sigma_y == None or sigma_z == None:
+				raise QgsProcessingException(f'Preencha os valores dos sigmas (precisões) da feição de ID {id_feat}!')
 			if not (0 <= sigma_x <= 10):
 				raise QgsProcessingException(f'Erro no vértice {id_feat}: sigma_x fora do intervalo (0 a 10). Valor encontrado: {sigma_x}')
 			if not (0 <= sigma_y <= 10):
