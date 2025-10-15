@@ -6,7 +6,7 @@
 name=GeoINCRA
 qgisMinimumVersion=3.10
 description=Georreferenciamento de Imóveis Rurais
-version=1.8.10
+version=1.8.11
 author=Tiago Prudencio, Leandro França
 email=suporte@geoone.com.br
 
@@ -21,6 +21,7 @@ repository=https://github.com/OpenGeoOne/GeoINCRA
 hasProcessingProvider=yes
 # Uncomment the following line and add your changelog:
 # changelog=
+	1.8.11 - Bug fix in the memorial conversor tool for adjoiner naming
 	1.8.10 - Option added for Z validation in the tool to feed vertex layer of GeoRural
 	1.8.9 - Bug fix for reading RBMC status, conversion of attribute "parcel" included in GeoRural to TopoGeo tool
 	1.8.8 - Interpolate PA3 vertex included, regex for code with 6 numerical digits and bug fix in Z validation
