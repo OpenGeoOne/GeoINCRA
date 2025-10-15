@@ -254,7 +254,8 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         'Cartório (CNS):': '',
         'Área (Sistema Geodésico Local)': '',
         'Perímetro (m)': '',
-        'Data Certificação': '',
+        'Data Certificação:': '',
+        'Data da Geração:' : '',
         }
 
         chaves = list(dic.keys())
@@ -271,7 +272,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         pattern = r'\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,6}(?:,\s*[A-Z0-9]{3,4}-[PMOV]-[A-Z0-9]{1,6})*'
 
         for line in lines:
-
+            
             if sentinela:
                 dic[item] = line
                 sentinela = False
@@ -324,11 +325,12 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                         dic_cod[lista_cod[-1]]['texto_confr'] = line
                     except:
                         dic_cod[lista_cod[-1]]['confr'] = line.strip()
+                        dic_cod[lista_cod[-1]]['texto_confr'] = line
 
 
         if len(lista_cod) == 0 or dic['Denominação:'] == '':
             raise QgsProcessingException('PDF de entrada não é um Memorial do Sigef!')
-
+        
         feedback.pushInfo('Alimentando arquivo HTML...')
 
         # Se encravado, fatiar lista_cod
@@ -521,7 +523,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         matricula = dic['Matrícula do imóvel:'] if dic['Matrícula do imóvel:'] else dic['Transcrição do imóvel:']
         itens = {'[IMOVEL]': self.str2HTML(dic['Denominação:']),
                 '[PROPRIETARIO]': self.str2HTML(proprietario),
-                '[MATRICULAS]': self.str2HTML(str(matricula) + ' | CNS: ' + dic['Cartório (CNS):']),
+                '[MATRICULAS]': self.str2HTML(str(matricula) + ' | CNS: ' + dic['Cartório (CNS):']) if matricula else '-',
                 '[AREA]': self.str2HTML(dic['Área (Sistema Geodésico Local)']),
                 '[SRC]': self.str2HTML('SIRGAS2000'),
                 '[REGISTRO]': self.str2HTML(dic['Código INCRA/SNCR:']),
@@ -567,17 +569,30 @@ class ConversorMemorial(QgsProcessingAlgorithm):
 
         # Data do documento
         meses = {1: 'janeiro', 2:'fevereiro', 3: 'março', 4:'abril', 5:'maio', 6:'junho', 7:'julho', 8:'agosto', 9:'setembro', 10:'outubro', 11:'novembro', 12:'dezembro'}
+        
+        # Data da certificação
         try:
-            dataAss = datetime.strptime(dic['Data Certificação'], '%d/%m/%Y %H:%M')
+            dataAss = datetime.strptime(dic['Data Certificação:'], '%d/%m/%Y %H:%M')
         except:
             try:
-                dataAss = datetime.strptime(dic['Data Certificação'], '%d/%m/%y %H:%M')
+                dataAss = datetime.strptime(dic['Data Certificação:'], '%d/%m/%y %H:%M')
             except:
                 dataAss = None
         if dataAss:
             data_formatada = f"{dataAss.day:02d} de {meses[dataAss.month]} de {dataAss.year}"
         else:
-            data_formatada = ''
+            try:
+                dataAss = datetime.strptime(dic['Data da Geração:'], '%d/%m/%Y %H:%M')
+            except:
+                try:
+                    dataAss = datetime.strptime(dic['Data da Geração:'], '%d/%m/%y %H:%M')
+                except:
+                    dataAss = None
+            if dataAss:
+                data_formatada = f"{dataAss.day:02d} de {meses[dataAss.month]} de {dataAss.year}"
+            else:
+                dataAss = datetime.now().date()
+                data_formatada = f"{dataAss.day:02d} de {meses[dataAss.month]} de {dataAss.year}"
 
         # Inserindo dados finais
         codigo = lista_cod_fat[0]
