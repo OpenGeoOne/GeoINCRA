@@ -291,7 +291,8 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         'Cartório (CNS):': '',
         'Área (Sistema Geodésico Local)': '',
         'Perímetro (m)': '',
-        'Data Certificação': '',
+        'Data Certificação:': '',
+        'Data da Geração:': '',
         }
 
         chaves = list(dic.keys())
@@ -357,6 +358,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
                         dic_cod[lista_cod[-1]]['texto_confr'] = line
                     except:
                         dic_cod[lista_cod[-1]]['confr'] = line.strip()
+                        dic_cod[lista_cod[-1]]['texto_confr'] = line
 
 
         if len(lista_cod) == 0 or dic['Denominação:'] == '':
@@ -446,18 +448,27 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         dic_natureza = {'Assentamento':1,'Assentamento Parcela':2,'Estrada':3,'Ferrovia':4,'Floresta Pública':5,'Gleba Pública':6,'Particular':7,'Perímetro Urbano':8,'Terra Indígena':9,'Terreno de Marinha':10,'Terreno Marginal':11,'Território Quilombola':12,'Unidade de Conservação':13}
 
         # Data da certificação
-        dic['Data Certificação']
         try:
-            dataAss = datetime.strptime(dic['Data Certificação'], '%d/%m/%Y %H:%M')
+            dataAss = datetime.strptime(dic['Data Certificação:'], '%d/%m/%Y %H:%M')
         except:
             try:
-                dataAss = datetime.strptime(dic['Data Certificação'], '%d/%m/%y %H:%M')
+                dataAss = datetime.strptime(dic['Data Certificação:'], '%d/%m/%y %H:%M')
             except:
                 dataAss = None
         if dataAss:
             dataCert = dataAss.isoformat()
         else:
-            dataCert = ''
+            try:
+                dataAss = datetime.strptime(dic['Data da Geração:'], '%d/%m/%Y %H:%M')
+            except:
+                try:
+                    dataAss = datetime.strptime(dic['Data da Geração:'], '%d/%m/%y %H:%M')
+                except:
+                    dataAss = None
+            if dataAss:
+                dataCert = dataAss.isoformat()
+            else:
+                dataCert = datetime.now().date().isoformat()
 
         feedback.pushInfo('Alimentando camada Parcela (polígono)...')
         feat = QgsFeature(Fields3)
