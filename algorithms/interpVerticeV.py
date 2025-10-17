@@ -212,9 +212,12 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
                             prox2 = {'dist':dist, 'z': pnt2.z(), 'stdx': feat2['sigma_x'], 'stdy': feat2['sigma_y'], 'stdz': feat2['sigma_z'], 'id': feat2.id()}
                 # Interpolar valores
                 Z_interp = MediaInvDist(prox1['z'], prox1['dist'], prox2['z'], prox2['dist'])
-                Std_x_interp = MediaInvDist(prox1['stdx'], prox1['dist'], prox2['stdx'], prox2['dist'])
-                Std_y_interp = MediaInvDist(prox1['stdy'], prox1['dist'], prox2['stdy'], prox2['dist'])
-                Std_z_interp = MediaInvDist(prox1['stdz'], prox1['dist'], prox2['stdz'], prox2['dist'])
+                if feat1['metodo_pos'] == 'PA3':
+                        Std_x_interp, Std_y_interp, Std_z_interp = 0, 0, 0  # Para projeção técnica PA3, as precisões deverão ser fixadas em Zero.
+                else:
+                    Std_x_interp = MediaInvDist(prox1['stdx'], prox1['dist'], prox2['stdx'], prox2['dist'])
+                    Std_y_interp = MediaInvDist(prox1['stdy'], prox1['dist'], prox2['stdy'], prox2['dist'])
+                    Std_z_interp = MediaInvDist(prox1['stdz'], prox1['dist'], prox2['stdz'], prox2['dist'])
                 newPoint = QgsGeometry(QgsPoint(pnt1.x(), pnt1.y(), float(Z_interp)))
                 if Interp in (0,2):
                     vertice.changeGeometry(feat1.id(), newPoint)
