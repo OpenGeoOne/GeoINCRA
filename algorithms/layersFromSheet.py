@@ -26,8 +26,7 @@ __author__ = 'Tiago Prudencio e Leandro França'
 __date__ = '2024-08-10'
 __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 
-from qgis.PyQt.QtCore import QCoreApplication
-from PyQt5.QtCore import *
+from qgis.PyQt.QtCore import QCoreApplication, QVariant
 from qgis.core import (QgsProcessing,
                        QgsFeatureSink,
                        QgsProcessingException,
