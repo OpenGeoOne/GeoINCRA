@@ -27,7 +27,6 @@ __date__ = '2025-05-29'
 __copyright__ = '(C) 2025 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from PyQt5.QtCore import *
 from qgis.core import (QgsProcessingException,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterEnum,
