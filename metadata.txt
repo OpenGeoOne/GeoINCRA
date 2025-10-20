@@ -67,6 +67,8 @@ category=cartography
 icon=images/geoincra_logo.png
 # experimental flag
 experimental=False
+server=False
+supportsQt6=True
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
@@ -75,9 +77,3 @@ deprecated=False
 # (or upgraded) can be specified.
 # Check the documentation for more information.
 # plugin_dependencies=
-
-Category of the plugin: Raster, Vector, Database or Web
-# category= Processing
-
-# If the plugin can run on QGIS Server.
-server=False
