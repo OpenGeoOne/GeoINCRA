@@ -21,7 +21,7 @@ repository=https://github.com/OpenGeoOne/GeoINCRA
 hasProcessingProvider=yes
 # Uncomment the following line and add your changelog:
 # changelog=
-	1.8.12 - Compatibility with QT5 and QT6
+	1.8.12 - Compatibility with Qt5 and Qt6
 	1.8.11 - Bug fix in the memorial conversor tool for adjoiner naming
 	1.8.10 - Option added for Z validation in the tool to feed vertex layer of GeoRural
 	1.8.9 - Bug fix for reading RBMC status, conversion of attribute "parcel" included in GeoRural to TopoGeo tool
