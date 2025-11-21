@@ -209,13 +209,15 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         dic_1 = {
         'type':['tipo_verti' , {'M':1, 'P':2, 'V':3}],
         'code': 'vertice',
-        'sequence': 'indice'
+        'sequence': 'indice',
+        'parcel': 'lote',
         }
 
         #Limite > boundary_element_l
         dic_2 = {
         'borderer': 'confrontan',
-        'borderer_registry': 'matricula'
+        'borderer_registry': 'matricula',
+        'parcel': 'lote',
         }
 
         #Parcela > property_area_a
