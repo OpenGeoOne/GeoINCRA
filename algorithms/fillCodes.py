@@ -144,32 +144,50 @@ class FillCodes(QgsProcessingAlgorithm):
             )
         )
 
+        my_user_M_seq = my_settings.value("GeoINCRA/geoincra_user_M_seq", 0)
+        if my_user_M_seq == 0:
+            user_M_seq = 1
+        else:
+            user_M_seq = my_user_M_seq
+
         self.addParameter(
             QgsProcessingParameterNumber(
                 self.M_INI,
                 self.tr('Tipo M - primeiro número'),
                 type = QgsProcessingParameterNumber.Type.Integer,
-                defaultValue = 1,
+                defaultValue = user_M_seq,
                 minValue = 1
                 )
             )
+        
+        my_user_P_seq = my_settings.value("GeoINCRA/geoincra_user_P_seq", 0)
+        if my_user_P_seq == 0:
+            user_P_seq = 1
+        else:
+            user_P_seq = my_user_P_seq
 
         self.addParameter(
             QgsProcessingParameterNumber(
                 self.P_INI,
                 self.tr('Tipo P - primeiro número'),
                 type = QgsProcessingParameterNumber.Type.Integer,
-                defaultValue = 1,
+                defaultValue = user_P_seq,
                 minValue = 1
                 )
             )
+        
+        my_user_V_seq = my_settings.value("GeoINCRA/geoincra_user_V_seq", 0)
+        if my_user_V_seq == 0:
+            user_V_seq = 1
+        else:
+            user_V_seq = my_user_V_seq
 
         self.addParameter(
             QgsProcessingParameterNumber(
                 self.V_INI,
                 self.tr('Tipo V - primeiro número'),
                 type = QgsProcessingParameterNumber.Type.Integer,
-                defaultValue = 1,
+                defaultValue = user_V_seq,
                 minValue = 1
                 )
             )
@@ -335,6 +353,11 @@ class FillCodes(QgsProcessingAlgorithm):
             elif tipo == 'V':
                 dic[k] = credenciado + '-V-' + padrao.format(cont_v)
                 cont_v += 1
+
+        # Definindo novos valores da contagem inicial do número do vértice
+        my_settings.setValue("GeoINCRA/geoincra_user_M_seq", cont_m)
+        my_settings.setValue("GeoINCRA/geoincra_user_P_seq", cont_p)
+        my_settings.setValue("GeoINCRA/geoincra_user_V_seq", cont_v)
 
         # Inserir valores dos códigos dos vértices nas feições
         total = vertice.featureCount()
