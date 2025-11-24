@@ -237,28 +237,30 @@ class addFeat(QgsProcessingAlgorithm):
             raise QgsProcessingException(self.invalidSourceError(parameters, self.OUTPUT))
 
         # Validações
-        def valida_sigma(sigma, eixo):
+        def valida_sigma(sigma, eixo, id):
             if sigma < 0 or sigma > 7.5:
-                raise QgsProcessingException('Valor incorreto para as precisões em {}!'.format(eixo))
+                raise QgsProcessingException('Erro: Feição de ID {} com precisão {} em {}!'.format(id, str(sigma), eixo))
+            if str(sigma) == 'NULL':
+                feedback.reportError('Aviso: Feição de ID {} com precisão {} em {}!!'.format(id, str(sigma), eixo))
 
         for feature in source_in.getFeatures():
             # Validando as precisões de entrada
             if sigma_x:
                 sigma = float(feature[sigma_x].replace(',','.')) if isinstance(feature[sigma_x], str) else feature[sigma_x]
-                valida_sigma(sigma, 'x')
+                valida_sigma(sigma, 'x', feature.id())
             if sigma_y:
                 sigma = float(feature[sigma_y].replace(',','.')) if isinstance(feature[sigma_y], str) else feature[sigma_y]
-                valida_sigma(sigma, 'y')
+                valida_sigma(sigma, 'y', feature.id())
             if sigma_z:
                 sigma = float(feature[sigma_z].replace(',','.')) if isinstance(feature[sigma_z], str) else feature[sigma_z]
-                valida_sigma(sigma, 'z')
+                valida_sigma(sigma, 'z', feature.id())
             if ver_z:
                 # Validando as altitudes de entrada
                 z = float(feature.geometry().constGet().z())
                 if str(z) == 'nan' or z == 0:
-                    feedback.reportError('Cota Z não preenchida ou igual a zero para a feição de id {}!'.format(feature.id()))
-                if z > 3000 or z < 0:
-                    raise QgsProcessingException('Cota Z com valor "{}" na feição de id "{}" fora dos limites permitidos!'.format(z, feature.id()))
+                    feedback.reportError('Aviso: Cota Z não preenchida ou igual a zero para a feição de id {}!'.format(feature.id()))
+                if z > 3000 or z < -10:
+                    raise QgsProcessingException('Erro: Cota Z com valor "{}" na feição de id "{}" fora dos limites permitidos!'.format(z, feature.id()))
 
 
         total = 100.0 / source_in.featureCount() if source_in.featureCount() else 0
