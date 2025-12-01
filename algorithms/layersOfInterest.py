@@ -51,7 +51,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                3: 'Terras Indígenas 2017 (IBGE)',
                4: 'Unidades da Federação 2025 (IBGE)',
                5: 'Municípios 2025 (IBGE)',
-               6: 'Estações GPS 2010 (IBGE)',
+               6: 'Estações BDG GPS (IBGE)',
                7: 'Faixa de domínio 2021 (DNIT)',
                8: 'RBMC 2024 (IBGE)',
             }
@@ -64,7 +64,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                   mapping[3]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:andb2022_ct30103' url='https://geoservicos.ibge.gov.br/geoserverCGEO/ows' version='auto'",
                   mapping[4]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CCAR:BC250_2025_lml_unidade_federacao_a' url='https://geoservicos.ibge.gov.br/geoserverCCAR/ows' version='auto'", # antigo: CCAR:BC250_2023_Unidade_Federacao_A
                   mapping[5]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CCAR:BC250_2025_lml_municipio_a' url='https://geoservicos.ibge.gov.br/geoserverCCAR/ows' version='auto'", # antigo: CCAR:BC250_2023_Municipio_A
-                  mapping[6]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:ANMS2010_09_estacoes_GPS_2010' url='https://geoservicos.ibge.gov.br/geoserverCGEO/ows' version='auto'",
+                  mapping[6]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:Estacoes_BDG_GPS_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'", # antigo: CGEO:ANMS2010_09_estacoes_GPS_2010
                   mapping[7]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:faixa_dominio_dnit_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
                   mapping[8]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:RBMC_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
             }
@@ -264,21 +264,42 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                     # Aplicar a simbologia baseada em regras na camada
                     renderer = QgsRuleBasedRenderer(root_rule)
                     layer.setRenderer(renderer)
+                
+                    acManager = layer.actions()
+                    acActor = QgsAction(QgsAction.ActionType.GenericPython , self.tr('Abrir descritivo'),"""
+import webbrowser
+webbrowser.open("[%URL_LINK%]")""", False)
+                    acActor.setActionScopes({'Field', 'Layer', 'Canvas', 'Feature'})
+                    acManager.addAction(acActor)
 
                 except:
                     print('Erro no processo requisição da URL!')
             
             elif self.OPTION == 6: # Estação GPS
-                nome = 'COD_ESTACA'
+                nome = 'ESTACAO'
+                # Cria o símbolo de triângulo vermelho
+                symbol = QgsMarkerSymbol.createSimple({
+                    'name': 'triangle',      # forma do marcador
+                    'color': '255,0,0',      # vermelho (R,G,B)
+                    'outline_color': '0,0,0',# borda preta (opcional)
+                    'outline_style': 'solid',
+                    'size': '3',             # tamanho em mm
+                    'size_unit': 'MM',
+                    'angle': '0'             # 0 = triângulo “apontando para cima”
+                })
+
+                # Cria um renderer de símbolo único e aplica na camada
+                renderer = QgsSingleSymbolRenderer(symbol)
+                layer.setRenderer(renderer)
+                layer.triggerRepaint()
+                
                 acManager = layer.actions()
                 acActor = QgsAction(QgsAction.ActionType.GenericPython , self.tr('Abrir relatório'),"""
 import webbrowser
-url = "http://www.bdg.ibge.gov.br/bdg/pdf/relatorio.asp?L1=" + str([%COD_ESTACA%])
+url = "http://www.bdg.ibge.gov.br/bdg/pdf/relatorio.asp?L1=" + str([%ESTACAO%])
 webbrowser.open(url)""", False)
                 acActor.setActionScopes({'Field', 'Layer', 'Canvas', 'Feature'})
                 acManager.addAction(acActor)
-
-            
 
             # Rotulação
             # Configurar as propriedades de rótulo
