@@ -202,6 +202,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         return txt + footer
     def postProcessAlgorithm(self, context, feedback):
         layer = QgsProcessingUtils.mapLayerFromString(self.SAIDA, context)
+        nome = 'nome'
         if layer.featureCount() > 0:
             if self.OPTION == 8: # RBMC
                 # Simbologia
@@ -266,11 +267,23 @@ class LayersOfInterest(QgsProcessingAlgorithm):
 
                 except:
                     print('Erro no processo requisição da URL!')
+            
+            elif self.OPTION == 6: # Estação GPS
+                nome = 'COD_ESTACA'
+                acManager = layer.actions()
+                acActor = QgsAction(QgsAction.ActionType.GenericPython , self.tr('Abrir relatório'),"""
+import webbrowser
+url = "http://www.bdg.ibge.gov.br/bdg/pdf/relatorio.asp?L1=" + str([%COD_ESTACA%])
+webbrowser.open(url)""", False)
+                acActor.setActionScopes({'Field', 'Layer', 'Canvas', 'Feature'})
+                acManager.addAction(acActor)
+
+            
 
             # Rotulação
             # Configurar as propriedades de rótulo
             label_settings = QgsPalLayerSettings()
-            label_settings.fieldName = '"nome"'  # Substitua "nome" pelo nome do campo
+            label_settings.fieldName = f'"{nome}"'
             label_settings.isExpression = True
             # label_settings.placement = QgsPalLayerSettings.AroundPoint
             label_settings.enabled = True
