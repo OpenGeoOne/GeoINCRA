@@ -6,7 +6,7 @@
 name=GeoINCRA
 qgisMinimumVersion=3.10
 description=Georeferencing of rural properties according to INCRA’s Brazilian technical regulations for land regularization.
-version=1.8.13
+version=1.8.14
 author=Tiago Prudencio, Leandro França
 email=suporte@geoone.com.br
 
@@ -21,6 +21,7 @@ repository=https://github.com/OpenGeoOne/GeoINCRA
 hasProcessingProvider=yes
 # Uncomment the following line and add your changelog:
 # changelog=
+	1.8.14 - New IBGE layers (states e counties) updated
 	1.8.13 - Sequence number saved in memory for Fill Codes tool
 	1.8.12 - Compatibility with Qt5 and Qt6
 	1.8.11 - Bug fix in the memorial conversor tool for adjoiner naming
