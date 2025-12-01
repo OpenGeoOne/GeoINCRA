@@ -49,8 +49,8 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                1: 'Áreas Embargadas (ICMBio)',
                2: 'Áreas Urbanizadas 2019 (IBGE)',
                3: 'Terras Indígenas 2017 (IBGE)',
-               4: 'Unidades da Federação 2023 (IBGE)',
-               5: 'Municípios 2023 (IBGE)',
+               4: 'Unidades da Federação 2025 (IBGE)',
+               5: 'Municípios 2025 (IBGE)',
                6: 'Estações GPS 2010 (IBGE)',
                7: 'Faixa de domínio 2021 (DNIT)',
                8: 'RBMC 2024 (IBGE)',
@@ -62,8 +62,8 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                   mapping[1]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='ICMBio:embargos_icmbio' url='https://geoservicos.inde.gov.br/geoserver/ICMBio/ows' url='https://geoservicos.inde.gov.br/geoserver/ICMBio/ows?version=2.0.0' version='auto'",
                   mapping[2]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:AU_2022_AreasUrbanizadas2019_Brasil' url='https://geoservicos.ibge.gov.br/geoserverCGEO/ows' http-header:referer=''",
                   mapping[3]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:andb2022_ct30103' url='https://geoservicos.ibge.gov.br/geoserverCGEO/ows' version='auto'",
-                  mapping[4]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CCAR:BC250_2023_Unidade_Federacao_A' url='https://geoservicos.ibge.gov.br/geoserverCCAR/ows' version='auto'",
-                  mapping[5]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CCAR:BC250_2023_Municipio_A' url='https://geoservicos.ibge.gov.br/geoserverCCAR/ows' version='auto'",
+                  mapping[4]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CCAR:BC250_2025_lml_unidade_federacao_a' url='https://geoservicos.ibge.gov.br/geoserverCCAR/ows' version='auto'", # antigo: CCAR:BC250_2023_Unidade_Federacao_A
+                  mapping[5]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CCAR:BC250_2025_lml_municipio_a' url='https://geoservicos.ibge.gov.br/geoserverCCAR/ows' version='auto'", # antigo: CCAR:BC250_2023_Municipio_A
                   mapping[6]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:ANMS2010_09_estacoes_GPS_2010' url='https://geoservicos.ibge.gov.br/geoserverCGEO/ows' version='auto'",
                   mapping[7]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:faixa_dominio_dnit_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
                   mapping[8]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:RBMC_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
@@ -78,12 +78,15 @@ class LayersOfInterest(QgsProcessingAlgorithm):
             )
         )
 
+        my_settings = QgsSettings()
+        my_user_layer = my_settings.value("GeoINCRA/geoincra_user_layer", 0)
+
         self.addParameter(
             QgsProcessingParameterEnum(
                 self.WFS,
                 self.tr('Camada de interesse'),
                 options = self.links.keys(),
-                defaultValue= 0
+                defaultValue= my_user_layer
             )
         )
 
@@ -109,6 +112,8 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         self.OPTION = option
         layer = self.mapping[option]
         link = self.links[layer]
+        my_settings = QgsSettings()
+        my_settings.setValue("GeoINCRA/geoincra_user_layer", option)
 
         source = QgsVectorLayer(link, "my wfs layer", "WFS")
         (sink, dest_id) = self.parameterAsSink(
