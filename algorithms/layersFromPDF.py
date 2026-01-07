@@ -49,8 +49,7 @@ from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
 from .Funcs import LerPDF
 from datetime import datetime
-import os, re
-import platform
+import os
 
 class LayersFromPDF(QgsProcessingAlgorithm):
 
