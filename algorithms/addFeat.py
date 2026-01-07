@@ -291,8 +291,8 @@ class addFeat(QgsProcessingAlgorithm):
             geom = feature.geometry()
             geom.transform(proj2geo)
 
-            feat.setGeometry(geom)
-            (res, outFeats) = source_out.dataProvider().addFeatures([feat])
+            feat.setGeometry(geom.snappedToGrid(hSpacing=1e-7, vSpacing=1e-7, dSpacing=1e-2))
+            source_out.dataProvider().addFeatures([feat])
             feedback.setProgress(int(current * total))
 
         return {}
