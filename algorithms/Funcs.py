@@ -16,7 +16,7 @@ __copyright__ = '(C) 2026 by Tiago Prudencio and Leandro França'
 
 from qgis.core import *
 from qgis.PyQt.QtCore import QVariant
-import platform
+import platform, re
 
 
 def ImportarPyPDF(feedback=None):
