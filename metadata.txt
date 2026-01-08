@@ -4,7 +4,7 @@
 
 [general]
 name=GeoINCRA
-qgisMinimumVersion=3.10
+qgisMinimumVersion=3.34
 description=Georeferencing of rural properties according to INCRA’s Brazilian technical regulations for land regularization.
 version=2.0.0
 author=Tiago Prudencio, Leandro França
