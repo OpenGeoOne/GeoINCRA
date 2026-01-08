@@ -231,7 +231,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
             raise QgsProcessingException(self.invalidSinkError(parameters, self.PARCELA))
         
         # Ler PDF
-        dic, lista_cod, dic_cod = LerPDF(pdf_path, feedback = feedback)
+        dic, lista_cod, dic_cod, ind_encravado = LerPDF(pdf_path, feedback = feedback)
 
         if len(lista_cod) == 0 or dic['Denominação:'] == '':
             raise QgsProcessingException('PDF de entrada não é um Memorial do Sigef!')
