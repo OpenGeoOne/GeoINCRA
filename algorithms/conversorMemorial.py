@@ -37,8 +37,8 @@ from qgis.core import (QgsProcessingException,
 from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
-from .Funcs import LerPDF
-import os, re
+from .Funcs import LerPDF, str2HTML
+import os
 from datetime import datetime
 
 class ConversorMemorial(QgsProcessingAlgorithm):
@@ -46,6 +46,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
     PDF = 'PDF'
     PERIMETRO = 'PERIMETRO'
     HTML = 'HTML'
+    HTML2 = 'HTML2'
     COORD = 'COORD'
     ANEL = 'ANEL'
     CONFRONT = 'CONFRONT'
@@ -150,11 +151,19 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                 optional = True
                 )
             )
+        
+        self.addParameter(
+            QgsProcessingParameterFileDestination(
+                self.HTML2,
+                self.tr('Memorial Sintético ( Tabular )'),
+                self.tr('HTML files (*.html)')
+            )
+        )
 
         self.addParameter(
             QgsProcessingParameterFileDestination(
                 self.HTML,
-                self.tr('Memorial Descritivo Textual (HTML)'),
+                self.tr('Memorial Descritivo ( Textual )'),
                 self.tr('HTML files (*.html)')
             )
         )
@@ -194,7 +203,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         SRC = QgsCoordinateReferenceSystem('EPSG:4674')
 
         # Ler PDF
-        dic, lista_cod, dic_cod = LerPDF(pdf_path, feedback = feedback)
+        dic, lista_cod, dic_cod, ind_encravado = LerPDF(pdf_path, feedback = feedback)
 
 
         if len(lista_cod) == 0 or dic['Denominação:'] == '':
@@ -245,20 +254,20 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                 txt = '''<b>[Xn]</b> e <b>[Yn]</b>'''
             elif coordenadas == 7:
                 txt = '''<b>[Yn]</b> e <b>[Xn]</b>'''
-            return txt.replace('[Yn]', self.str2HTML(y)).replace('[Xn]', self.str2HTML(x)).replace('[Zn]', self.str2HTML(z))
+            return txt.replace('[Yn]', str2HTML(y)).replace('[Xn]', str2HTML(x)).replace('[Zn]', str2HTML(z))
         
         # Modelo de descrição de confrontantes
         def DescrConfr (tipo, cns, mat, nome):
             if tipo == 0: # Apenas Nome
-                return self.str2HTML(nome)
+                return str2HTML(nome)
             elif tipo == 1 and mat: # Nome e Matrícula
-                return self.str2HTML(nome + ' | Mat. ' + mat)
+                return str2HTML(nome + ' | Mat. ' + mat)
             elif tipo == 2 and mat and cns: # Nome, Matrícula e CNS
-                return self.str2HTML(nome + ' | Mat. ' + mat + ' | CNS: ' + cns)
+                return str2HTML(nome + ' | Mat. ' + mat + ' | CNS: ' + cns)
             elif tipo == 3 and mat and cns: # CNS, Matrícula e Nome
-                return self.str2HTML('CNS: ' + cns + ' | Mat. ' + mat + ' | ' + nome )
+                return str2HTML('CNS: ' + cns + ' | Mat. ' + mat + ' | ' + nome )
             else:
-                return self.str2HTML(nome)
+                return str2HTML(nome)
                 
 
         LOGO = 'png;base64,'+ GeoOne
@@ -270,17 +279,17 @@ class ConversorMemorial(QgsProcessingAlgorithm):
     <head>
       <meta content="text/html; charset=ISO-8859-1"
      http-equiv="content-type">
-      <title>'''+ self.str2HTML('Memorial descritivo') + '''</title>
+      <title>'''+ str2HTML('Memorial descritivo') + '''</title>
       <link rel = "icon" href = "https://github.com/OpenGeoOne/GeoINCRA/blob/main/images/geoincra.png?raw=true" type = "image/x-icon">
     </head>
     <body>
     <div style="text-align: center;"><span style="font-weight: bold;"><br>
     <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" src="data:image/'''+ LOGO + '''"></a>
-    <br><i>'''+ self.str2HTML(SLOGAN) + '''</i></span><br style="font-weight: bold;">
+    <br><i>'''+ str2HTML(SLOGAN) + '''</i></span><br style="font-weight: bold;">
     <br></div>
     <p class="western"
      style="margin-bottom: 0.0001pt; text-align: center;"
-     align="center"><b><u><span style="font-size: 12pt;">'''+ self.str2HTML(self.tr('MEMORIAL DESCRITIVO')) + '''</span></u></b></p>
+     align="center"><b><u><span style="font-size: 12pt;">'''+ str2HTML(self.tr('MEMORIAL DESCRITIVO')) + '''</span></u></b></p>
     <p class="western" style="margin-bottom: 0.0001pt;"><o:p>&nbsp;</o:p></p>
     <table class="MsoTableGrid"
      style="border: medium none ; border-collapse: collapse;"
@@ -289,71 +298,71 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         <tr style="">
           <td style="padding: 0cm 5.4pt;"
      valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>'''+ self.str2HTML(self.tr('Imóvel')) + ''': </b>[IMOVEL]</p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>'''+ str2HTML(self.tr('Imóvel')) + ''': </b>[IMOVEL]</p>
           </td>
           <td style="padding: 0cm 5.4pt;"
      valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Código INCRA/SNCR')) + ''':</b>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Código INCRA/SNCR')) + ''':</b>
     [REGISTRO]</p>
           </td>
         </tr>
         <tr style="">
           <td colspan="2"
      style="padding: 0cm 5.4pt;" valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Proprietário(a)')) + ''': </b>[PROPRIETARIO]</p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Proprietário(a)')) + ''': </b>[PROPRIETARIO]</p>
           </td>
         </tr>
         <tr style="">
           <td style="padding: 0cm 5.4pt;"
      valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Município')) + ''':</b>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Município')) + ''':</b>
     [MUNICIPIO]<b></b></p>
           </td>
           <td style="padding: 0cm 5.4pt;"
      valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Estado')) + ''':
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Estado')) + ''':
           </b>[UF]</p>
           </td>
         </tr>
         <tr style="">
           <td colspan="2"
      style="padding: 0cm 5.4pt;" valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Matrícula/Transcrição')) + ''':</b>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Matrícula/Transcrição')) + ''':</b>
     [MATRICULAS]</p>
           </td>
         </tr>
         <tr style="">
           <td style="padding: 0cm 5.4pt;"
      valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Área (ha)')) + ''': </b>[AREA]</p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Área (ha)')) + ''': </b>[AREA]</p>
           </td>
           <td style="padding: 0cm 5.4pt;"
      valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Perímetro')) + ''' (m):</b> [PERIMETRO]</p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Perímetro')) + ''' (m):</b> [PERIMETRO]</p>
           </td>
         </tr>
         <tr style="">
           <td colspan="2"
      style="padding: 0cm 5.4pt;" valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + self.str2HTML(self.tr('Sistema de Referência de Coordenadas')) + ''':</b> [SRC]<b></b></p>
+          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Sistema de Referência de Coordenadas')) + ''':</b> [SRC]<b></b></p>
           </td>
         </tr>
       </tbody>
     </table>
     <p class="western" style="margin-bottom: 0.0001pt;"><o:p>&nbsp;</o:p></p>
     <p class="western"
-     style="margin-bottom: 0.0001pt; text-align: justify;">'''+ self.str2HTML(self.tr('Inicia-se a descrição deste perímetro n'))
+     style="margin-bottom: 0.0001pt; text-align: justify;">'''+ str2HTML(self.tr('Inicia-se a descrição deste perímetro n'))
 
-        texto_var1 = self.str2HTML(self.tr('o vértice ')) + '''<b>[Vn]</b>, '''+ self.str2HTML(self.tr('de coordenadas ')) + '''[Coordn],
-    '''+ self.str2HTML(self.tr('deste, segue confrontando com [Confront_k], com os seguintes azimutes e distâncias: [Az_n] e [Dist_n]m até '))
+        texto_var1 = str2HTML(self.tr('o vértice ')) + '''<b>[Vn]</b>, '''+ str2HTML(self.tr('de coordenadas ')) + '''[Coordn],
+    '''+ str2HTML(self.tr('deste, segue confrontando com [Confront_k], com os seguintes azimutes e distâncias: [Az_n] e [Dist_n]m até '))
 
-        texto_var2 = self.str2HTML(self.tr('o vértice ')) + '''<span> </span><b>[Vn]</b>, ''' + self.str2HTML(self.tr('de coordenadas ')) + '''[Coordn]; '''+ self.str2HTML(self.tr('[Az_n] e [Dist_n]m até '))
+        texto_var2 = str2HTML(self.tr('o vértice ')) + '''<span> </span><b>[Vn]</b>, ''' + str2HTML(self.tr('de coordenadas ')) + '''[Coordn]; '''+ str2HTML(self.tr('[Az_n] e [Dist_n]m até '))
 
         # Coordenadas Geo, cálculo em SGL e Azimute Puissant:
         texto_calculo = self.tr('. Os azimutes foram calculados pela fórmula do Problema Geodésico Inverso segundo Puissant. As distâncias, área e perímetro foram calculados no Sistema Geodésico Local (SGL) com origem na média das coordenadas cartesianas geocêntricas do imóvel.')
 
-        texto_final = self.str2HTML(self.tr('o vértice ')) + '''<b>[P-01]</b>, '''+ self.tr('de coordenadas') + ''' [Coord1],
-    ''' + self.str2HTML(self.tr('ponto inicial da descrição deste perímetro. Todas as coordenadas aqui descritas estão georreferenciadas ao Sistema Geodésico de Referência (SGR)')) + ''' <b>[GRS]</b>''' + self.str2HTML(texto_calculo) + '''
+        texto_final = str2HTML(self.tr('o vértice ')) + '''<b>[P-01]</b>, '''+ self.tr('de coordenadas') + ''' [Coord1],
+    ''' + str2HTML(self.tr('ponto inicial da descrição deste perímetro. Todas as coordenadas aqui descritas estão georreferenciadas ao Sistema Geodésico de Referência (SGR)')) + ''' <b>[GRS]</b>''' + str2HTML(texto_calculo) + '''
      </p>
     <p class="western"
      style="margin-bottom: 0.0001pt; text-align: right;"
@@ -368,7 +377,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
       align="center">[OWNER]</p>
      <p class="western"
       style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-      align="center">''' + self.str2HTML(self.tr('PROPRIETÁRIO DO IMÓVEL')) + '''</p>
+      align="center">''' + str2HTML(self.tr('PROPRIETÁRIO DO IMÓVEL')) + '''</p>
 
     <p class="western" style="margin-bottom: 0.0001pt;"><o:p>&nbsp;</o:p></p>
     <p class="western"
@@ -382,7 +391,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
      align="center">[CREA]</p>
     <p class="western"
      style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-     align="center">''' + self.str2HTML(self.tr('RESPONSÁVEL TÉCNICO')) + '''</p>
+     align="center">''' + str2HTML(self.tr('RESPONSÁVEL TÉCNICO')) + '''</p>
     <p class="MsoNormal"><o:p>&nbsp;</o:p></p>
     </body>
     </html>
@@ -390,15 +399,15 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         # Inserindo dados iniciais do levantamento
         proprietario = dic['Proprietário(a):'] if dic['Proprietário(a):'] else dic['Proprietário:']
         matricula = dic['Matrícula do imóvel:'] if dic['Matrícula do imóvel:'] else dic['Transcrição do imóvel:']
-        itens = {'[IMOVEL]': self.str2HTML(dic['Denominação:']),
-                '[PROPRIETARIO]': self.str2HTML(proprietario),
-                '[MATRICULAS]': self.str2HTML(str(matricula) + ' | CNS: ' + dic['Cartório (CNS):']) if matricula else '-',
-                '[AREA]': self.str2HTML(dic['Área (Sistema Geodésico Local)']),
-                '[SRC]': self.str2HTML('SIRGAS2000'),
-                '[REGISTRO]': self.str2HTML(dic['Código INCRA/SNCR:']),
-                '[MUNICIPIO]': self.str2HTML(dic['Município/UF:'].split('-')[0]),
-                '[UF]': self.str2HTML(dic['Município/UF:'].split('-')[-1]),
-                '[PERIMETRO]': self.str2HTML(dic['Perímetro (m)']),
+        itens = {'[IMOVEL]': str2HTML(dic['Denominação:']),
+                '[PROPRIETARIO]': str2HTML(proprietario),
+                '[MATRICULAS]': str2HTML(str(matricula) + ' | CNS: ' + dic['Cartório (CNS):']) if matricula else '-',
+                '[AREA]': str2HTML(dic['Área (Sistema Geodésico Local)']),
+                '[SRC]': str2HTML('SIRGAS2000'),
+                '[REGISTRO]': str2HTML(dic['Código INCRA/SNCR:']),
+                '[MUNICIPIO]': str2HTML(dic['Município/UF:'].split('-')[0]),
+                '[UF]': str2HTML(dic['Município/UF:'].split('-')[-1]),
+                '[PERIMETRO]': str2HTML(dic['Perímetro (m)']),
                     }
 
         for item in itens:
@@ -409,10 +418,10 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         for k,codigo in enumerate(lista_cod_fat):
             if mudou:
                 linha0 = texto_var1
-                itens =    {'[Vn]': self.str2HTML(codigo),
+                itens =    {'[Vn]': str2HTML(codigo),
                             '[Coordn]': CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h']),
-                            '[Az_n]': self.str2HTML(dic_cod[codigo]['az']),
-                            '[Dist_n]': self.str2HTML(dic_cod[codigo]['dist']),
+                            '[Az_n]': str2HTML(dic_cod[codigo]['az']),
+                            '[Dist_n]': str2HTML(dic_cod[codigo]['dist']),
                             '[Confront_k]': DescrConfr (tipoDescrConfront, dic_cod[codigo]['cns'], dic_cod[codigo]['matr'], dic_cod[codigo]['confr'])
                             }
                 for item in itens:
@@ -423,10 +432,10 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                     mudou = False
             else:
                 linha1 = texto_var2
-                itens = {'[Vn]': self.str2HTML(codigo),
+                itens = {'[Vn]': str2HTML(codigo),
                         '[Coordn]': CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h']),
-                        '[Az_n]': self.str2HTML(dic_cod[codigo]['az']),
-                        '[Dist_n]': self.str2HTML(dic_cod[codigo]['dist'])
+                        '[Az_n]': str2HTML(dic_cod[codigo]['az']),
+                        '[Dist_n]': str2HTML(dic_cod[codigo]['dist'])
                         }
                 for item in itens:
                     linha1 = linha1.replace(item, itens[item])
@@ -465,14 +474,14 @@ class ConversorMemorial(QgsProcessingAlgorithm):
 
         # Inserindo dados finais
         codigo = lista_cod_fat[0]
-        itens = {   '[P-01]': self.str2HTML(codigo),
+        itens = {   '[P-01]': str2HTML(codigo),
                     '[Coord1]': CoordN(dic_cod[codigo]['lon'], dic_cod[codigo]['lat'], dic_cod[codigo]['h']),
                     '[GRS]': 'SIRGAS 2000',
-                    '[OWNER]': self.str2HTML(proprietario),
-                    '[RESP_TEC]': self.str2HTML(dic['Responsável Técnico(a):'] if dic['Responsável Técnico(a):'] else dic['Responsável Técnico:']),
-                    '[CREA]': self.str2HTML(dic['Formação:'] + ' | ' + dic['Conselho Profissional:']  + ' | ' + dic['Documento de RT:']),
-                    '[LOCAL]': self.str2HTML(dic['Município/UF:']),
-                    '[DATA]': self.str2HTML(data_formatada)
+                    '[OWNER]': str2HTML(proprietario),
+                    '[RESP_TEC]': str2HTML(dic['Responsável Técnico(a):'] if dic['Responsável Técnico(a):'] else dic['Responsável Técnico:']),
+                    '[CREA]': str2HTML(dic['Formação:'] + ' | ' + dic['Conselho Profissional:']  + ' | ' + dic['Documento de RT:']),
+                    '[LOCAL]': str2HTML(dic['Município/UF:']),
+                    '[DATA]': str2HTML(data_formatada)
                     }
 
         for item in itens:
@@ -483,15 +492,107 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         arq.write(LINHAS)
         arq.close()
 
-        return {self.HTML: output}
+        
+        # Preenchendo Memorial Sintético Tabular
+        template = '''<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Memorial Descritivo</title>
+  <style>
+body {
+font-family: Arial, Helvetica, sans-serif;
+font-size: 11px;
+margin: 0;
+padding: 10px;
+}
+table {
+width: 100%;
+border-collapse: collapse;
+font-size: 11px;
+text-align: center;
+}
+th, td {
+border: 1px solid #000;
+padding: 6px 4px;
+vertical-align: middle;
+}
+thead th {
+background-color: #f2f2f2;
+font-weight: bold;
+}
+.titulo {
+font-size: 14px;
+font-weight: bold;
+text-transform: uppercase;
+background-color: #e6e6e6;
+}
+  </style>
+</head>
+<body>
+<table>
+  <thead>
+  <tr>
+    <th colspan="8" class="titulo">
+DESCRI&Ccedil;&Atilde;O DA PARCELA
+    </th>
+  </tr>
+  <tr>
+    <th colspan="4">V&Eacute;RTICE</th>
+    <th colspan="4">SEGMENTO VANTE</th>
+  </tr>
+  <tr>
+    <th>C&oacute;digo</th>
+    <th>Longitude</th>
+    <th>Latitude</th>
+    <th>Altitude (m)</th>
+    <th>C&oacute;digo</th>
+    <th>Azimute</th>
+    <th>Dist. (m)</th>
+    <th>Confronta&ccedil;&otilde;es</th>
+  </tr>
+  </thead>
+  <tbody>
+    [LINHAS]
+  </tbody>
+</table>
+</body>
+</html>
+'''     
+        template_linhas = '''<tr>
+      <td>[C1]</td>
+      <td>[LON]</td>
+      <td>[LAT]</td>
+      <td>[H]</td>
+      <td>[C2]</td>
+      <td>[AZ]</td>
+      <td>[D]</td>
+      <td>[CONFR]</td>
+    </tr>
+    '''
+
+        linhas = ''
+        for codigo in lista_cod_fat:
+            linha = template_linhas
+            itens = {'[C1]': str2HTML(codigo),
+                     '[LON]': str2HTML(dic_cod[codigo]['lon']), 
+                     '[LAT]': str2HTML(dic_cod[codigo]['lat']), 
+                     '[H]': str2HTML(dic_cod[codigo]['h']), 
+                     '[C2]': str2HTML(dic_cod[codigo]['vante']),
+                     '[AZ]': str2HTML(dic_cod[codigo]['az']), 
+                     '[D]': str2HTML(dic_cod[codigo]['dist']), 
+                     '[CONFR]': str2HTML(dic_cod[codigo]['texto_confr']), 
+                     }
+            for item in itens:
+                linha = linha.replace(item, itens[item])
+            linhas += linha
+        
+        tabela_final = template.replace('[LINHAS]', linhas)
+        output2 = self.parameterAsFileOutput(parameters, self.HTML2, context)
+        arq = open(output2, 'w')
+        arq.write(tabela_final)
+        arq.close()
 
 
-    def str2HTML(self, texto):
-        if texto:
-            dicHTML = {'Á': '&Aacute;',	'á': '&aacute;',	'Â': '&Acirc;',	'â': '&acirc;',	'À': '&Agrave;',	'à': '&agrave;',	'Å': '&Aring;',	'å': '&aring;',	'Ã': '&Atilde;',	'ã': '&atilde;',	'Ä': '&Auml;',	'ä': '&auml;', 'ú': '&uacute;', 'Ú': '&Uacute;', 'Æ': '&AElig;',	'æ': '&aelig;',	'É': '&Eacute;',	'é': '&eacute;',	'Ê': '&Ecirc;',	'ê': '&ecirc;',	'È': '&Egrave;',	'è': '&egrave;',	'Ë': '&Euml;',	'ë': '&Euml;',	'Ð': '&ETH;',	'ð': '&eth;',	'Í': '&Iacute;',	'í': '&iacute;',	'Î': '&Icirc;',	'î': '&icirc;',	'Ì': '&Igrave;',	'ì': '&igrave;',	'Ï': '&Iuml;',	'ï': '&iuml;',	'Ó': '&Oacute;',	'ó': '&oacute;',	'Ô': '&Ocirc;',	'ô': '&ocirc;',	'Ò': '&Ograve;', 'Õ': '&Otilde;', 'õ': '&otilde;',	'ò': '&ograve;',	'Ø': '&Oslash;',	'ø': '&oslash;',	'Ù': '&Ugrave;',	'ù': '&ugrave;',	'Ü': '&Uuml;',	'ü': '&uuml;',	'Ç': '&Ccedil;',	'ç': '&ccedil;',	'Ñ': '&Ntilde;',	'ñ': '&ntilde;',	'Ý': '&Yacute;',	'ý': '&yacute;',	'"': '&quot;', '”': '&quot;',	'<': '&lt;',	'>': '&gt;',	'®': '&reg;',	'©': '&copy;',	'\'': '&apos;', 'ª': '&ordf;', 'º': '&ordm;', '°':'&deg;', '²':'&sup2;', '¿':'&iquest;', '¡':'&iexcl;'}
-            for item in dicHTML:
-                if item in texto:
-                    texto = texto.replace(item, dicHTML[item])
-            return texto
-        else:
-            return ''
+        return {self.HTML: output,
+                self.HTML2: output2}
