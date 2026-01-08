@@ -26,21 +26,21 @@ __author__ = 'Tiago Prudencio e Leandro França'
 __date__ = '2022-02-13'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
-# This will get replaced with a git SHA1 when you do a git archive
-
-__revision__ = '$Format:%H$'
-
 import os
 import sys
 import inspect
 
-from qgis.core import QgsProcessingAlgorithm, QgsApplication
+from qgis.core import (QgsApplication,
+                       QgsExpression)
 from .GeoINCRA_provider import GeoINCRAProvider
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 
 if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)
+
+from .algorithms.expressions import *
+exprs = (areaINCRA, areaINCRA2, perimetroINCRA, perimetroINCRA2)
 
 
 class GeoINCRAPlugin(object):
@@ -53,8 +53,15 @@ class GeoINCRAPlugin(object):
         self.provider = GeoINCRAProvider()
         QgsApplication.processingRegistry().addProvider(self.provider)
 
+        for expr in exprs:
+            if not QgsExpression.isFunctionName(expr.name()):
+                QgsExpression.registerFunction(expr)
+
     def initGui(self):
         self.initProcessing()
 
     def unload(self):
         QgsApplication.processingRegistry().removeProvider(self.provider)
+        for expr in exprs:
+            if QgsExpression.isFunctionName(expr.name()):
+                QgsExpression.unregisterFunction(expr.name())
