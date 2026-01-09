@@ -29,7 +29,6 @@ __revision__ = '$Format:%H$'
 
 
 from qgis.core import *
-from qgis.gui import *
 from qgis.utils import qgsfunction
 from .Funcs import areaSGL, perimetroSGL
 
@@ -103,9 +102,9 @@ def areaINCRA2 (feature, parent, context):
         crsGeo = layer.crs()
     geomGeo = geom
     try:
-        return areaSGL(geomGeo, crsGeo)
+      return areaSGL(geomGeo, crsGeo)
     except:
-        return 'Verifique o tipo de geometria!'
+      return 'Verifique o tipo de geometria!'
 
 
 @qgsfunction(args='auto', group='GeoINCRA')
