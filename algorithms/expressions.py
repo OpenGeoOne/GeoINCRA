@@ -39,7 +39,7 @@ def areaINCRA (geometry, layer_crs, feature, parent):
     Esta função calcula a área de um <b>PolygonZ</b> ou <b>MultiPoligonZ</b> segundo o mesmo método adotado pelo <b>SIGEF/INCRA</b>. O cálculo parte das coordenadas geodésicas dos vértices, que são inicialmente convertidas para o sistema cartesiano geocêntrico tridimensional, referenciado ao centro da Terra. Em seguida, define-se a origem do <b>Sistema Geodésico Local (SGL)</b> a partir das <b>coordenadas médias*</b> do conjunto de vértices. 
     A partir dessa origem, as coordenadas são transformadas para esse SGL, no qual o polígono pode ser tratado como plano, mantendo o rigor geodésico por estar associado à cota média do imóvel e livre de distorções inerentes às projeções cartográficas. 
     Por fim, a área é calculada por meio da fórmula de Gauss aplicada às coordenadas locais, em conformidade com o Manual Técnico de Georreferenciamento de Imóveis Rurais do INCRA.
-    <p><i>Obs.: Esta função difere da função <b>areaLTP</b> do <b><a href="https://geoone.com.br/lftools-o-plugin-para-topografia-no-qgis/" target="_blank">plugin LFTools</a></b>, que utiliza o centroide do imóvel como origem do sistema local, o que pode resultar em pequenas diferenças nas últimas casas decimais da área calculada.</i></p>
+    <p><i>*Obs.: Esta função difere da função <b>areaLTP</b> do <b><a href="https://geoone.com.br/lftools-o-plugin-para-topografia-no-qgis/" target="_blank">plugin LFTools</a></b>, que utiliza o centroide do imóvel como origem do sistema local, o que pode resultar em pequenas diferenças nas últimas casas decimais da área calculada.</i></p>
     <h2>Exemplo:</h2>
     <ul>
       <li> areaINCRA(geometria, layer_crs) -> área INCRA </li>
@@ -76,8 +76,8 @@ def areaINCRA2 (feature, parent, context):
     Esta função calcula a área de um <b>PolygonZ</b> ou <b>MultiPoligonZ</b> segundo o mesmo método adotado pelo <b>SIGEF/INCRA</b>. O cálculo parte das coordenadas geodésicas dos vértices, que são inicialmente convertidas para o sistema cartesiano geocêntrico tridimensional, referenciado ao centro da Terra. Em seguida, define-se a origem do <b>Sistema Geodésico Local (SGL)</b> a partir das <b>coordenadas médias*</b> do conjunto de vértices. 
     A partir dessa origem, as coordenadas são transformadas para esse SGL, no qual o polígono pode ser tratado como plano, mantendo o rigor geodésico por estar associado à cota média do imóvel e livre de distorções inerentes às projeções cartográficas. 
     Por fim, a área é calculada por meio da fórmula de Gauss aplicada às coordenadas locais, em conformidade com o Manual Técnico de Georreferenciamento de Imóveis Rurais do INCRA.
-    <p><i>Obs.: Esta função difere da função <b>areaLTP</b> do <b><a href="https://geoone.com.br/lftools-o-plugin-para-topografia-no-qgis/" target="_blank">plugin LFTools</a></b>, que utiliza o centroide do imóvel como origem do sistema local, o que pode resultar em pequenas diferenças nas últimas casas decimais da área calculada.</i></p>
-    <h2>Example:</h2>
+    <p><i>*Obs.: Esta função difere da função <b>areaLTP</b> do <b><a href="https://geoone.com.br/lftools-o-plugin-para-topografia-no-qgis/" target="_blank">plugin LFTools</a></b>, que utiliza o centroide do imóvel como origem do sistema local, o que pode resultar em pequenas diferenças nas últimas casas decimais da área calculada.</i></p>
+    <h2>Exemplo:</h2>
     <ul>
       <li> $areaINCRA -> 607503.4867 </li>
     </ul>
@@ -110,12 +110,13 @@ def areaINCRA2 (feature, parent, context):
 @qgsfunction(args='auto', group='GeoINCRA')
 def perimetroINCRA (geometry, layer_crs, feature, parent):
     """
-    Calculates the perimeter on the Local Tangent Plane (LTP), also known as Local Geodetic Coordinate System, which is a spatial reference system based on the tangent plane on the feature centroid defined by the local vertical direction.
-    <p>Note: PolygonZ or MultiPoligonZ should be used to obtain the most accurate result.</p>
-    <h2>Example:</h2>
+    Esta função calcula o perímetro de uma <b>LinestringZ</b> segundo o mesmo método adotado pelo <b>SIGEF/INCRA</b>. O cálculo parte das coordenadas geodésicas dos vértices, que são inicialmente convertidas para o sistema cartesiano geocêntrico tridimensional, referenciado ao centro da Terra. Em seguida, define-se a origem do <b>Sistema Geodésico Local (SGL)</b> a partir das <b>coordenadas médias*</b> do conjunto de vértices. 
+    A partir dessa origem, as coordenadas são transformadas para esse SGL, no qual o polígono pode ser tratado como plano, mantendo o rigor geodésico por estar associado à cota média do imóvel e livre de distorções inerentes às projeções cartográficas. 
+    Por fim, o perímetro é calculado por meio da distância euclidiana aplicada às coordenadas locais, em conformidade com o Manual Técnico de Georreferenciamento de Imóveis Rurais do INCRA.
+    <h2>Exemplo:</h2>
     <ul>
-      <li> perimeterLTP(geometry, layer_crs) -> LTP area </li>
-      <li> perimeterLTP($geometry, 'EPSG:31985') -> 607503.4825 </li>
+      <li> perimetroINCRA(geometry, layer_crs) -> LTP area </li>
+      <li> perimetroINCRA($geometry, 'EPSG:31983') -> 447503.415 </li>
     </ul>
     <div>
     <p><b>Sobre o Sistema Geodésico Local (SGL):</b></p>
@@ -145,11 +146,12 @@ def perimetroINCRA (geometry, layer_crs, feature, parent):
 @qgsfunction(args='auto', group='GeoINCRA', name = '$perimetroINCRA')
 def perimetroINCRA2 (feature, parent, context):
     """
-    Calculates the perimeter on the Local Tangent Plane (LTP), also known as Local Geodetic Coordinate System, which is a spatial reference system based on the tangent plane on the feature centroid defined by the local vertical direction.
-    <p>Note: PolygonZ or MultiPoligonZ should be used to obtain the most accurate result.</p>
-    <h2>Example:</h2>
+    Esta função calcula o perímetro de uma <b>LinestringZ</b> segundo o mesmo método adotado pelo <b>SIGEF/INCRA</b>. O cálculo parte das coordenadas geodésicas dos vértices, que são inicialmente convertidas para o sistema cartesiano geocêntrico tridimensional, referenciado ao centro da Terra. Em seguida, define-se a origem do <b>Sistema Geodésico Local (SGL)</b> a partir das <b>coordenadas médias*</b> do conjunto de vértices. 
+    A partir dessa origem, as coordenadas são transformadas para esse SGL, no qual o polígono pode ser tratado como plano, mantendo o rigor geodésico por estar associado à cota média do imóvel e livre de distorções inerentes às projeções cartográficas. 
+    Por fim, o perímetro é calculado por meio da distância euclidiana aplicada às coordenadas locais, em conformidade com o Manual Técnico de Georreferenciamento de Imóveis Rurais do INCRA.
+    <h2>Exemplo:</h2>
     <ul>
-      <li> $perimeterLTP -> 456.48 </li>
+      <li> $perimetroINCRA -> 4156.483 </li>
     </ul>
     <div>
     <p><b>Sobre o Sistema Geodésico Local (SGL):</b></p>
