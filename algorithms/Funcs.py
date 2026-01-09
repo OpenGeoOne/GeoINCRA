@@ -27,6 +27,12 @@ import math
 
 # Funções obtidas do plugin LFTools
 
+def distEuclidiana2D(p1, p2):
+    return float(np.sqrt((p1.x() - p2.x())**2 + (p1.y() - p2.y())**2))
+
+def distEuclidiana3D(p1, p2):
+    return float(np.sqrt((p1.x() - p2.x())**2 + (p1.y() - p2.y())**2  + (p1.z() - p2.z())**2))
+
 def areaGauss(coords):
     soma = 0
     tam = len(coords)
@@ -184,24 +190,22 @@ def AreaPerimetroParteSGL(coordsXYZ, crsGeo):
 def areaSGL(geomGeo, crsGeo):
     if geomGeo.isMultipart():
         coordsXYZ = geom2PointList(geomGeo)
-        coordsXY = geomGeo.asMultiPolygon()
-        areaSGL = 0
-        for k, coords in enumerate(coordsXY):
-            coordsGeo = coordsXYZ[k]
-            areaSGL += AreaPerimetroParteSGL(coordsGeo[0], crsGeo)[0]
+        area_final = 0
+        for coordsGeo in coordsXYZ:
+            area_final += AreaPerimetroParteSGL(coordsGeo[0], crsGeo)[0]
             n_aneis = len(coordsGeo)
             if n_aneis > 1:
                 for w in range(1, n_aneis):
-                    areaSGL -= AreaPerimetroParteSGL(coordsGeo[w], crsGeo)[0]
+                    area_final -= AreaPerimetroParteSGL(coordsGeo[w], crsGeo)[0]
     else:
         coordsGeo = geom2PointList(geomGeo)
-        coords = geomGeo.asPolygon()
-        areaSGL = AreaPerimetroParteSGL(coordsGeo[0], crsGeo)[0]
+        area_final = AreaPerimetroParteSGL(coordsGeo[0], crsGeo)[0]
         n_aneis = len(coordsGeo)
         if n_aneis > 1:
             for w in range(1, n_aneis):
-                areaSGL -= AreaPerimetroParteSGL(coordsGeo[w], crsGeo)[0]
-    return areaSGL
+                area_final -= AreaPerimetroParteSGL(coordsGeo[w], crsGeo)[0]
+    print(area_final)
+    return area_final
 
 
 def perimetroSGL(geomGeo, crsGeo):
