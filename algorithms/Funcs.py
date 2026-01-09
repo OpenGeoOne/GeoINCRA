@@ -211,14 +211,11 @@ def areaSGL(geomGeo, crsGeo):
 def perimetroSGL(geomGeo, crsGeo):
     if geomGeo.isMultipart():
         coordsXYZ = geom2PointList(geomGeo)
-        coordsXY = geomGeo.asMultiPolygon()
         perimetroSGL = 0
-        for k, coords in enumerate(coordsXY):
-            coordsGeo = coordsXYZ[k]
+        for coordsGeo in coordsXYZ:
             perimetroSGL += AreaPerimetroParteSGL(coordsGeo[0], crsGeo)[1]
     else:
         coordsGeo = geom2PointList(geomGeo)
-        coords = geomGeo.asPolygon()
         perimetroSGL = AreaPerimetroParteSGL(coordsGeo[0], crsGeo)[1]
     return float(perimetroSGL)
 
