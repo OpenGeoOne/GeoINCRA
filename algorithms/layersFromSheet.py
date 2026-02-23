@@ -27,23 +27,38 @@ __date__ = '2024-08-10'
 __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingException,
-                       QgsProcessingAlgorithm,
-                       QgsWkbTypes,
-                       QgsCoordinateReferenceSystem,
-                       QgsProcessingParameterFile,
-                       QgsVectorLayer,
-                       QgsFields,
-                       QgsField,
-                       QgsFeature,
-                       QgsGeometry,
-                       QgsLineString,
-                       QgsMultiPolygon,
-                       QgsPolygon,
-                       QgsPoint,
-                       QgsProcessingParameterFeatureSink)
+from qgis.PyQt.QtGui import QFont, QColor
+from qgis.core import ( QgsFeatureSink,
+                        QgsProcessingException,
+                        QgsProcessingAlgorithm,
+                        QgsWkbTypes,
+                        QgsCoordinateReferenceSystem,
+                        QgsProcessingParameterFile,
+                        QgsVectorLayer,
+                        QgsFields,
+                        QgsField,
+                        QgsFeature,
+                        QgsGeometry,
+                        QgsLineString,
+                        QgsMultiPolygon,
+                        QgsPolygon,
+                        QgsPoint,
+                        QgsProcessingParameterFeatureSink,QgsProcessingUtils,
+                        QgsProject,
+                        QgsLayerTreeLayer,
+                        QgsMarkerSymbol,
+                        QgsLineSymbol,
+                        QgsFillSymbol,
+                        QgsSingleSymbolRenderer,
+                        QgsCategorizedSymbolRenderer,
+                        QgsRendererCategory,
+                        QgsPalLayerSettings,
+                        QgsVectorLayerSimpleLabeling,
+                        QgsTextFormat,
+                        QgsTextBufferSettings,
+                        QgsExpression,
+                        QgsExpressionContext,
+                        QgsExpressionContextUtils)
 from qgis import processing
 from qgis.PyQt.QtGui import QIcon
 from GeoINCRA.images.Imgs import *
@@ -394,26 +409,29 @@ class LayersFromSheet(QgsProcessingAlgorithm):
 
             feedback.pushInfo('Alimentando camada Limite (linha) do {}...'.format(perimetro))
             linha = []
+            anterior_tipoLim = str(lista[0][8]).replace('NULL','')
             anterior_cns = str(lista[0][9]).replace('NULL','')
             anterior_mat = str(lista[0][10]).replace('NULL','')
             anterior_confr = str(lista[0][11]).replace('NULL','')
 
             for k, item in enumerate(lista):
                 linha += [pnts[k]]
+                tipoLim = str(item[8]).replace('NULL','')
                 cns = str(item[9]).replace('NULL','')
                 matricula = str(item[10]).replace('NULL','')
                 confrontante = str(item[11]).replace('NULL','')
-                if ((cns+matricula+confrontante) != (anterior_cns+anterior_mat+anterior_confr)):
+                if (tipoLim+cns+matricula+confrontante) != (anterior_tipoLim+anterior_cns+anterior_mat+anterior_confr):
                     feat = QgsFeature(Fields2)
                     feat.setGeometry(QgsGeometry(QgsLineString(linha)))
-                    feat['tipo'] = str(item[8])
+                    feat['tipo'] = anterior_tipoLim
                     feat['confrontan'] = anterior_confr
                     feat['cns'] = anterior_cns
                     feat['matricula'] = anterior_mat
                     feat['lote'] = str(contagem+1)
                     sink2.addFeature(feat, QgsFeatureSink.FastInsert)
-                    anterior_mat = matricula
+                    anterior_tipoLim = tipoLim
                     anterior_cns = cns
+                    anterior_mat = matricula
                     anterior_confr = confrontante
                     linha = [pnts[k]]
                 if feedback.isCanceled():
@@ -421,15 +439,15 @@ class LayersFromSheet(QgsProcessingAlgorithm):
 
             # Último segmento
             feat = QgsFeature(Fields2)
-            if (cns+matricula+confrontante) == (anterior_cns+anterior_mat+anterior_confr):
+            if (tipoLim+cns+matricula+confrontante) == (anterior_tipoLim+anterior_cns+anterior_mat+anterior_confr):
                 linha += [pnts[0]]
-                feat['tipo'] = str(item[8])
+                feat['tipo'] = anterior_tipoLim
                 feat['confrontan'] = anterior_confr
                 feat['cns'] = anterior_cns
                 feat['matricula'] = anterior_mat
             else:
                 linha = [pnts[k], pnts[0]]
-                feat['tipo'] = str(item[8])
+                feat['tipo'] = tipoLim
                 feat['confrontan'] = confrontante
                 feat['cns'] = cns
                 feat['matricula'] = matricula
@@ -462,6 +480,177 @@ class LayersFromSheet(QgsProcessingAlgorithm):
             feat.setGeometry(newGeom)
             sink3.addFeature(feat, QgsFeatureSink.FastInsert)
 
+            self.SAIDA_VERTICE = dest_id1
+            self.SAIDA_LIMITE = dest_id2
+            self.SAIDA_PARCELA = dest_id3
+
         return {self.VERTICE: dest_id1,
                 self.LIMITE: dest_id2,
                 self.PARCELA: dest_id3}
+
+    def postProcessAlgorithm(self, context, feedback):
+        # Recupera camadas (saídas do processamento)
+        camada_vertice = QgsProcessingUtils.mapLayerFromString(self.SAIDA_VERTICE, context)
+        camada_limite  = QgsProcessingUtils.mapLayerFromString(self.SAIDA_LIMITE, context)
+        camada_parcela = QgsProcessingUtils.mapLayerFromString(self.SAIDA_PARCELA, context)
+
+        try:
+
+            # -------------------------------------------------------
+            # 1) Criar/posicionar grupo no TOPO e inserir as 3 camadas
+            # -------------------------------------------------------
+            proj = QgsProject.instance()
+            root = proj.layerTreeRoot()
+
+            group_name = "Camadas da planilha ODS"
+            group = root.findGroup(group_name)
+
+            # cria no topo, ou recria no topo se já existir em outro lugar
+            if group is None:
+                group = root.insertGroup(0, group_name)  # topo do painel
+            else:
+                idx = root.children().index(group)
+                if idx != 0:
+                    root.removeChildNode(group)
+                    group = root.insertGroup(0, group_name)
+
+            # opcional: limpar conteúdo antigo do grupo a cada execução
+            # group.removeAllChildren()
+
+            # garante que as layers estão no projeto (registry)
+            for lyr in (camada_vertice, camada_limite, camada_parcela):
+                if proj.mapLayer(lyr.id()) is None:
+                    proj.addMapLayer(lyr, False)
+
+            # remove nodes existentes dessas layers (de onde estiverem), evitando duplicação
+            def _detach_layer_node(layer):
+                node = root.findLayer(layer.id())
+                if node is not None and node.parent() is not None:
+                    node.parent().removeChildNode(node)
+
+            _detach_layer_node(camada_vertice)
+            _detach_layer_node(camada_limite)
+            _detach_layer_node(camada_parcela)
+
+            # insere no grupo na ordem desejada (topo -> baixo)
+            group.insertLayer(0, camada_vertice)
+            group.insertLayer(1, camada_limite)
+            group.insertLayer(2, camada_parcela)
+            group.setExpanded(True)
+
+            # -----------------------------
+            # Helper rotulação (sem placement)
+            # -----------------------------
+            def _apply_labeling(layer, expr, font_size=10, color="white",
+                                buffer_color="black", buffer_size=0.8, bold=True):
+                label_settings = QgsPalLayerSettings()
+                label_settings.fieldName = expr
+                label_settings.isExpression = True
+                label_settings.enabled = True
+
+                text_format = QgsTextFormat()
+                font = QFont("Arial", int(font_size))
+                font.setBold(bool(bold))
+                text_format.setFont(font)
+                text_format.setSize(float(font_size))
+                text_format.setColor(QColor(color))
+
+                buffer_settings = QgsTextBufferSettings()
+                buffer_settings.setEnabled(True)
+                buffer_settings.setSize(float(buffer_size))
+                buffer_settings.setColor(QColor(buffer_color))
+                text_format.setBuffer(buffer_settings)
+
+                label_settings.setFormat(text_format)
+
+                labeling = QgsVectorLayerSimpleLabeling(label_settings)
+                layer.setLabeling(labeling)
+                layer.setLabelsEnabled(True)
+
+            # -----------------------------
+            # 2) VÉRTICE: simbologia + rotulação
+            # -----------------------------
+            symbol_vert = QgsMarkerSymbol.createSimple({
+                'name': 'circle',
+                'color': '255,0,0',
+                'outline_color': '0,0,0',
+                'outline_style': 'solid',
+                'size': '3',
+                'size_unit': 'MM'
+            })
+            camada_vertice.setRenderer(QgsSingleSymbolRenderer(symbol_vert))
+            _apply_labeling(
+                camada_vertice,
+                expr='"vertice"',
+                font_size=9,
+                color="white",
+                buffer_color="black",
+                buffer_size=0.9,
+                bold=True
+            )
+            camada_vertice.triggerRepaint()
+
+            # -----------------------------
+            # 3) LIMITE: categorizado por (confrontan-tipo) + rótulo com \n
+            # -----------------------------
+            expr_cat = "\"confrontan\" || '-' || \"tipo\""
+            expr = QgsExpression(expr_cat)
+
+            ctx = QgsExpressionContext()
+            ctx.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(camada_limite))
+
+            values = set()
+            for f in camada_limite.getFeatures():
+                ctx.setFeature(f)
+                v = expr.evaluate(ctx)
+                values.add("" if v is None else str(v))
+
+            categories = []
+            for v in sorted(values):
+                sym = QgsLineSymbol.createSimple({'width': '0.6', 'width_unit': 'MM'})
+                # cor determinística por hash
+                h = abs(hash(v)) % 360
+                sym.setColor(QColor.fromHsv(h, 200, 230))
+                categories.append(QgsRendererCategory(v, sym, v))
+
+            camada_limite.setRenderer(QgsCategorizedSymbolRenderer(expr_cat, categories))
+
+            _apply_labeling(
+                camada_limite,
+                expr="\"confrontan\" || '\\n' || \"tipo\"",
+                font_size=9,
+                color="white",
+                buffer_color="black",
+                buffer_size=0.9,
+                bold=True
+            )
+            camada_limite.triggerRepaint()
+
+            # -----------------------------
+            # 4) PARCELA: rosa claro 50% + rotulação com "nome"
+            # -----------------------------
+            sym_parc = QgsFillSymbol.createSimple({
+                'color': '255,182,193,128',      # rosa claro com alpha
+                'outline_color': '255,105,180,200',
+                'outline_width': '0.6',
+                'outline_width_unit': 'MM'
+            })
+            sym_parc.setOpacity(0.5)
+
+            camada_parcela.setRenderer(QgsSingleSymbolRenderer(sym_parc))
+            _apply_labeling(
+                camada_parcela,
+                expr="\"nome\"",
+                font_size=10,
+                color="black",
+                buffer_color="white",
+                buffer_size=1.0,
+                bold=True
+            )
+            camada_parcela.triggerRepaint()
+
+            return {}
+        
+        except:
+            feedback.pushWarning("Não foi possível aplicar estilos na camada!")
+            return {}
