@@ -85,7 +85,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
                       <a href="https://geoone.com.br/ebooks/ebook_gratis/"><span style="font-weight: bold;">Clique aqui para conhecer o modelo <b>TopoGeo</b></span></a><br>
                       </p>
                       <p align="right">
-                      <a href="https://geoone.com.br/pvgeoincra2/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
+                      <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
                       </p>
                       <p align="right">
                       <a href="https://portal.geoone.com.br/m/lessons/georreferenciamento-de-imveis-rurais-com-o-plugin-geoincra-1690158094835"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
