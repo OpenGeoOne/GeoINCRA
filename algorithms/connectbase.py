@@ -224,12 +224,12 @@ class ConnectBase(QgsProcessingAlgorithm):
 
 
     def addField(self, layer):
-    	config = {'IsMultiline': True, 'UseHtml': True}
-    	field_type = 'TextEdit'
-    	widget_setup = QgsEditorWidgetSetup(field_type,config)
-    	layer.setEditorWidgetSetup(layer.fields().indexOf('base_INCRA'), widget_setup)
-    	field= QgsField( 'base_INCRA', QVariant.String)
-    	layer.addExpressionField(
+        config = {'IsMultiline': True, 'UseHtml': True}
+        field_type = 'TextEdit'
+        widget_setup = QgsEditorWidgetSetup(field_type,config)
+        layer.setEditorWidgetSetup(layer.fields().indexOf('base_INCRA'), widget_setup)
+        field= QgsField( 'base_INCRA', QVariant.String)
+        layer.addExpressionField(
 '''replace('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 			<html>
 			<head>
@@ -254,7 +254,7 @@ class ConnectBase(QgsProcessingAlgorithm):
 			</html>','[ID]',  "parcela_codigo" )''', field
 			)
 
-    	return layer
+        return layer
 
     def name(self):
         return 'connectbase'
@@ -292,7 +292,7 @@ class ConnectBase(QgsProcessingAlgorithm):
                       <a href="https://sigef.incra.gov.br/consultar/parcelas/"><span style="font-weight: bold;">Clique aqui para consultar parcelas do SIGEF</span></a><br>
                       </p>
                       <p align="right">
-                      <a href="https://geoone.com.br/pvgeoincra2/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
+                      <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
                       </p>
                       <p align="right">
                       <a href="https://portal.geoone.com.br/m/lessons/georreferenciamento-de-imveis-rurais-com-o-plugin-geoincra-1690158094835"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
