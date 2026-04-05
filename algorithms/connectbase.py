@@ -57,10 +57,10 @@ class ConnectBase(QgsProcessingAlgorithm):
     GEOONE = 'GEOONE'
     WFS = 'WFS'
 
-    mapping ={ 0: 'Imóveis Certificados SIGEF - Particular',
-               1: 'Imóveis Certificados SIGEF - Público',
-               2: 'Imóveis Certificados SNCI - Privado',
-               3: 'Imóveis Certificados SNCI - Público',
+    mapping ={ 0: 'SIGEF - Certificados - Particular',
+               1: 'SIGEF - Certificados - Público',
+               2: 'SNCI - 1ª/2ª Norma - Privado',
+               3: 'SNCI - 1ª/2ª Norma - Público',
                4: 'Assentamentos',
                5: 'Quilombolas',
                6: 'Imóveis Pendentes de Titulação',
