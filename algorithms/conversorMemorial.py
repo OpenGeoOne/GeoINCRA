@@ -76,7 +76,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
     
     def tags(self):
-        return 'GeoOne,GeoRural,INCRA,Sigef,memorial,pdf,conversão,tranformar,descritivo,documento,cartório,matrícula,regularização,fundiária'.split(',')
+        return 'GeoOne,GeoRural,INCRA,Sigef,memorial,pdf,conversão,tranformar,textual,tabular,descritivo,documento,cartório,matrícula,regularização,fundiária'.split(',')
 
     def shortHelpString(self):
         txt = '''Converte automaticamente o memorial descritivo tabular do SIGEF (PDF) em um texto narrativo mais fluido, mantendo os elementos técnicos exigidos, com formato adequado para leitura e uso em cartórios de registro de imóveis.
