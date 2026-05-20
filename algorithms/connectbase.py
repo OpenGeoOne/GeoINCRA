@@ -26,7 +26,7 @@ __author__ = 'Tiago Prudencio e Leandro França'
 __date__ = '2022-02-13'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
-from qgis.PyQt.QtCore import QCoreApplication, QVariant
+from qgis.PyQt.QtCore import QCoreApplication, QMetaType
 from qgis.core import (QgsProject,
                        QgsFeatureRequest,
                        QgsVectorLayer,
@@ -228,7 +228,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         field_type = 'TextEdit'
         widget_setup = QgsEditorWidgetSetup(field_type,config)
         layer.setEditorWidgetSetup(layer.fields().indexOf('base_INCRA'), widget_setup)
-        field= QgsField( 'base_INCRA', QVariant.String)
+        field= QgsField( 'base_INCRA', QMetaType.Type.QString)
         layer.addExpressionField(
 '''replace('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 			<html>

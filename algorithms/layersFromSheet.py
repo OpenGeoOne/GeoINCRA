@@ -26,7 +26,7 @@ __author__ = 'Tiago Prudencio e Leandro França'
 __date__ = '2024-08-10'
 __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 
-from qgis.PyQt.QtCore import QCoreApplication, QVariant
+from qgis.PyQt.QtCore import QCoreApplication, QMetaType
 from qgis.PyQt.QtGui import QFont, QColor
 from qgis.core import ( QgsFeatureSink,
                         QgsProcessingException,
@@ -290,14 +290,14 @@ class LayersFromSheet(QgsProcessingAlgorithm):
         # Criar camada de Pontos
         feedback.pushInfo('Criando camada Vértice...')
         Fields1 = QgsFields()
-        itens  = {   'indice': QVariant.Int,
-                     'vertice': QVariant.String,
-                     'tipo_verti': QVariant.String,
-                     'metodo_pos' : QVariant.String,
-                     'sigma_x' : QVariant.Double,
-                     'sigma_y' : QVariant.Double,
-                     'sigma_z' : QVariant.Double,
-                     'lote' : QVariant.String,
+        itens  = {   'indice': QMetaType.Type.Int,
+                     'vertice': QMetaType.Type.QString,
+                     'tipo_verti': QMetaType.Type.QString,
+                     'metodo_pos' : QMetaType.Type.QString,
+                     'sigma_x' : QMetaType.Type.Double,
+                     'sigma_y' : QMetaType.Type.Double,
+                     'sigma_z' : QMetaType.Type.Double,
+                     'lote' : QMetaType.Type.QString,
                      }
         for item in itens:
             Fields1.append(QgsField(item, itens[item]))
@@ -316,11 +316,11 @@ class LayersFromSheet(QgsProcessingAlgorithm):
         # Criar camada de Linhas
         feedback.pushInfo('Criando camada Limite...')
         Fields2 = QgsFields()
-        itens  = {   'tipo': QVariant.String,
-                     'confrontan': QVariant.String,
-                     'cns': QVariant.String,
-                     'matricula' : QVariant.String,
-                     'lote' : QVariant.String,
+        itens  = {   'tipo': QMetaType.Type.QString,
+                     'confrontan': QMetaType.Type.QString,
+                     'cns': QMetaType.Type.QString,
+                     'matricula' : QMetaType.Type.QString,
+                     'lote' : QMetaType.Type.QString,
                      }
         for item in itens:
             Fields2.append(QgsField(item, itens[item]))
@@ -340,22 +340,22 @@ class LayersFromSheet(QgsProcessingAlgorithm):
         # Criar camada de Polígono
         feedback.pushInfo('Criando camada Parcela...')
         Fields3 = QgsFields()
-        itens  = {   'nome': QVariant.String,
-                     'nat_serv': QVariant.Int,
-                     'pessoa': QVariant.Int,
-                     'cpf_cnpj' : QVariant.String,
-                     'denominacao': QVariant.String,
-                     'situacao': QVariant.Int,
-                     'natureza': QVariant.Int,
-                     'sncr': QVariant.String,
-                     'matricula': QVariant.String,
-                     'cod_cartorio': QVariant.String,
-                     'municipio': QVariant.String,
-                     'uf': QVariant.String,
-                     'resp_tec': QVariant.String,
-                     'reg_prof': QVariant.String,
-                     'data': QVariant.Date,
-                     'lote' : QVariant.String,
+        itens  = {   'nome': QMetaType.Type.QString,
+                     'nat_serv': QMetaType.Type.Int,
+                     'pessoa': QMetaType.Type.Int,
+                     'cpf_cnpj' : QMetaType.Type.QString,
+                     'denominacao': QMetaType.Type.QString,
+                     'situacao': QMetaType.Type.Int,
+                     'natureza': QMetaType.Type.Int,
+                     'sncr': QMetaType.Type.QString,
+                     'matricula': QMetaType.Type.QString,
+                     'cod_cartorio': QMetaType.Type.QString,
+                     'municipio': QMetaType.Type.QString,
+                     'uf': QMetaType.Type.QString,
+                     'resp_tec': QMetaType.Type.QString,
+                     'reg_prof': QMetaType.Type.QString,
+                     'data': QMetaType.Type.QDate,
+                     'lote' : QMetaType.Type.QString,
                      }
         for item in itens:
             Fields3.append(QgsField(item, itens[item]))

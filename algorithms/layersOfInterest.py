@@ -30,7 +30,7 @@ __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import QCoreApplication, QVariant
+from qgis.PyQt.QtCore import QCoreApplication, QMetaType
 from qgis.core import *
 import os
 import requests

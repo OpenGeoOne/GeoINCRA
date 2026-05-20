@@ -15,7 +15,7 @@ __date__ = '2026-01-06'
 __copyright__ = '(C) 2026 by Tiago Prudencio and Leandro França'
 
 from qgis.core import *
-from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtCore import QMetaType
 import platform, re
 from numpy import radians, arctan, pi, sin, cos, sqrt, degrees, array, diag, ones, zeros, floor
 from numpy.linalg import norm, pinv, inv
