@@ -15,15 +15,13 @@ __date__ = '2026-01-06'
 __copyright__ = '(C) 2026 by Tiago Prudencio and Leandro França'
 
 from qgis.core import *
-from qgis.PyQt.QtCore import QMetaType
-import platform, re
+import re
 from numpy import radians, arctan, pi, sin, cos, sqrt, degrees, array, diag, ones, zeros, floor
-from numpy.linalg import norm, pinv, inv
 from qgis.core import QgsEllipsoidUtils
 from datetime import datetime, timedelta
-import datetime as dt
 import numpy as np
 import math
+from GeoINCRA.dependencies import ensure_pypdf2
 
 # Funções obtidas do plugin LFTools
 
@@ -257,53 +255,101 @@ def AzimutePuissant(lat1, lon1, lat2, lon2, a = 6378137, f = 1/298.257222101):
     return (Azimute + 360)%360
 
 
+
+
 def dd2dms(dd, n_digits):
-    if dd != 0:
-        graus = int(floor(abs(dd)))
-        resto1 = round(abs(dd) - graus, 10)
-        minutos = 60*resto1
-        if n_digits >= 0:
-            minutos = int(floor(minutos))
-            resto2 = round(resto1*60 - minutos, 10)
-            segundos = resto2*60
-            if round(segundos,n_digits) == 60:
-                minutos += 1
-                segundos = 0
-            if minutos == 60:
-                graus += 1
-                minutos = 0
-        else:
-            mindec = -1*(n_digits+1)
-            if round(minutos,mindec) == 60:
-                graus += 1
-                minutos = 0
-        if dd < 0:
-            texto = '-' + str(graus) + '°'
-        else:
-            texto = str(graus) + '°'
+    if dd is None:
+        raise ValueError("dd não pode ser None")
 
-        if n_digits < -1: # graus e minutos decimais
-            texto = texto + ('{:0' + str(3+mindec) + '.' + str(mindec) + 'f}').format(minutos) + "'"
-        elif n_digits == -1: # graus e minutos inteiros
-            texto = texto + '{:02d}'.format(round(minutos)) + "'"
-        else: # graus, minutos e segundos
-            texto = texto + '{:02d}'.format(minutos) + "'"
+    if not isinstance(n_digits, int):
+        raise TypeError("n_digits deve ser um inteiro")
 
-        if n_digits == 0: # segundos inteiros
-            texto = texto + '{:02d}'.format(round(segundos)) + '"'
-        elif n_digits > 0: # segundos decimais
-            texto = texto + ('{:0' + str(3+n_digits) + '.' + str(n_digits) + 'f}').format(segundos) + '"'
-        return texto
+    dd = float(dd)
+
+    if not math.isfinite(dd):
+        raise ValueError("dd deve ser um número finito")
+
+    sign = '-' if dd < 0 else ''
+    value = abs(dd)
+
+    degrees = int(math.floor(value))
+    decimal_degrees = round(value - degrees, 12)
+
+    # Case 1: degrees, minutes and seconds
+    if n_digits >= 0:
+        minutes_float = decimal_degrees * 60
+        minutes = int(math.floor(minutes_float))
+
+        decimal_minutes = round(minutes_float - minutes, 12)
+        seconds = round(decimal_minutes * 60, n_digits)
+
+        if seconds >= 60:
+            seconds = 0
+            minutes += 1
+
+        if minutes >= 60:
+            minutes = 0
+            degrees += 1
+
+        text = f"{sign}{degrees}°{minutes:02d}'"
+
+        if n_digits == 0:
+            text += f'{int(seconds):02d}"'
+        else:
+            width = 3 + n_digits
+            text += f'{seconds:0{width}.{n_digits}f}"'
+
+        return text
+
+    # Case 2: degrees and integer minutes
+    elif n_digits == -1:
+        minutes = round(decimal_degrees * 60)
+
+        if minutes >= 60:
+            minutes = 0
+            degrees += 1
+
+        return f"{sign}{degrees}°{minutes:02d}'"
+
+    # Case 3: degrees and decimal minutes
     else:
-        if n_digits > 0:
-            return "0°00'" + ('{:0' + str(3+n_digits) + '.' + str(n_digits) + 'f}').format(0) + '"'
-        elif n_digits == 0:
-            return "0°00'" + '"'
-        elif n_digits == -1:
-            return "0°00'"
-        else:
-            mindec = -1*(n_digits+1)
-            return "0°" + ('{:0' + str(3+mindec) + '.' + str(mindec) + 'f}').format(0) + "'"
+        minute_decimals = -1 * (n_digits + 1)
+
+        minutes = round(decimal_degrees * 60, minute_decimals)
+
+        if minutes >= 60:
+            minutes = 0
+            degrees += 1
+
+        width = 3 + minute_decimals
+
+        return f"{sign}{degrees}°{minutes:0{width}.{minute_decimals}f}'"
+        
+
+
+
+def azimuteTrucandoSigef(dd):
+
+    if dd is None:
+        raise ValueError("dd não pode ser None")
+
+    dd = float(dd)
+
+    if not math.isfinite(dd):
+        raise ValueError("dd deve ser um número finito")
+
+    sinal = '-' if dd < 0 else ''
+    valor = abs(dd)
+
+    graus = int(valor)
+
+    minutos_dec = (valor - graus) * 60
+
+    minutos = math.floor(minutos_dec)
+
+    return f"{sinal}{graus}°{minutos:02d}'"
+
+
 
 
 def str2HTML(texto):
@@ -318,40 +364,14 @@ def str2HTML(texto):
     
 
 def LerPDF(pdf_path, feedback = None):
-    
-    # Detectando o sistema operacional e instalando PyPDF2
-    system_os = platform.system()
-    if system_os == "Linux":
-        import subprocess
-        import sys
-        try:
-            from PyPDF2 import PdfReader
-        except:
-            feedback.pushInfo('PyPDF2 não está instalado. Tentando instalar "PyPDF2" utilizando "pip"...')
-            try:
-                subprocess.check_call([sys.executable, "-m", "pip", "install", "PyPDF2"],
-                                        stdout=subprocess.DEVNULL,
-                                        stderr=subprocess.DEVNULL)
-                from PyPDF2 import PdfReader
-            except subprocess.CalledProcessError as e:
-                feedback.reportError(f"Erro ao instalar o pacote pacote PyPDF2. Você pode tentar instalar manualmente via OSGeo4W Shell:\n"
-                            f"python3 -m pip install PyPDF2")
-                raise QgsProcessingException(f"Falha ao instalar o pacote PyPDF2: {e}")
-    else: # "Windows","Darwin" (MacOS)
-        import pip
-        try:
-            from PyPDF2 import PdfReader
-        except ImportError:
-            feedback.pushInfo('PyPDF2 não está instalado. Tentando instalar "PyPDF2" utilizando "pip"...')
-            try:
-                # Executa o pip usando subprocess
-                pip.main(["install","PyPDF2"])
-                from PyPDF2 import PdfReader
-            except Exception as e:
-                feedback.reportError(f"Erro ao instalar o pacote pacote PyPDF2. Você pode tentar instalar manualmente via OSGeo4W Shell:\n"
-                            f"pip install PyPDF2")
-                raise QgsProcessingException(f"Falha ao instalar o pacote PyPDF2: {e}")
-    feedback.pushInfo('Biblioteca PyPDF2 importada com sucesso...')
+
+    PdfReader = ensure_pypdf2(feedback)
+    if PdfReader is None:
+        raise ImportError(
+            '''A biblioteca PyPDF2 é necessária para importar arquivos PDF. Tente instalar utilizando pip pelo OSGeo4W Shell: 
+            pip install PyPDF2
+            Mais dicas de instalação de bibliotecas Python estão disponíveis em: https://geoone.com.br/corrigir-erros-de-importacao-python-qgis/'''
+        )
 
     # Lendo arquivo PDF
     reader = PdfReader(pdf_path)
