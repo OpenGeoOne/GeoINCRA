@@ -27,41 +27,8 @@ __date__ = '2024-08-10'
 __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication, QMetaType
-from qgis.PyQt.QtGui import QFont, QColor
-from qgis.core import ( QgsFeatureSink,
-                        QgsProcessingException,
-                        QgsProcessingAlgorithm,
-                        QgsWkbTypes,
-                        QgsCoordinateReferenceSystem,
-                        QgsProcessingParameterFile,
-                        QgsVectorLayer,
-                        QgsFields,
-                        QgsField,
-                        QgsFeature,
-                        QgsGeometry,
-                        QgsLineString,
-                        QgsMultiPolygon,
-                        QgsPolygon,
-                        QgsPoint,
-                        QgsProcessingParameterFeatureSink,QgsProcessingUtils,
-                        QgsProject,
-                        QgsLayerTreeLayer,
-                        QgsMarkerSymbol,
-                        QgsLineSymbol,
-                        QgsFillSymbol,
-                        QgsSingleSymbolRenderer,
-                        QgsCategorizedSymbolRenderer,
-                        QgsRendererCategory,
-                        QgsPalLayerSettings,
-                        QgsVectorLayerSimpleLabeling,
-                        QgsTextFormat,
-                        QgsTextBufferSettings,
-                        QgsExpression,
-                        QgsExpressionContext,
-                        QgsExpressionContextUtils)
-from qgis import processing
-from qgis.PyQt.QtGui import QIcon
-from GeoINCRA.images.Imgs import *
+from qgis.core import *
+from qgis.PyQt.QtGui import QIcon, QFont, QColor
 import zipfile
 import xml.etree.ElementTree as ET
 import os
@@ -84,37 +51,35 @@ class LayersFromSheet(QgsProcessingAlgorithm):
         return 'LayersFromSheet'.lower()
 
     def displayName(self):
-
-        return self.tr('Importar planilha ODS')
+        return self.tr('a. Importar planilha ODS (.ods)')
 
     def group(self):
-
-        return self.tr(self.groupId())
+        return self.tr('4. 📥 Importação como camadas no QGIS')
 
     def groupId(self):
-
-        return ''
+        return 'importacao_camadas_qgis'
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
     
     def tags(self):
         return 'GeoOne,GeoRural,INCRA,Sigef,memorial,ODS,planilha,conversão,tranformar,descritivo,documento,cartório,matrícula,regularização,fundiária,layer,geopackage'.split(',')
-
+    
     def shortHelpString(self):
         txt = 'Esta ferramenta importa uma <b>Planilha ODS</b> no padrão do SIGEF/INCRA, carregando as camadas vétice (ponto), limite (linha) e parcela (polígono) no modelo GeoRural.'
+
         footer = '''<div>
                       <div align="center">
-                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
                       </div>
                       <div align="right">
                       <p align="right">
                       <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
                       </p>
                       <p align="right">
-                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=4081"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
+                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=4081"><span style="font-weight: bold;">Acesse a aula sobre esta ferramenta no curso de GeoINCRA no GeoOne</span></a>
                       </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" width="280"  src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/GeoOne.png') +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
@@ -575,7 +540,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                 'color': '255,0,0',
                 'outline_color': '0,0,0',
                 'outline_style': 'solid',
-                'size': '3',
+                'size': '2',
                 'size_unit': 'MM'
             })
             camada_vertice.setRenderer(QgsSingleSymbolRenderer(symbol_vert))
