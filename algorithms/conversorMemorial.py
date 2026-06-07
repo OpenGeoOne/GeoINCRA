@@ -34,9 +34,8 @@ from qgis.core import (QgsProcessingException,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterFileDestination,
                        QgsProcessingParameterNumber)
-from qgis import processing
+
 from qgis.PyQt.QtGui import QIcon
-from GeoINCRA.images.Imgs import *
 from .Funcs import LerPDF, str2HTML
 import os
 from datetime import datetime
@@ -61,38 +60,37 @@ class ConversorMemorial(QgsProcessingAlgorithm):
         return 'ConversorMemorial'.lower()
 
     def displayName(self):
-
-        return self.tr('Conversor de Memorial do Sigef')
+        return self.tr('a. Conversor de Memorial do Sigef para Cartórios')
 
     def group(self):
-
-        return self.tr(self.groupId())
+        return self.tr('5. 🔄 Conversão e Integração')
 
     def groupId(self):
-
-        return ''
+        return 'conversao_integracao'
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
     
     def tags(self):
         return 'GeoOne,GeoRural,INCRA,Sigef,memorial,pdf,conversão,tranformar,textual,tabular,descritivo,documento,cartório,matrícula,regularização,fundiária'.split(',')
+    
 
     def shortHelpString(self):
         txt = '''Converte automaticamente o memorial descritivo tabular do SIGEF (PDF) em um texto narrativo mais fluido, mantendo os elementos técnicos exigidos, com formato adequado para leitura e uso em cartórios de registro de imóveis.
         Ideal para complementar o memorial tabular conforme exigências legais ou práticas cartorárias.'''
+
         footer = '''<div>
                       <div align="center">
-                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
                       </div>
                       <div align="right">
                       <p align="right">
                       <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
                       </p>
                       <p align="right">
-                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=5814"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
+                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=5814"><span style="font-weight: bold;">Acesse a aula sobre esta ferramenta no curso de GeoINCRA no GeoOne</span></a>
                       </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" width="280"  src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/GeoOne.png') +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
