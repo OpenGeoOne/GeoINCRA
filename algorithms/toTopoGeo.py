@@ -37,7 +37,6 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterVectorLayer)
 
 from qgis.PyQt.QtGui import QIcon
-from GeoINCRA.images.Imgs import *
 import os
 
 
@@ -51,20 +50,16 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         return ToTopoGeo()
 
     def name(self):
-
         return 'totopogeo'
 
     def displayName(self):
-
-        return self.tr('GeoRural para TopoGeo')
+        return self.tr('b. GeoRural para TopoGeo (plantas topográficas)')
 
     def group(self):
-
-        return self.tr(self.groupId())
+        return self.tr('5. 🔄 Conversão e Integração')
 
     def groupId(self):
-
-        return ''
+        return 'conversao_integracao'
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
@@ -91,6 +86,27 @@ class ToTopoGeo(QgsProcessingAlgorithm):
                       <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=2241"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
                       </p>
                       <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
+                      </div>
+                    </div>'''
+        return txt + footer
+    
+    def shortHelpString(self):
+        txt = '''Esta ferramenta copia as feições das camadas "vértices", "limites" e "parcela" do banco de dados <b>GeoRural</b> para as camdas "ponto limite", "elemento confrontante" e "área do imóvel" do banco <b>TopoGeo</b>, aproveitando-se os atributos em comum.
+        Com a feições no modelo TopoGeo, é possível utilizar recursos avançados de geração de Planta Topográfica mais profissionais.'''
+
+        footer = '''<div>
+                      <div align="center">
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
+                      </div>
+                      <div align="right">
+                      <p align="right">
+                      <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
+                      </p>
+                      <p align="right">
+                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=2241"><span style="font-weight: bold;">Acesse a aula sobre esta ferramenta no curso de GeoINCRA no GeoOne</span></a>
+                      </p>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" width="280"  src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/GeoOne.png') +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
