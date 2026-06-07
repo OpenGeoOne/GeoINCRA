@@ -32,14 +32,12 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterEnum,
                        QgsProcessingParameterBoolean,
-                       QgsFeature,
                        QgsGeometry,
                        QgsPoint,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterVectorLayer)
 
 from qgis.PyQt.QtGui import QIcon
-from GeoINCRA.images.Imgs import *
 import os
 
 
@@ -53,46 +51,43 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
         return InterpolarVerticeV()
 
     def name(self):
-
         return 'interpolarverticev'
 
     def displayName(self):
-
-        return self.tr('Interpolar vértice V')
+        return self.tr('e. Interpolar vértice V')
 
     def group(self):
-
-        return self.tr(self.groupId())
+        return self.tr('2. ⚙️ Fluxo de processamento')
 
     def groupId(self):
-
-        return ''
+        return 'fluxo_processamento'
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
     
     def tags(self):
-        return 'GeoOne,GeoRural,INCRA,Sigef,cota Z,virtual,PA1,PA2,PA3,sigmas,interpolação,interpolar,virtuais,IDW,paralela,parelelo,interseção de retas,regularização,fundiária'.split(',')
+        return 'GeoOne,GeoRural,INCRA,Sigef,cota Z,virtual,PA1,PA2,PA3,sigmas,interpolação,interpolar,virtuais,IDW,paralela,parelelo,interseção de retas,regularização,fundiária'.split(',')  
 
     def shortHelpString(self):
         txt = '''Esta ferramenta calcula e preenche automaticamente o valor da cota Z e os sigmas de vértices do tipo V (virtual) obtidos dos métodos de posicionamento "PA1:Paralela", "PA2: interseção de retas" e "PA3: Projeção Técnica". O cálculo da interpolação é dado a partir dos dois vértices mais próximos utilizando a média ponderada pelo inverso da distância.'''
 
         footer = '''<div>
                       <div align="center">
-                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
                       </div>
                       <div align="right">
                       <p align="right">
                       <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
                       </p>
                       <p align="right">
-                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=2237"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
+                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=2237"><span style="font-weight: bold;">Acesse a aula sobre esta ferramenta no curso de GeoINCRA no GeoOne</span></a>
                       </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" width="280"  src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/GeoOne.png') +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
         return txt + footer
+    
 
     VERTICES = 'VERTICES'
     SELEC = 'SELEC'
