@@ -46,7 +46,6 @@ from qgis.core import (QgsProject,
 
 import os
 from qgis.PyQt.QtGui import QIcon
-from GeoINCRA.images.Imgs import *
 
 
 class ConnectBase(QgsProcessingAlgorithm):
@@ -260,13 +259,13 @@ class ConnectBase(QgsProcessingAlgorithm):
         return 'connectbase'
 
     def displayName(self):
-        return self.tr('Consultar base do INCRA')
+        return self.tr('a. Consultar base do INCRA')
 
     def group(self):
-        return self.tr(self.groupId())
+        return self.tr('1. 🔍 Consultas a bases de Referência')
 
     def groupId(self):
-        return ''
+        return 'consultas_referencias'
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
@@ -280,12 +279,13 @@ class ConnectBase(QgsProcessingAlgorithm):
     def tags(self):
         return 'GeoOne,GeoRural,INCRA,Sigef,consultar,base do incra,wfs,certificados,quilombolas,SNCI,assentamentos,titulação,regularização,fundiária'.split(',')
 
+    
     def shortHelpString(self):
         txt = "Conecta a base de dados do INCRA e carrega camada de imóveis a partir de um retângulo selecionado pelo usuário. Também é possível baixar dados dos imóveis certificados nos formatos CSV e SHP, obtendo-se mais informações complementares."
 
         footer = '''<div>
                       <div align="center">
-                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
                       </div>
                       <div align="right">
                       <p align="right">
@@ -295,9 +295,9 @@ class ConnectBase(QgsProcessingAlgorithm):
                       <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
                       </p>
                       <p align="right">
-                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=2232"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
+                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=2232"><span style="font-weight: bold;">Acesse a aula sobre esta ferramenta no curso de GeoINCRA no GeoOne</span></a>
                       </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" width="280"  src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/GeoOne.png') +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
