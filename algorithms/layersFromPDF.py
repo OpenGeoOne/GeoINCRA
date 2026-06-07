@@ -27,26 +27,8 @@ __date__ = '2025-01-09'
 __copyright__ = '(C) 2025 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication, QMetaType
-from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingException,
-                       QgsProcessingAlgorithm,
-                       QgsWkbTypes,
-                       QgsCoordinateReferenceSystem,
-                       QgsProcessingParameterFile,
-                       QgsVectorLayer,
-                       QgsFields,
-                       QgsField,
-                       QgsFeature,
-                       QgsGeometry,
-                       QgsLineString,
-                       QgsMultiPolygon,
-                       QgsPolygon,
-                       QgsPoint,
-                       QgsProcessingParameterFeatureSink)
-from qgis import processing
-from qgis.PyQt.QtGui import QIcon
-from GeoINCRA.images.Imgs import *
+from qgis.core import *
+from qgis.PyQt.QtGui import QIcon, QFont, QColor
 from .Funcs import LerPDF
 from datetime import datetime
 import os
@@ -68,16 +50,13 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         return 'LayersFromPDF'.lower()
 
     def displayName(self):
-
-        return self.tr('Memorial do Sigef para Camadas')
+        return self.tr('b. Memorial do Sigef para Camadas (.pdf)')
 
     def group(self):
-
-        return self.tr(self.groupId())
+        return self.tr('4. 📥 Importação como camadas no QGIS')
 
     def groupId(self):
-
-        return ''
+        return 'importacao_camadas_qgis'
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
@@ -85,20 +64,22 @@ class LayersFromPDF(QgsProcessingAlgorithm):
     def tags(self):
         return 'GeoOne,GeoRural,INCRA,Sigef,memorial,pdf,conversão,tranformar,descritivo,documento,cartório,matrícula,regularização,fundiária,layer,geopackage'.split(',')
 
+    
     def shortHelpString(self):
         txt = 'Esta ferramenta faz a leitura do arquivo <b>PDF do Memorial Descritivo Tabular</b> do SIGEF/INCRA, convertendo nas camadas vétice (ponto), limite (linha) e parcela (polígono) no padrão GeoRural.'
+
         footer = '''<div>
                       <div align="center">
-                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
                       </div>
                       <div align="right">
                       <p align="right">
                       <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
                       </p>
                       <p align="right">
-                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=5820"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
+                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=5820"><span style="font-weight: bold;">Acesse a aula sobre esta ferramenta no curso de GeoINCRA no GeoOne</span></a>
                       </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" width="280"  src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/GeoOne.png') +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
@@ -380,6 +361,178 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         feat.setGeometry(newGeom)
         sink3.addFeature(feat, QgsFeatureSink.FastInsert)
 
+        self.SAIDA_VERTICE = dest_id1
+        self.SAIDA_LIMITE = dest_id2
+        self.SAIDA_PARCELA = dest_id3
+
         return {self.VERTICE: dest_id1,
                 self.LIMITE: dest_id2,
                 self.PARCELA: dest_id3}
+    
+
+    def postProcessAlgorithm(self, context, feedback):
+        # Recupera camadas (saídas do processamento)
+        camada_vertice = QgsProcessingUtils.mapLayerFromString(self.SAIDA_VERTICE, context)
+        camada_limite  = QgsProcessingUtils.mapLayerFromString(self.SAIDA_LIMITE, context)
+        camada_parcela = QgsProcessingUtils.mapLayerFromString(self.SAIDA_PARCELA, context)
+
+        # try:
+
+        # -------------------------------------------------------
+        # 1) Criar/posicionar grupo no TOPO e inserir as 3 camadas
+        # -------------------------------------------------------
+        proj = QgsProject.instance()
+        root = proj.layerTreeRoot()
+
+        group_name = "Camadas do Memorial do Sigef"
+        group = root.findGroup(group_name)
+
+        # cria no topo, ou recria no topo se já existir em outro lugar
+        if group is None:
+            group = root.insertGroup(0, group_name)  # topo do painel
+        else:
+            idx = root.children().index(group)
+            if idx != 0:
+                root.removeChildNode(group)
+                group = root.insertGroup(0, group_name)
+
+        # opcional: limpar conteúdo antigo do grupo a cada execução
+        # group.removeAllChildren()
+
+        # garante que as layers estão no projeto (registry)
+        for lyr in (camada_vertice, camada_limite, camada_parcela):
+            if proj.mapLayer(lyr.id()) is None:
+                proj.addMapLayer(lyr, False)
+
+        # remove nodes existentes dessas layers (de onde estiverem), evitando duplicação
+        def _detach_layer_node(layer):
+            node = root.findLayer(layer.id())
+            if node is not None and node.parent() is not None:
+                node.parent().removeChildNode(node)
+
+        _detach_layer_node(camada_vertice)
+        _detach_layer_node(camada_limite)
+        _detach_layer_node(camada_parcela)
+
+        # insere no grupo na ordem desejada (topo -> baixo)
+        group.insertLayer(0, camada_vertice)
+        group.insertLayer(1, camada_limite)
+        group.insertLayer(2, camada_parcela)
+        group.setExpanded(True)
+
+        # -----------------------------
+        # Helper rotulação (sem placement)
+        # -----------------------------
+        def _apply_labeling(layer, expr, font_size=10, color="white",
+                            buffer_color="black", buffer_size=0.8, bold=True):
+            label_settings = QgsPalLayerSettings()
+            label_settings.fieldName = expr
+            label_settings.isExpression = True
+            label_settings.enabled = True
+
+            text_format = QgsTextFormat()
+            font = QFont("Arial", int(font_size))
+            font.setBold(bool(bold))
+            text_format.setFont(font)
+            text_format.setSize(float(font_size))
+            text_format.setColor(QColor(color))
+
+            buffer_settings = QgsTextBufferSettings()
+            buffer_settings.setEnabled(True)
+            buffer_settings.setSize(float(buffer_size))
+            buffer_settings.setColor(QColor(buffer_color))
+            text_format.setBuffer(buffer_settings)
+
+            label_settings.setFormat(text_format)
+
+            labeling = QgsVectorLayerSimpleLabeling(label_settings)
+            layer.setLabeling(labeling)
+            layer.setLabelsEnabled(True)
+
+        # -----------------------------
+        # 2) VÉRTICE: simbologia + rotulação
+        # -----------------------------
+        symbol_vert = QgsMarkerSymbol.createSimple({
+            'name': 'circle',
+            'color': '255,0,0',
+            'outline_color': '0,0,0',
+            'outline_style': 'solid',
+            'size': '2',
+            'size_unit': 'MM'
+        })
+        camada_vertice.setRenderer(QgsSingleSymbolRenderer(symbol_vert))
+        _apply_labeling(
+            camada_vertice,
+            expr='"vertice"',
+            font_size=9,
+            color="white",
+            buffer_color="black",
+            buffer_size=0.9,
+            bold=True
+        )
+        camada_vertice.triggerRepaint()
+
+        # -----------------------------
+        # 3) LIMITE: categorizado por (confrontan-tipo) + rótulo com \n
+        # -----------------------------
+        expr_cat = "\"confrontan\" || '-' || \"tipo\""
+        expr = QgsExpression(expr_cat)
+
+        ctx = QgsExpressionContext()
+        ctx.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(camada_limite))
+
+        values = set()
+        for f in camada_limite.getFeatures():
+            ctx.setFeature(f)
+            v = expr.evaluate(ctx)
+            values.add("" if v is None else str(v))
+
+        categories = []
+        for v in sorted(values):
+            sym = QgsLineSymbol.createSimple({'width': '0.6', 'width_unit': 'MM'})
+            # cor determinística por hash
+            h = abs(hash(v)) % 360
+            sym.setColor(QColor.fromHsv(h, 200, 230))
+            categories.append(QgsRendererCategory(v, sym, v))
+
+        camada_limite.setRenderer(QgsCategorizedSymbolRenderer(expr_cat, categories))
+
+        _apply_labeling(
+            camada_limite,
+            expr="\"confrontan\" || '\\n' || \"tipo\"",
+            font_size=9,
+            color="white",
+            buffer_color="black",
+            buffer_size=0.9,
+            bold=True
+        )
+        camada_limite.triggerRepaint()
+
+        # -----------------------------
+        # 4) PARCELA: rosa claro 50% + rotulação com "nome"
+        # -----------------------------
+        sym_parc = QgsFillSymbol.createSimple({
+            'color': '255,182,193,128',      # rosa claro com alpha
+            'outline_color': '255,105,180,200',
+            'outline_width': '0.6',
+            'outline_width_unit': 'MM'
+        })
+        sym_parc.setOpacity(0.5)
+
+        camada_parcela.setRenderer(QgsSingleSymbolRenderer(sym_parc))
+        _apply_labeling(
+            camada_parcela,
+            expr="\"nome\"",
+            font_size=10,
+            color="black",
+            buffer_color="white",
+            buffer_size=1.0,
+            bold=True
+        )
+        camada_parcela.triggerRepaint()
+
+        return {}
+        
+       # except:
+        #    feedback.pushWarning("Não foi possível aplicar estilos na camada!")
+            # return {}
