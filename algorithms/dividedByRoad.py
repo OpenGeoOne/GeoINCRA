@@ -27,12 +27,10 @@ __date__ = '2025-05-29'
 __copyright__ = '(C) 2025 by Tiago Prudencio e Leandro França'
 
 
-from qgis.PyQt.QtCore import QCoreApplication, QMetaType
+from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import *
 import os, processing
-import requests
-from qgis.PyQt.QtGui import QIcon, QFont, QColor
-from GeoINCRA.images.Imgs import *
+from qgis.PyQt.QtGui import QIcon
 import numpy as np
 
 
@@ -268,13 +266,13 @@ class DividedByRoad(QgsProcessingAlgorithm):
         return 'DividedByRoad'.lower()
 
     def displayName(self):
-        return self.tr('Dividir parcela por Estrada')
+        return self.tr('d. Dividir parcela por Estrada')
 
     def group(self):
-        return self.tr(self.groupId())
+        return self.tr('2. ⚙️ Fluxo de processamento')
 
     def groupId(self):
-        return ''
+        return 'fluxo_processamento'
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
@@ -287,22 +285,23 @@ class DividedByRoad(QgsProcessingAlgorithm):
     
     def tags(self):
         return 'GeoOne,GeoRural,INCRA,Sigef,separado,estrada,rodovia,glebas,divisão,cortar,multipoligono,parcelar,parcelas,regularização,fundiária'.split(',')
-
+    
     def shortHelpString(self):
         txt = '''Divide o polígono da Parcela de imóvel rural por uma Estrada do tipo linha ou polígono diretamente no banco de dados GeoRural, preenchendo automaticamente os vértices virtuais "V" do tipo "PA1 - Paralela" (opcional).
         A estrada pode ser do tipo linha ou polígono. Se for do tipo linha, é necessário definir a sua medida da faixa de domínio em metros para o cálculo do offset.'''
+
         footer = '''<div>
                       <div align="center">
-                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
                       </div>
                       <div align="right">
                       <p align="right">
                       <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
                       </p>
                       <p align="right">
-                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=5808"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
+                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=5808"><span style="font-weight: bold;">Acesse a aula sobre esta ferramenta no curso de GeoINCRA no GeoOne</span></a>
                       </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" width="280"  src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/GeoOne.png') +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
