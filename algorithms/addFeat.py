@@ -41,7 +41,6 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterVectorLayer)
 from qgis import processing
 from qgis.PyQt.QtGui import QIcon
-from GeoINCRA.images.Imgs import *
 import os
 
 
@@ -60,35 +59,35 @@ class addFeat(QgsProcessingAlgorithm):
         return 'addFeat'
 
     def displayName(self):
-        return self.tr('Alimentar camada vértice')
+        return self.tr('a. Alimentar camada vértice')
 
     def group(self):
-        return self.tr(self.groupId())
+        return self.tr('2. ⚙️ Fluxo de processamento')
 
     def groupId(self):
-        return ''
+        return 'fluxo_processamento'
 
     def icon(self):
         return QIcon(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/geoincra_pb.png'))
     
     def tags(self):
-        return 'GeoOne,GeoRural,INCRA,Sigef,alimentar,carregar,load,importar'.split(',')
-
+        return 'GeoOne,GeoRural,INCRA,Sigef,alimentar,carregar,load,importar,vertice,colar,copiar,pontos,planilha,coordenadas,GNSS,RTK'.split(',')
+    
     def shortHelpString(self):
         txt = 'Esta ferramenta carrega as feições selecionadas de uma camada de pontos para dentro da camada vértices do banco de dados GeoRural.'
 
         footer = '''<div>
                       <div align="center">
-                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
                       </div>
                       <div align="right">
                       <p align="right">
-                      <a href="https://geoone.com.br/pvgeoincra2/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
+                      <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
                       </p>
                       <p align="right">
-                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=2230"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
+                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=2230"><span style="font-weight: bold;">Acesse a aula sobre esta ferramenta no curso de GeoINCRA no GeoOne</span></a>
                       </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" width="280"  src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/GeoOne.png') +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
@@ -102,6 +101,7 @@ class addFeat(QgsProcessingAlgorithm):
     tipo_verti = 'tipo_verti'
     qrcode = 'qrcode'
     VER_Z = 'VER_Z'
+    ARREDONDAR = 'ARREDONDAR'
 
     def initAlgorithm(self, config=None):
 
@@ -192,6 +192,15 @@ class addFeat(QgsProcessingAlgorithm):
             )
         )
 
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                self.ARREDONDAR,
+                self.tr('Arredondar casas decimais das coordenadas.'),
+                defaultValue = True
+            )
+        )
+
+
     def processAlgorithm(self, parameters, context, feedback):
 
         source_in = self.parameterAsSource(
@@ -227,6 +236,7 @@ class addFeat(QgsProcessingAlgorithm):
         if qrcode:
             qrcode = qrcode[0]
         ver_z = self.parameterAsBool(parameters, self.VER_Z, context)
+        arredondar = self.parameterAsBool(parameters, self.ARREDONDAR, context)
 
         source_out = self.parameterAsVectorLayer(
             parameters,
@@ -290,8 +300,10 @@ class addFeat(QgsProcessingAlgorithm):
             proj2geo = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
             geom = feature.geometry()
             geom.transform(proj2geo)
-
-            feat.setGeometry(geom.snappedToGrid(hSpacing=1e-7, vSpacing=1e-7, dSpacing=1e-2))
+            if arredondar:
+                feat.setGeometry(geom.snappedToGrid(hSpacing=1e-7, vSpacing=1e-7, dSpacing=1e-2)) # arredonda para 7 casas decimais as coordenadas XY e 2 casas decimais a cota Z, o que é suficiente para garantir a precisão necessária para para que o cálculo de área e azimutes coincidam com os cálculos feitos no Sigef.
+            else:
+                feat.setGeometry(geom)
             source_out.dataProvider().addFeatures([feat])
             feedback.setProgress(int(current * total))
 
