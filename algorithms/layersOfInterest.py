@@ -26,16 +26,13 @@ __author__ = 'Tiago Prudencio e Leandro França'
 __date__ = '2024-08-11'
 __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 
-# This will get replaced with a git SHA1 when you do a git archive
-
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import QCoreApplication, QMetaType
+from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import *
 import os
 import requests
 from qgis.PyQt.QtGui import QIcon, QFont, QColor
-from GeoINCRA.images.Imgs import *
 
 
 class LayersOfInterest(QgsProcessingAlgorithm):
@@ -162,13 +159,13 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         return 'LayersOfInterest'.lower()
 
     def displayName(self):
-        return self.tr('Camadas de Interesse')
+        return self.tr('b. Camadas de Interesse')
 
     def group(self):
-        return self.tr(self.groupId())
+        return self.tr('1. 🔍 Consultas a bases de Referência')
 
     def groupId(self):
-        return ''
+        return 'consultas_referencias'
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
@@ -181,25 +178,27 @@ class LayersOfInterest(QgsProcessingAlgorithm):
     
     def tags(self):
         return 'GeoOne,GeoRural,INCRA,Sigef,IBGE,DNIT,municípios,estados,brasil,UFs,faixa de domínio,RBMC,ICMBio,conservação,embargadas,gps,urbanizadas,rural,regularização,fundiária'.split(',')
-
+    
     def shortHelpString(self):
-        txt = 'Baixar camada de interesse a partir de uma extensão (retângulo).'
+        txt = 'Baixar camada de interesse a partir de uma extensão desenhada na tela (retângulo).'
         footer = '''<div>
                       <div align="center">
-                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
                       </div>
                       <div align="right">
                       <p align="right">
                       <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
                       </p>
                       <p align="right">
-                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=4081"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
+                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=4081"><span style="font-weight: bold;">Acesse a aula sobre esta ferramenta no curso de GeoINCRA no GeoOne</span></a>
                       </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" width="280"  src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/GeoOne.png') +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
         return txt + footer
+    
+
     def postProcessAlgorithm(self, context, feedback):
         layer = QgsProcessingUtils.mapLayerFromString(self.SAIDA, context)
         nome = 'nome'
