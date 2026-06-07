@@ -28,7 +28,6 @@ from qgis.core import (
     QgsWkbTypes
 )
 
-from GeoINCRA.images.Imgs import *
 import os
 import csv
 
@@ -48,13 +47,13 @@ class addWkt(QgsProcessingAlgorithm):
         return 'addWkt'
 
     def displayName(self):
-        return self.tr('CSV do INCRA para camada PointZ')
+        return self.tr('b. CSV do INCRA para camada PointZ')
 
     def group(self):
-        return self.tr(self.groupId())
+        return self.tr('2. ⚙️ Fluxo de processamento')
 
     def groupId(self):
-        return ''
+        return 'fluxo_processamento'
 
     def icon(self):
         return QIcon(
@@ -66,6 +65,7 @@ class addWkt(QgsProcessingAlgorithm):
 
     def tags(self):
         return 'GeoOne,GeoRural,INCRA,Sigef,CSV,vértice,vertice,PointZ,WKT'.split(',')
+    
 
     def shortHelpString(self):
         txt = (
@@ -76,16 +76,16 @@ class addWkt(QgsProcessingAlgorithm):
 
         footer = '''<div>
                       <div align="center">
-                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,''' + INCRA_GeoOne + '''">
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
                       </div>
                       <div align="right">
                       <p align="right">
-                      <a href="https://geoone.com.br/pvgeoincra2/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
+                      <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
                       </p>
                       <p align="right">
-                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=2232"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
+                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=2232"><span style="font-weight: bold;">Acesse a aula sobre esta ferramenta no curso de GeoINCRA no GeoOne</span></a>
                       </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,''' + GeoOne + '''"></a>
+                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img title="GeoOne" width="280"  src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/GeoOne.png') +'''"></a>
                       <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
                       </div>
                     </div>'''
