@@ -26,7 +26,7 @@ __author__ = 'Tiago Prudencio e Leandro França'
 __date__ = '2022-02-13'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
-from qgis.PyQt.QtCore import QCoreApplication
+
 from qgis.core import (QgsProcessing,
 					   QgsProcessingException,
                        QgsProcessingParameterNumber,
@@ -37,7 +37,8 @@ from qgis.core import (QgsProcessing,
 					   QgsProcessingParameterFileDestination)
 
 from math import modf
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtCore import QCoreApplication, QUrl
+from qgis.PyQt.QtGui import QIcon, QDesktopServices
 import os
 
 
@@ -430,7 +431,7 @@ class createTemplate(QgsProcessingAlgorithm):
 
 		if abrir:
 			try:
-				os.popen(output_path)
+				QDesktopServices.openUrl(QUrl.fromLocalFile(output_path))
 			except:
 				feedback.pushInfo('Abra o arquivo de saída na pasta {}'.format(output_path))
 
