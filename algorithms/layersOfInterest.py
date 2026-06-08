@@ -210,7 +210,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                 url = "http://170.84.40.52:2101/"
                 # Enviar uma requisição GET para o servidor
                 try:
-                    response = requests.get(url)
+                    response = requests.get(url, timeout=30)
                     if response.status_code == 200:
                         page_text = response.text
                         linhas = page_text.split('\n')
