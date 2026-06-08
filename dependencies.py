@@ -2,6 +2,7 @@ import sys
 import io
 import importlib
 import platform
+import site
 
 
 def _import_module(module_name, feedback=None):
@@ -11,6 +12,21 @@ def _import_module(module_name, feedback=None):
         if feedback:
             feedback.pushInfo(f'Could not import "{module_name}": {e}')
         return None
+    
+
+def _add_user_site_to_path(feedback=None):
+    try:
+        user_site = site.getusersitepackages()
+
+        if user_site and user_site not in sys.path:
+            sys.path.append(user_site)
+
+            if feedback:
+                feedback.pushInfo(f'Added user site-packages to sys.path: {user_site}')
+
+    except Exception as e:
+        if feedback:
+            feedback.pushInfo(f'Could not add user site-packages: {e}')
 
 
 def _pip_install(args, feedback=None):
@@ -132,3 +148,45 @@ def ensure_pypdf2(feedback=None):
             feedback.pushInfo('PyPDF2 loaded after installation.')
 
     return PyPDF2.PdfReader
+
+
+# ==========================
+# defusedxml
+# ==========================
+
+def ensure_defusedxml(feedback=None):
+    _add_user_site_to_path(feedback)
+
+    defusedxml = _import_module("defusedxml", feedback)
+
+    if defusedxml is not None:
+        if feedback:
+            try:
+                feedback.pushInfo(f'defusedxml already available: {defusedxml.__file__}')
+            except Exception:
+                feedback.pushInfo('defusedxml already available.')
+        return True
+
+    if not _install_package("defusedxml", feedback):
+        return False
+
+    importlib.invalidate_caches()
+    _add_user_site_to_path(feedback)
+
+    defusedxml = _import_module("defusedxml", feedback)
+
+    if defusedxml is None:
+        if feedback:
+            feedback.reportError(
+                'defusedxml installation was attempted, but the module is still unavailable. '
+                'Restart QGIS and try again.'
+            )
+        return False
+
+    if feedback:
+        try:
+            feedback.pushInfo(f'defusedxml loaded after installation: {defusedxml.__file__}')
+        except Exception:
+            feedback.pushInfo('defusedxml loaded after installation.')
+
+    return True
