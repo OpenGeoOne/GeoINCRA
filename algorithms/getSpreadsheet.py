@@ -26,11 +26,11 @@ __author__ = 'Tiago Prudencio e Leandro França'
 __date__ = '2022-02-13'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
-from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessingException,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterFileDestination)
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtCore import QCoreApplication, QUrl
+from qgis.PyQt.QtGui import QIcon, QDesktopServices
 import os
 import shutil
 import requests
@@ -116,7 +116,7 @@ class getSpreadsheet(QgsProcessingAlgorithm):
             try:
                 # Fazendo a requisição GET para obter o conteúdo do arquivo
                 url = "https://sigef.incra.gov.br/static/sigef_planilha_modelo_1.4_rc5.ods"
-                response = requests.get(url)
+                response = requests.get(url, timeout=30)
                 # Verificando se a requisição foi bem-sucedida
                 if response.status_code == 200:
                     # Escrevendo o conteúdo do arquivo em um arquivo local
@@ -132,7 +132,7 @@ class getSpreadsheet(QgsProcessingAlgorithm):
             return {}
 
         try:
-            os.popen(output)
+            QDesktopServices.openUrl(QUrl.fromLocalFile(output))
         except:
             feedback.pushInfo('Abra o arquivo de saída na pasta {}'.format(output))
 
