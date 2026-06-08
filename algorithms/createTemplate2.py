@@ -485,12 +485,13 @@ class createTemplate2(QgsProcessingAlgorithm):
 			arq.write(data)
 
 		#executa macro
-		try:
-			subprocess.call(f"{libreoffice_path} "
-						" --invisible "
-						f"{path_ods} "
-						'vnd.sun.star.script:qgis_macro.py$create_table?language=Python&location=user'
-						)
+		try:			
+			subprocess.call([
+						libreoffice_path,
+						"--invisible",
+						path_ods,
+						"vnd.sun.star.script:qgis_macro.py$create_table?language=Python&location=user"
+					])
 		except:
 			raise QgsProcessingException("Verifique se a versão do seu LibreOffice ou o seu SO estão atualizados!")
 
