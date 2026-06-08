@@ -30,7 +30,6 @@ from qgis.PyQt.QtCore import QCoreApplication, QMetaType
 from qgis.core import *
 from qgis.PyQt.QtGui import QIcon, QFont, QColor
 import zipfile
-import xml.etree.ElementTree as ET
 import os
 
 
@@ -126,7 +125,13 @@ class LayersFromSheet(QgsProcessingAlgorithm):
 
         if arquivo_ods is None:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.ODS))
-
+        
+        from ..dependencies import ensure_defusedxml
+        if not ensure_defusedxml(feedback):
+            raise QgsProcessingException(
+                self.tr('Could not install or load defusedxml.')
+            )
+        from defusedxml import ElementTree as ET
 
         # Ler meridiano central da ODS
         with zipfile.ZipFile(arquivo_ods, 'r') as ods:
