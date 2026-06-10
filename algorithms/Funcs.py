@@ -202,7 +202,7 @@ def areaSGL(geomGeo, crsGeo):
         if n_aneis > 1:
             for w in range(1, n_aneis):
                 area_final -= AreaPerimetroParteSGL(coordsGeo[w], crsGeo)[0]
-    print(area_final)
+
     return area_final
 
 
@@ -222,13 +222,11 @@ def perimetroSGL(geomGeo, crsGeo):
 def AzimutePuissant(lat1, lon1, lat2, lon2, a = 6378137, f = 1/298.257222101):
     """
     Calcula o azimute segundo Puissant entre dois pontos geodésicos.
-
     Parâmetros:
     lat1, lon1: Latitude e longitude do ponto inicial em graus.
     lat2, lon2: Latitude e longitude do ponto final em graus.
     a: Semi-eixo maior do elipsoide (padrão: 6378137 metros).
     f: Achatamento do elipsoide (padrão: 1/298.257222101).
-
     Retorna:
     Azimute em graus.
     """
@@ -255,20 +253,43 @@ def AzimutePuissant(lat1, lon1, lat2, lon2, a = 6378137, f = 1/298.257222101):
     return (Azimute + 360)%360
 
 
+# Azimute e Distância do INCRA
+def AzimuteDistanciaINCRA(pntA, pntB, geomGeo, crsGeo):
+    # Origem do SGL
+    coordsXYZ = geom2PointList(geomGeo)
+    lon,lat,alt = [],[],[]
+    for pnt in coordsXYZ[:-1]:
+        lon +=[pnt.x()]
+        lat +=[pnt.y()]
+        if str(pnt.z()) != 'nan':
+            alt += [pnt.z()]
+        else:
+            alt += [0]
+    lon0 = np.array(lon).mean()
+    lat0 = np.array(lat).mean()
+    h0 = np.array(alt).mean()    
+    X0, Y0, Z0, a, f = OrigemSGL(lon0, lat0, h0, crsGeo)
+    # Transformar geodésicas para geocêntricas
+    XA, YA, ZA = geod2geoc(pntA.x(), pntA.y(), pntA.z() if str(pntA.z()) != 'nan' else 0, a, f)
+    XB, YB, ZB = geod2geoc(pntB.x(), pntB.y(), pntB.z() if str(pntB.z()) != 'nan' else 0, a, f)
+    # Transformar geocêntricas para topocêntricas (SGL)
+    Ea, Na, Ua = geoc2enu(XA, YA, ZA, lon0, lat0, X0, Y0, Z0)
+    Eb, Nb, Ub = geoc2enu(XB, YB, ZB, lon0, lat0, X0, Y0, Z0)
+    # Calcular distância
+    dist = distEuclidiana2D(QgsPointXY(Ea, Na), QgsPointXY(Eb, Nb))
+    # Calcular azimute de Puissant
+    Az = AzimutePuissant(pntA.y(), pntA.x(), pntB.y(), pntB.x(), a, f)
+    return Az, dist
 
 
 def dd2dms(dd, n_digits):
     if dd is None:
         raise ValueError("dd não pode ser None")
-
     if not isinstance(n_digits, int):
         raise TypeError("n_digits deve ser um inteiro")
-
     dd = float(dd)
-
     if not math.isfinite(dd):
         raise ValueError("dd deve ser um número finito")
-
     sign = '-' if dd < 0 else ''
     value = abs(dd)
 
@@ -328,24 +349,17 @@ def dd2dms(dd, n_digits):
 
 
 
-def azimuteTrucandoSigef(dd):
-
+def azimuteTrucandoINCRA(dd, prec=-1):
     if dd is None:
         raise ValueError("dd não pode ser None")
-
     dd = float(dd)
-
     if not math.isfinite(dd):
         raise ValueError("dd deve ser um número finito")
-
     sinal = '-' if dd < 0 else ''
     valor = abs(dd)
-
     graus = int(valor)
-
     minutos_dec = (valor - graus) * 60
-
-    minutos = math.floor(minutos_dec)
+    minutos = math.floor(minutos_dec) #trunca e não arredonda, coisas do Sigef...
 
     return f"{sinal}{graus}°{minutos:02d}'"
 
