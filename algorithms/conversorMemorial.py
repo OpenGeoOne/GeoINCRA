@@ -266,134 +266,170 @@ class ConversorMemorial(QgsProcessingAlgorithm):
                 return str2HTML('CNS: ' + cns + ' | Mat. ' + mat + ' | ' + nome )
             else:
                 return str2HTML(nome)
-                
 
-        LOGO = 'png;base64,'+ GeoOne
-        SLOGAN = 'Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!'
+        
+        texto_inicial = '''<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>'''+ str2HTML('Memorial descritivo') + '''</title>
 
-        texto_inicial = '''
-    <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-    <html>
-    <head>
-      <meta content="text/html; charset=ISO-8859-1"
-     http-equiv="content-type">
-      <title>'''+ str2HTML('Memorial descritivo') + '''</title>
-      <link rel = "icon" href = "https://github.com/OpenGeoOne/GeoINCRA/blob/main/images/geoincra.png?raw=true" type = "image/x-icon">
-    </head>
-    <body>
-    <div style="text-align: center;"><span style="font-weight: bold;"><br>
-    <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" src="data:image/'''+ LOGO + '''"></a>
-    <br><i>'''+ str2HTML(SLOGAN) + '''</i></span><br style="font-weight: bold;">
-    <br></div>
-    <p class="western"
-     style="margin-bottom: 0.0001pt; text-align: center;"
-     align="center"><b><u><span style="font-size: 12pt;">'''+ str2HTML(self.tr('MEMORIAL DESCRITIVO')) + '''</span></u></b></p>
-    <p class="western" style="margin-bottom: 0.0001pt;"><o:p>&nbsp;</o:p></p>
-    <table class="MsoTableGrid"
-     style="border: medium none ; border-collapse: collapse;"
-     border="0" cellpadding="0" cellspacing="0">
-      <tbody>
-        <tr style="">
-          <td style="padding: 0cm 5.4pt;"
-     valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>'''+ str2HTML(self.tr('Imóvel')) + ''': </b>[IMOVEL]</p>
-          </td>
-          <td style="padding: 0cm 5.4pt;"
-     valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Código INCRA/SNCR')) + ''':</b>
-    [REGISTRO]</p>
-          </td>
-        </tr>
-        <tr style="">
-          <td colspan="2"
-     style="padding: 0cm 5.4pt;" valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Proprietário(a)')) + ''': </b>[PROPRIETARIO]</p>
-          </td>
-        </tr>
-        <tr style="">
-          <td style="padding: 0cm 5.4pt;"
-     valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Município')) + ''':</b>
-    [MUNICIPIO]<b></b></p>
-          </td>
-          <td style="padding: 0cm 5.4pt;"
-     valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Estado')) + ''':
-          </b>[UF]</p>
-          </td>
-        </tr>
-        <tr style="">
-          <td colspan="2"
-     style="padding: 0cm 5.4pt;" valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Matrícula/Transcrição')) + ''':</b>
-    [MATRICULAS]</p>
-          </td>
-        </tr>
-        <tr style="">
-          <td style="padding: 0cm 5.4pt;"
-     valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Área (ha)')) + ''': </b>[AREA]</p>
-          </td>
-          <td style="padding: 0cm 5.4pt;"
-     valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Perímetro')) + ''' (m):</b> [PERIMETRO]</p>
-          </td>
-        </tr>
-        <tr style="">
-          <td colspan="2"
-     style="padding: 0cm 5.4pt;" valign="top">
-          <p class="western" style="margin-bottom: 0.0001pt;"><b>''' + str2HTML(self.tr('Sistema de Referência de Coordenadas')) + ''':</b> [SRC]<b></b></p>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <p class="western" style="margin-bottom: 0.0001pt;"><o:p>&nbsp;</o:p></p>
-    <p class="western"
-     style="margin-bottom: 0.0001pt; text-align: justify;">'''+ str2HTML(self.tr('Inicia-se a descrição deste perímetro n'))
+<style>
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12pt;
+    color: #000000;
+    line-height: 1.5;
+}
 
-        texto_var1 = str2HTML(self.tr('o vértice ')) + '''<b>[Vn]</b>, '''+ str2HTML(self.tr('de coordenadas ')) + '''[Coordn],
-    '''+ str2HTML(self.tr('deste, segue confrontando com [Confront_k], com os seguintes azimutes e distâncias: [Az_n] e [Dist_n]m até '))
+p {
+    margin: 0 0 10pt 0;
+}
 
-        texto_var2 = str2HTML(self.tr('o vértice ')) + '''<span> </span><b>[Vn]</b>, ''' + str2HTML(self.tr('de coordenadas ')) + '''[Coordn]; '''+ str2HTML(self.tr('[Az_n] e [Dist_n]m até '))
+.logo {
+    text-align: center;
+    margin-bottom: 18pt;
+}
 
-        # Coordenadas Geo, cálculo em SGL e Azimute Puissant:
-        texto_calculo = self.tr('. Os azimutes foram calculados pela fórmula do Problema Geodésico Inverso segundo Puissant. As distâncias, área e perímetro foram calculados no Sistema Geodésico Local (SGL) com origem na média das coordenadas cartesianas geocêntricas do imóvel.')
+.titulo {
+    text-align: center;
+    font-weight: bold;
+    text-decoration: underline;
+    font-size: 12pt;
+    margin-bottom: 18pt;
+}
 
-        texto_final = str2HTML(self.tr('o vértice ')) + '''<b>[P-01]</b>, '''+ self.tr('de coordenadas') + ''' [Coord1],
-    ''' + str2HTML(self.tr('ponto inicial da descrição deste perímetro. Todas as coordenadas aqui descritas estão georreferenciadas ao Sistema Geodésico de Referência (SGR)')) + ''' <b>[GRS]</b>''' + str2HTML(texto_calculo) + '''
-     </p>
-    <p class="western"
-     style="margin-bottom: 0.0001pt; text-align: right;"
-     align="right">[LOCAL], [DATA].</p>
+.info {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 18pt;
+}
 
-     <p class="western" style="margin-bottom: 0.0001pt;"><o:p>&nbsp;</o:p></p>
-     <p class="western"
-      style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-      align="center">___________________________________________</p>
-     <p class="western"
-      style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-      align="center">[OWNER]</p>
-     <p class="western"
-      style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-      align="center">''' + str2HTML(self.tr('PROPRIETÁRIO DO IMÓVEL')) + '''</p>
+.info td {
+    padding: 3pt 8pt;
+    vertical-align: top;
+}
 
-    <p class="western" style="margin-bottom: 0.0001pt;"><o:p>&nbsp;</o:p></p>
-    <p class="western"
-     style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-     align="center">___________________________________________</p>
-    <p class="western"
-     style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-     align="center">[RESP_TEC]</p>
-    <p class="western"
-     style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-     align="center">[CREA]</p>
-    <p class="western"
-     style="margin: 0cm 0cm 0.0001pt; text-align: center;"
-     align="center">''' + str2HTML(self.tr('RESPONSÁVEL TÉCNICO')) + '''</p>
-    <p class="MsoNormal"><o:p>&nbsp;</o:p></p>
-    </body>
-    </html>
-    '''
+.descricao {
+    text-align: justify;
+    text-justify: inter-word;
+    line-height: 1.5;
+}
+
+.data {
+    text-align: right;
+    margin-top: 18pt;
+    margin-bottom: 36pt;
+}
+
+.assinatura {
+    text-align: center;
+    margin-top: 28pt;
+    line-height: 1.3;
+}
+</style>
+</head>
+
+<body>
+
+<div class="logo">
+    <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/">
+        <img height="70" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/GeoOne.png') +'''">
+    </a><br>
+    <em>'''+ str2HTML('Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!') + '''</em>
+</div>
+
+<p class="titulo">'''+ str2HTML(self.tr('MEMORIAL DESCRITIVO')) + '''</p>
+
+<table class="info">
+<tbody>
+<tr>
+<td><strong>'''+ str2HTML(self.tr('Imóvel')) + ''':</strong> [IMOVEL]</td>
+<td><strong>''' + str2HTML(self.tr('Código INCRA/SNCR')) + ''':</strong> [REGISTRO]</td>
+</tr>
+
+<tr>
+<td colspan="2"><strong>''' + str2HTML(self.tr('Proprietário(a)')) + ''':</strong> [PROPRIETARIO]</td>
+</tr>
+
+<tr>
+<td><strong>''' + str2HTML(self.tr('Município')) + ''':</strong> [MUNICIPIO]</td>
+<td><strong>''' + str2HTML(self.tr('Estado')) + ''':</strong> [UF]</td>
+</tr>
+
+<tr>
+<td colspan="2"><strong>''' + str2HTML(self.tr('Matrícula/Transcrição')) + ''':</strong> [MATRICULAS]</td>
+</tr>
+
+<tr>
+<td><strong>''' + str2HTML(self.tr('Área (ha)')) + ''':</strong> [AREA]</td>
+<td><strong>''' + str2HTML(self.tr('Perímetro')) + ''' (m):</strong> [PERIMETRO]</td>
+</tr>
+
+<tr>
+<td colspan="2"><strong>''' + str2HTML(self.tr('Sistema de Referência de Coordenadas')) + ''':</strong> [SRC]</td>
+</tr>
+</tbody>
+</table>
+
+<p class="descricao">'''+ str2HTML(self.tr('Inicia-se a descrição deste perímetro n'))
+        
+
+
+        texto_var1 = (
+            str2HTML(self.tr('o vértice ')) +
+            '''<strong>[Vn]</strong>, ''' +
+            str2HTML(self.tr('de coordenadas ')) +
+            '''[Coordn], ''' +
+            str2HTML(self.tr('deste, segue confrontando com [Confront_k], com os seguintes azimutes e distâncias: [Az_n] e [Dist_n]m até '))
+        )
+
+        texto_var2 = (
+            str2HTML(self.tr('o vértice ')) +
+            '''<strong>[Vn]</strong>, ''' +
+            str2HTML(self.tr('de coordenadas ')) +
+            '''[Coordn]; ''' +
+            str2HTML(self.tr('[Az_n] e [Dist_n]m até '))
+        )
+
+        texto_calculo = self.tr(
+            '. Os azimutes foram calculados pela fórmula do Problema Geodésico Inverso segundo Puissant. '
+            'As distâncias, área e perímetro foram calculados no Sistema Geodésico Local (SGL) '
+            'com origem na média das coordenadas cartesianas geocêntricas do imóvel.'
+        )
+
+        texto_final = (
+            str2HTML(self.tr('o vértice ')) +
+            '''<strong>[P-01]</strong>, ''' +
+            str2HTML(self.tr('de coordenadas')) +
+            ''' [Coord1], ''' +
+            str2HTML(self.tr('ponto inicial da descrição deste perímetro. Todas as coordenadas aqui descritas estão georreferenciadas ao Sistema Geodésico de Referência (SGR)')) +
+            ''' <strong>[GRS]</strong>''' +
+            str2HTML(texto_calculo) +
+            '''
+        </p>
+
+        <p class="data">[LOCAL], [DATA].</p>
+
+        <div class="assinatura">
+        <p>___________________________________________</p>
+        <p>[OWNER]</p>
+        <p>''' + str2HTML(self.tr('PROPRIETÁRIO DO IMÓVEL')) + '''</p>
+        </div>
+
+        <div class="assinatura">
+        <p>___________________________________________</p>
+        <p>[RESP_TEC]</p>
+        <p>[CREA]</p>
+        <p>''' + str2HTML(self.tr('RESPONSÁVEL TÉCNICO')) + '''</p>
+        </div>
+
+        </body>
+        </html>
+        '''
+        )
+
+
         # Inserindo dados iniciais do levantamento
         proprietario = dic['Proprietário(a):'] if dic['Proprietário(a):'] else dic['Proprietário:']
         matricula = dic['Matrícula do imóvel:'] if dic['Matrícula do imóvel:'] else dic['Transcrição do imóvel:']
