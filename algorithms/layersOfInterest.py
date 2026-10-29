@@ -56,7 +56,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                4: 'Unidades da Federação 2025 (IBGE)',
                5: 'Municípios 2025 (IBGE)',
                6: 'Estações BDG GPS (IBGE)',
-               7: 'Faixas de domínio 2024 (DNIT) — GeoOne',
+               7: 'Faixas de domínio 2024 (DNIT)',
                8: 'RBMC 2024 (IBGE)',
             }
 
@@ -170,7 +170,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         except QgsProcessingException:
             raise
         except Exception as exc:
-            raise QgsProcessingException('Não foi possível ler os metadados do Hugging Face: ' + str(exc))
+            raise QgsProcessingException('Não foi possível ler os metadados da base da GeoOne: ' + str(exc))
 
     def _url(self, commit, relative):
         path = PurePosixPath(relative)
@@ -443,7 +443,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         return 'GeoOne,GeoRural,INCRA,Sigef,IBGE,DNIT,municípios,estados,brasil,UFs,faixa de domínio,RBMC,ICMBio,conservação,embargadas,gps,urbanizadas,rural,regularização,fundiária'.split(',')
     
     def shortHelpString(self):
-        txt = 'Baixar camada de interesse a partir de uma extensão desenhada na tela (retângulo). Faixas de domínio do DNIT, estações BDG GPS e RBMC são consultadas na base GeoOne no Hugging Face, com cache local. Os GeoPackages de pontos são baixados integralmente na primeira consulta e filtrados localmente. As demais opções utilizam seus serviços WFS.'
+        txt = 'Baixar camada de interesse a partir de uma extensão desenhada na tela (retângulo). Faixas de domínio do DNIT, estações BDG GPS e RBMC são consultadas na base da GeoOne. Os GeoPackages de pontos são baixados integralmente na primeira consulta e filtrados localmente. As demais opções utilizam seus serviços WFS.'
         footer = '''<div>
                       <div align="center">
                       <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
