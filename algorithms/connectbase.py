@@ -69,8 +69,7 @@ class ConnectBase(QgsProcessingAlgorithm):
                3: 'SNCI - 1ª/2ª Norma - Público',
                4: 'Assentamentos',
                5: 'Quilombolas',
-               6: 'Imóveis Pendentes de Titulação',
-               7: 'Faixas de domínio do DNIT',
+               6: 'Imóveis Pendentes de Titulação'
             }
 
     layer_name ={    0: 'ms:certificada_sigef_particular_xx',
@@ -112,7 +111,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterBoolean(
                 self.GEOONE,
-                self.tr('Consultar base da GeoOne (Hugging Face)'),
+                self.tr('Consultar base da GeoOne'),
                 defaultValue= False
             )
         )
@@ -276,7 +275,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         except QgsProcessingException:
             raise
         except Exception as exc:
-            raise QgsProcessingException('Não foi possível ler os metadados do Hugging Face: ' + str(exc))
+            raise QgsProcessingException('Não foi possível ler os metadados da base da GeoOne: ' + str(exc))
 
     def _url(self, commit, relative):
         path = PurePosixPath(relative)
@@ -450,7 +449,7 @@ class ConnectBase(QgsProcessingAlgorithm):
 
     
     def shortHelpString(self):
-        txt = "Conecta a base de dados do INCRA e carrega camada de imóveis a partir de um retângulo selecionado pelo usuário. A opção GeoOne consulta arquivos FlatGeobuf do Hugging Face com cache local e verificação SHA-256. Retorna geometrias integrais que interceptam a extensão. Limite por consulta GeoOne: 100 arquivos ou 512 MiB. Os links complementares são apresentados quando existe identificador SIGEF compatível."
+        txt = "Conecta a base de dados do INCRA e carrega camada de imóveis a partir de um retângulo selecionado pelo usuário. A opção GeoOne consulta camadas da base própria (backup). Retorna geometrias integrais que interceptam a extensão. Os links complementares são apresentados quando existe identificador SIGEF compatível."
 
         footer = '''<div>
                       <div align="center">
