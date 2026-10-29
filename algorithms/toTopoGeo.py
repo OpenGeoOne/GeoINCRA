@@ -272,8 +272,9 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             feedback.pushInfo('Copiando feições da camada {} para a camada {}...'.format(origem.sourceName(), dest.sourceName()))
             dic_transf = conv[2]
             dest.startEditing()
-            feature = QgsFeature(dest.fields())
+            avisos_atributos = set()
             for feat in origem.getFeatures():
+                feature = QgsFeature(dest.fields())
                 for item in dic_transf:
                     try:
                         if isinstance( dic_transf[item], list):
@@ -282,8 +283,13 @@ class ToTopoGeo(QgsProcessingAlgorithm):
                             feature[item] = dic[feat[campo]]
                         else:
                             feature[item] = feat[dic_transf[item]]
-                    except:
-                        pass
+                    except (KeyError, TypeError, ValueError) as exc:
+                        # A nova feicao mantem NULL neste campo; nao reutiliza o valor anterior.
+                        if item not in avisos_atributos:
+                            feedback.pushWarning('Não foi possível converter o campo {} na camada {} '
+                                                 '(FID {}): {}. O atributo ficará nulo quando a conversão falhar.'
+                                                 .format(item, origem.sourceName(), feat.id(), str(exc)))
+                            avisos_atributos.add(item)
                 feature.setGeometry(feat.geometry())
                 dest.addFeatures([feature])
                 cont += 1
