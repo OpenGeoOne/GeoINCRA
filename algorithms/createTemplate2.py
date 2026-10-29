@@ -26,7 +26,7 @@ __author__ = 'Tiago Prudencio e Leandro França'
 __date__ = '2024-03-07'
 __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, QProcess
 from qgis.core import (QgsProcessing,
 					   QgsProcessingException,
 					   QgsProcessingParameterNumber,
@@ -38,7 +38,6 @@ from qgis.core import (QgsProcessing,
 
 from math import floor, modf
 from qgis.PyQt.QtGui import QIcon
-import subprocess
 import os, re
 import shutil
 import platform
@@ -484,17 +483,28 @@ class createTemplate2(QgsProcessingAlgorithm):
 		with open(os.path.join(path_macro,'qgis_macro.py'),'w') as arq:
 			arq.write(data)
 
-		#executa macro
-		try:			
-			subprocess.call([
-						libreoffice_path,
-						"--invisible",
-						path_ods,
-						"vnd.sun.star.script:qgis_macro.py$create_table?language=Python&location=user"
-					])
-		except:
-			raise QgsProcessingException("Verifique se a versão do seu LibreOffice ou o seu SO estão atualizados!")
-
-		os.remove(os.path.join(path_macro,'qgis_macro.py')) # Remove a macro temporária
+		# O executavel e os argumentos sao enviados separadamente, sem shell.
+		try:
+			if not libreoffice_path.is_absolute() or not libreoffice_path.is_file():
+				raise QgsProcessingException("Executável do LibreOffice não encontrado: " + str(libreoffice_path))
+			if not path_ods.is_file():
+				raise QgsProcessingException("Modelo ODS não encontrado: " + str(path_ods))
+			process = QProcess()
+			process.start(str(libreoffice_path), [
+				"--invisible", str(path_ods.resolve()),
+				"vnd.sun.star.script:qgis_macro.py$create_table?language=Python&location=user"
+			])
+			if not process.waitForStarted(30000):
+				raise QgsProcessingException("Não foi possível iniciar o LibreOffice: " + process.errorString())
+			if not process.waitForFinished(300000):
+				process.kill()
+				process.waitForFinished(5000)
+				raise QgsProcessingException("O LibreOffice não concluiu a execução em cinco minutos.")
+			if process.exitStatus() != QProcess.ExitStatus.NormalExit or process.exitCode() != 0:
+				raise QgsProcessingException("Falha na execução do LibreOffice: " +
+					bytes(process.readAllStandardError()).decode('utf-8', errors='replace'))
+		finally:
+			if dst_macro.exists():
+				dst_macro.unlink()
 
 		return {self.OUTPUT: output_path}
