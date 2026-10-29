@@ -1,86 +1,79 @@
-# This file contains metadata for your plugin.
-
-# This file should be included when you package your plugin.# Mandatory items:
-
 [general]
 name=GeoINCRA
 qgisMinimumVersion=3.40
 qgisMaximumVersion=4.99
-description=Georeferencing of rural properties according to INCRA’s Brazilian technical regulations for land regularization.
-version=2.0.4
+description=Tools for rural parcel georeferencing, SIGEF spreadsheet workflows, land registry document conversion, and spatial queries to Brazilian land and reference datasets.
+version=2.0.5
 author=Tiago Prudencio, Leandro França
 email=suporte@geoone.com.br
 
-about=Tools designed to support the georeferencing of rural land parcels in Brazil, following the technical standards of the National Institute for Colonization and Agrarian Reform (INCRA). The plugin is widely used in processes of rural land regularization and cadastral compliance. 🌎🇧🇷 Ferramentas desenvolvidas para apoiar o georreferenciamento de imóveis rurais no Brasil, conforme as normas técnicas do Instituto Nacional de Colonização e Reforma Agrária (INCRA). O plugin é amplamente utilizado em processos de regularização fundiária e conformidade cadastral.
+about=GeoINCRA provides tools for rural parcel georeferencing in Brazil according to the technical standards of the National Institute for Colonization and Agrarian Reform (INCRA). It supports SIGEF ODS spreadsheet import and export, vertex coding and validation, area and perimeter calculations in the Local Tangent Plane, conversion of SIGEF descriptive reports, and integration between GeoRural and TopoGeo databases. Spatial queries retrieve rural parcel and reference data for a user-defined extent, including INCRA datasets, DNIT rights-of-way, and IBGE geodetic stations. GeoOne datasets hosted on Hugging Face provide an alternative to the official services, with local caching and download integrity checks. Developed by Tiago Prudencio and Leandro França, the plugin supports surveying, rural land regularization, and cadastral workflows.
 
 tracker=https://github.com/OpenGeoOne/GeoINCRA/issues
 repository=https://github.com/OpenGeoOne/GeoINCRA
-# End of mandatory metadata
-
-# Recommended items:
+homepage=https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA
 
 hasProcessingProvider=yes
-# Uncomment the following line and add your changelog:
-# changelog=
-	2.0.4 - Bug fixed in the Sigef Memorial Converter tool for Notary Offices.
-	2.0.3 - Reorganized tool groups and tool names for easier navigation. Added predefined styles for the SIGEF Memorial to Layers tool. Added an option to enable or disable coordinate rounding during output generation.
-	2.0.2 - Updated for compatibility with QGIS 4.0
-	2.0.1 - Added automatic grouping and styling of ODS layers, and fixed a bug in boundary type detection from the spreadsheet.
-	2.0.0 - New functions to calculate area and perimeter in the Local Tangent Plane for Sigef/INCRA standards
-	1.8.14 - New IBGE layers (states e counties) updated
-	1.8.13 - Sequence number saved in memory for Fill Codes tool
-	1.8.12 - Compatibility with Qt5 and Qt6
-	1.8.11 - Bug fix in the memorial conversor tool for adjoiner naming
-	1.8.10 - Option added for Z validation in the tool to feed vertex layer of GeoRural
-	1.8.9 - Bug fix for reading RBMC status, conversion of attribute "parcel" included in GeoRural to TopoGeo tool
-	1.8.8 - Interpolate PA3 vertex included, regex for code with 6 numerical digits and bug fix in Z validation
-	1.8.7 - new sigef 1.3 spreadsheet and Z coordinate validation of vertices added
-	1.8.6 - links for layers of interest updated
-	1.8.5 - improvement in memorial conversor for adjoiner naming
-	1.8.4 - improvement in attribute validation
-	1.8.3 - bug fix in Layers From Sheet tool for filling "lote" attribute and finding central meridian
-	1.8.2 - improvement in memorial conversor tool transcription
-	1.8.1 - bug fix in memorial conversor tool
-	1.8.0 - new tools for converting Sigef PDF into Textual HTML and automating parcel division by road.
-	1.7.6 - bug fix in north hemisphere coordinates
-	1.7.5 - bug fix in importing PyPDF2 on Linux
-	1.7.4 - new layers of interest added
-	1.7.3 - spreadsheet generation with polygon with inner ring
-	1.7.2 - new layer of interest on RBMC
-	1.7.1 - bug fix in importing PyPDF2 on MacOS
-	1.7.0 - new tool to read Tabular PDF as layers
-	1.6.0 - new tool to ODS spreadsheet into layers
-	1.5.4 - new layer parcelageo added
-	1.5.3 - bug fix in natureza do servico ODS filling
-	1.5.2 - bug fix toTopoGeo tool and natureza field
-	1.5.1 - bug fix for only selected layers
-	1.5.0 - new tool to transform GeoRural into an ODS spreadsheet
-	1.4.5 - improvement in z-dimension validation
-	1.4.4 - fill code for selected features improvement
-	1.4.3 - new position methods included for validation
-	1.4.2 - fill code for TopoGeo and PA1 parallel interpolation
-	1.4.1 - bug fix for coping spreadsheet
-	1.4 - buf fix in getting limit data using multipolygon
-	1.3 - new tool to interpolate Virtual Vertex V
-	1.2 - bug fix in createTemplate tool
-	1.1 - new tool to fill vertex code
-	1.0 - conversion from GeoRural to TopoGeo database
-	0.2 - improvement to get limit type for each point
-	0.1 - Initial version
-# Tags are comma separated with spaces allowed
-tags=georreferenciamento, imoveis, rurais, incra, sigef, georural, ods, planilha, brazil, GeoOne
+category=Vector
 
-homepage=https://github.com/OpenGeoOne/GeoINCRA/wiki/Sobre-o-GeoINCRA
-category=cartography
+# Tags are comma separated; spaces are allowed within each tag.
+tags=georeferencing, surveying, cartography, rural cadastre, land regularization, rural parcels, georreferenciamento, imoveis rurais, INCRA, SIGEF, SNCI, GeoRural, TopoGeo, ODS, spreadsheets, GNSS, RBMC, IBGE, DNIT, FlatGeobuf, Hugging Face, processing, Brazil, GeoOne
+
 icon=images/geoincra_logo.png
-# experimental flag
 experimental=False
 server=False
-
-# deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
 
-# Since QGIS 3.8, a comma separated list of plugins to be installed
-# (or upgraded) can be specified.
-# Check the documentation for more information.
-# plugin_dependencies=
+# Support the continued development of GeoOne plugins for QGIS.
+donation=https://www.paypal.com/ncp/payment/8V3C6PEAMQAYG
+
+# How to cite:
+# Prudencio, T., & França, L. (YEAR). GeoINCRA: Tools for rural parcel georeferencing and SIGEF workflows in Brazil. (Version X.X.X) [QGIS plugin]. Retrieved from https://github.com/OpenGeoOne/GeoINCRA
+
+changelog=
+  2.0.5 - Replaced legacy GeoOne GeoServer access with Hugging Face datasets for INCRA, DNIT, RBMC, and GPS station queries, adding spatial filtering, local caching, and download integrity checks.
+  2.0.4 - Fixed a bug in the SIGEF Memorial Converter tool for notary offices.
+  2.0.3 - Reorganized tool groups and tool names for easier navigation. Added predefined styles for the SIGEF Memorial to Layers tool. Added an option to enable or disable coordinate rounding during output generation.
+  2.0.2 - Updated for compatibility with QGIS 4.0.
+  2.0.1 - Added automatic grouping and styling of ODS layers, and fixed a bug in boundary type detection from the spreadsheet.
+  2.0.0 - Added functions to calculate area and perimeter in the Local Tangent Plane according to SIGEF/INCRA standards.
+  1.8.14 - Updated IBGE reference layers for states and municipalities.
+  1.8.13 - Saved the sequence number between runs of the Fill Codes tool.
+  1.8.12 - Added compatibility with Qt5 and Qt6.
+  1.8.11 - Fixed adjoining parcel names in the Memorial Converter tool.
+  1.8.10 - Added an option to validate Z coordinates when populating the GeoRural vertex layer.
+  1.8.9 - Fixed RBMC status retrieval and added conversion of the "parcel" attribute in the GeoRural to TopoGeo tool.
+  1.8.8 - Added PA3 vertex interpolation, support for six-digit codes, and a fix for Z coordinate validation.
+  1.8.7 - Added support for the SIGEF 1.3 spreadsheet and validation of vertex Z coordinates.
+  1.8.6 - Updated links for layers of interest.
+  1.8.5 - Improved adjoining parcel names in the Memorial Converter tool.
+  1.8.4 - Improved attribute validation.
+  1.8.3 - Fixed the "lote" attribute and central meridian detection in the Layers From Spreadsheet tool.
+  1.8.2 - Improved text transcription in the Memorial Converter tool.
+  1.8.1 - Fixed a bug in the Memorial Converter tool.
+  1.8.0 - Added tools to convert SIGEF PDF documents to HTML text and automate parcel division by roads.
+  1.7.6 - Fixed handling of Northern Hemisphere coordinates.
+  1.7.5 - Fixed PyPDF2 imports on Linux.
+  1.7.4 - Added new layers of interest.
+  1.7.3 - Added spreadsheet generation for polygons with interior rings.
+  1.7.2 - Added the RBMC layer of interest.
+  1.7.1 - Fixed PyPDF2 imports on macOS.
+  1.7.0 - Added a tool to import tabular PDF data as layers.
+  1.6.0 - Added a tool to import ODS spreadsheets as layers.
+  1.5.4 - Added the parcelageo layer.
+  1.5.3 - Fixed population of the "natureza do servico" field in ODS spreadsheets.
+  1.5.2 - Fixed the toTopoGeo tool and the "natureza" field.
+  1.5.1 - Fixed processing of selected layers only.
+  1.5.0 - Added a tool to export GeoRural data to an ODS spreadsheet.
+  1.4.5 - Improved Z coordinate validation.
+  1.4.4 - Improved code generation for selected features.
+  1.4.3 - Added positioning methods for validation.
+  1.4.2 - Added TopoGeo code generation and parallel interpolation for PA1 vertices.
+  1.4.1 - Fixed spreadsheet copying.
+  1.4 - Fixed boundary data retrieval for multipart polygons.
+  1.3 - Added a tool to interpolate virtual vertices (V).
+  1.2 - Fixed a bug in the createTemplate tool.
+  1.1 - Added a tool to populate vertex codes.
+  1.0 - Added conversion from GeoRural to the TopoGeo database.
+  0.2 - Improved boundary type identification for each point.
+  0.1 - Initial version.
