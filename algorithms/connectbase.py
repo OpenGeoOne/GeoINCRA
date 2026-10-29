@@ -45,11 +45,12 @@ from qgis.core import (QgsFields, QgsGeometry, QgsWkbTypes, QgsProject,
                        QgsProcessingParameterFeatureSink)
 
 import os
+import requests
 import json
 import re
 import hashlib
 import tempfile
-import urllib.request
+from contextlib import contextmanager
 import urllib.parse
 from pathlib import Path, PurePosixPath
 from qgis.PyQt.QtGui import QIcon
@@ -262,11 +263,40 @@ class ConnectBase(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             raise QgsProcessingException('Consulta cancelada pelo usuário.')
 
+    @contextmanager
+    def _open_https(self, url, feedback):
+        """Restringe cada requisicao, inclusive redirecionamentos, a HTTPS."""
+        current = url
+        for _ in range(10):
+            self._cancel(feedback)
+            parts = urllib.parse.urlsplit(current)
+            if (parts.scheme.lower() != 'https' or not parts.hostname
+                    or parts.username is not None or parts.password is not None):
+                raise QgsProcessingException('A consulta exige uma URL HTTPS sem credenciais.')
+            response = requests.get(current, headers={'User-Agent': 'GeoINCRA/GeoOne'},
+                                    timeout=(15, 45), stream=True, allow_redirects=False)
+            if response.status_code in (301, 302, 303, 307, 308):
+                location = response.headers.get('Location')
+                response.close()
+                if not location:
+                    raise QgsProcessingException('Redirecionamento sem destino.')
+                current = urllib.parse.urljoin(current, location)
+                continue
+            try:
+                response.raise_for_status()
+                if response.status_code != 200:
+                    raise QgsProcessingException('Resposta HTTP inesperada: ' + str(response.status_code))
+                response.raw.decode_content = True
+                yield response.raw
+            finally:
+                response.close()
+            return
+        raise QgsProcessingException('Limite de redirecionamentos excedido.')
+
     def _json_url(self, url, feedback):
         self._cancel(feedback)
         try:
-            req = urllib.request.Request(url, headers={'User-Agent': 'GeoINCRA/GeoOne'})
-            with urllib.request.urlopen(req, timeout=45) as response:
+            with self._open_https(url, feedback) as response:
                 raw = response.read(20 * 1024 * 1024 + 1)
             if len(raw) > 20 * 1024 * 1024:
                 raise ValueError('Metadados excedem o tamanho permitido.')
@@ -312,9 +342,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         fd, tmp = tempfile.mkstemp(prefix='download_', suffix='.part', dir=str(cache))
         try:
             with os.fdopen(fd, 'wb') as stream:
-                req = urllib.request.Request(self._url(commit, entry['arquivo']),
-                                             headers={'User-Agent': 'GeoINCRA/GeoOne'})
-                with urllib.request.urlopen(req, timeout=45) as response:
+                with self._open_https(self._url(commit, entry['arquivo']), feedback) as response:
                     total = 0
                     while True:
                         self._cancel(feedback)
@@ -449,7 +477,7 @@ class ConnectBase(QgsProcessingAlgorithm):
 
     
     def shortHelpString(self):
-        txt = "Conecta a base de dados do INCRA e carrega camada de imóveis a partir de um retângulo selecionado pelo usuário. A opção GeoOne consulta camadas da base própria (backup). Retorna geometrias integrais que interceptam a extensão. Os links complementares são apresentados quando existe identificador SIGEF compatível."
+        txt = "Conecta a base de dados do INCRA e carrega camada de imóveis a partir de um retângulo selecionado pelo usuário. A opção GeoOne consulta camadas de sua base própria (backup). Retorna geometrias integrais que interceptam a extensão. Os links complementares por feição são apresentados quando existe identificador SIGEF compatível."
 
         footer = '''<div>
                       <div align="center">
