@@ -35,7 +35,7 @@ import json
 import re
 import hashlib
 import tempfile
-import urllib.request
+from contextlib import contextmanager
 import urllib.parse
 from pathlib import Path, PurePosixPath
 import requests
@@ -157,11 +157,40 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             raise QgsProcessingException('Consulta cancelada pelo usuário.')
 
+    @contextmanager
+    def _open_https(self, url, feedback):
+        """Restringe cada requisicao, inclusive redirecionamentos, a HTTPS."""
+        current = url
+        for _ in range(10):
+            self._cancel(feedback)
+            parts = urllib.parse.urlsplit(current)
+            if (parts.scheme.lower() != 'https' or not parts.hostname
+                    or parts.username is not None or parts.password is not None):
+                raise QgsProcessingException('A consulta exige uma URL HTTPS sem credenciais.')
+            response = requests.get(current, headers={'User-Agent': 'GeoINCRA/GeoOne'},
+                                    timeout=(15, 45), stream=True, allow_redirects=False)
+            if response.status_code in (301, 302, 303, 307, 308):
+                location = response.headers.get('Location')
+                response.close()
+                if not location:
+                    raise QgsProcessingException('Redirecionamento sem destino.')
+                current = urllib.parse.urljoin(current, location)
+                continue
+            try:
+                response.raise_for_status()
+                if response.status_code != 200:
+                    raise QgsProcessingException('Resposta HTTP inesperada: ' + str(response.status_code))
+                response.raw.decode_content = True
+                yield response.raw
+            finally:
+                response.close()
+            return
+        raise QgsProcessingException('Limite de redirecionamentos excedido.')
+
     def _json_url(self, url, feedback):
         self._cancel(feedback)
         try:
-            req = urllib.request.Request(url, headers={'User-Agent': 'GeoINCRA/GeoOne'})
-            with urllib.request.urlopen(req, timeout=45) as response:
+            with self._open_https(url, feedback) as response:
                 raw = response.read(20 * 1024 * 1024 + 1)
             if len(raw) > 20 * 1024 * 1024:
                 raise ValueError('Metadados excedem o tamanho permitido.')
@@ -207,9 +236,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         fd, tmp = tempfile.mkstemp(prefix='download_', suffix='.part', dir=str(cache))
         try:
             with os.fdopen(fd, 'wb') as stream:
-                req = urllib.request.Request(self._url(commit, entry['arquivo']),
-                                             headers={'User-Agent': 'GeoINCRA/GeoOne'})
-                with urllib.request.urlopen(req, timeout=45) as response:
+                with self._open_https(self._url(commit, entry['arquivo']), feedback) as response:
                     total = 0
                     while True:
                         self._cancel(feedback)
@@ -352,7 +379,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         cache.mkdir(parents=True, exist_ok=True)
         path = cache / (expected + '.gpkg')
         def checksum(filename):
-            digest = hashlib.sha256() if is_sha256 else hashlib.sha1()
+            digest = hashlib.sha256() if is_sha256 else hashlib.sha1(usedforsecurity=False)
             if not is_sha256:
                 digest.update(('blob %d\0' % size).encode('ascii'))
             with open(filename, 'rb') as stream:
@@ -368,9 +395,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
             fd, tmp = tempfile.mkstemp(prefix='download_', suffix='.part', dir=str(cache))
             try:
                 with os.fdopen(fd, 'wb') as stream:
-                    req = urllib.request.Request(self._url(commit, relative),
-                                                 headers={'User-Agent': 'GeoINCRA/GeoOne'})
-                    with urllib.request.urlopen(req, timeout=45) as response:
+                    with self._open_https(self._url(commit, relative), feedback) as response:
                         total = 0
                         while True:
                             self._cancel(feedback)
@@ -443,7 +468,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         return 'GeoOne,GeoRural,INCRA,Sigef,IBGE,DNIT,municípios,estados,brasil,UFs,faixa de domínio,RBMC,ICMBio,conservação,embargadas,gps,urbanizadas,rural,regularização,fundiária'.split(',')
     
     def shortHelpString(self):
-        txt = 'Baixar camada de interesse a partir de uma extensão desenhada na tela (retângulo). Faixas de domínio do DNIT, estações BDG GPS e RBMC são consultadas na base da GeoOne. Os GeoPackages de pontos são baixados integralmente na primeira consulta e filtrados localmente. As demais opções utilizam seus serviços WFS.'
+        txt = 'Baixar camada de interesse a partir de uma extensão desenhada na tela (retângulo). Faixas de domínio do DNIT, estações BDG GPS e RBMC são consultadas na base GeoOne (backup), com cache local. Os GeoPackages de pontos são baixados integralmente na primeira consulta e filtrados localmente. As demais opções utilizam seus serviços WFS.'
         footer = '''<div>
                       <div align="center">
                       <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
