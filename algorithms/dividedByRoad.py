@@ -28,7 +28,22 @@ __copyright__ = '(C) 2025 by Tiago Prudencio e Leandro França'
 
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import *
+from qgis.core import (
+    Qgis,
+    QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform,
+    QgsEllipsoidUtils,
+    QgsFeature,
+    QgsGeometry,
+    QgsProcessingAlgorithm,
+    QgsProcessingException,
+    QgsProcessingParameterBoolean,
+    QgsProcessingParameterFeatureSource,
+    QgsProcessingParameterNumber,
+    QgsProcessingParameterVectorLayer,
+    QgsProject,
+    QgsVectorLayer
+)
 import os, processing
 from qgis.PyQt.QtGui import QIcon
 import numpy as np
@@ -45,13 +60,13 @@ class DividedByRoad(QgsProcessingAlgorithm):
     def initAlgorithm(self, config):
 
         self.addParameter(
-			QgsProcessingParameterVectorLayer(
-				self.PARCELA,
-				self.tr('Camada Parcela (GeoRural)'),
-				[Qgis.ProcessingSourceType.VectorPolygon],
+                        QgsProcessingParameterVectorLayer(
+                                self.PARCELA,
+                                self.tr('Camada Parcela (GeoRural)'),
+                                [Qgis.ProcessingSourceType.VectorPolygon],
                 optional = False
-			)
-		)
+                        )
+                )
 
         self.addParameter(
             QgsProcessingParameterVectorLayer(
@@ -63,13 +78,13 @@ class DividedByRoad(QgsProcessingAlgorithm):
         )
 
         self.addParameter(
-			QgsProcessingParameterFeatureSource(
-				self.ESTRADA,
-				self.tr('Estrada (Linha ou Polígono)'),
-				[Qgis.ProcessingSourceType.VectorPolygon, Qgis.ProcessingSourceType.VectorLine],
+                        QgsProcessingParameterFeatureSource(
+                                self.ESTRADA,
+                                self.tr('Estrada (Linha ou Polígono)'),
+                                [Qgis.ProcessingSourceType.VectorPolygon, Qgis.ProcessingSourceType.VectorLine],
                 optional = False
-			)
-		)
+                        )
+                )
 
         self.addParameter(
             QgsProcessingParameterNumber(
@@ -129,7 +144,7 @@ class DividedByRoad(QgsProcessingAlgorithm):
         try:
             if estrada.featureCount() != 1:
                 raise QgsProcessingException('Camada estrada deve ter apenas uma feição!')
-        except:
+        except Exception:
             raise QgsProcessingException('Camada estrada deve ter apenas uma feição!')
 
         # Camada da estrada não pode ser igual a camada da parcela

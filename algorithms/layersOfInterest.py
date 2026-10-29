@@ -29,7 +29,34 @@ __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtCore import QCoreApplication, QMetaType, QStandardPaths
-from qgis.core import *
+from qgis.core import (
+    Qgis,
+    QgsAction,
+    QgsCoordinateReferenceSystem,
+    QgsFeatureRequest,
+    QgsFeatureSink,
+    QgsField,
+    QgsFields,
+    QgsGeometry,
+    QgsMarkerSymbol,
+    QgsPalLayerSettings,
+    QgsProcessingAlgorithm,
+    QgsProcessingException,
+    QgsProcessingLayerPostProcessorInterface,
+    QgsProcessingParameterEnum,
+    QgsProcessingParameterExtent,
+    QgsProcessingParameterFeatureSink,
+    QgsProcessingUtils,
+    QgsRuleBasedRenderer,
+    QgsSettings,
+    QgsSingleSymbolRenderer,
+    QgsSymbol,
+    QgsTextBufferSettings,
+    QgsTextFormat,
+    QgsVectorLayer,
+    QgsVectorLayerSimpleLabeling,
+    QgsWkbTypes
+)
 import os
 import json
 import re
@@ -565,7 +592,7 @@ webbrowser.open("[%URL_LINK%]")""", False)
                     acActor.setActionScopes({'Field', 'Layer', 'Canvas', 'Feature'})
                     acManager.addAction(acActor)
 
-                except:
+                except Exception:
                     print('Erro no processo requisição da URL!')
             
             elif self.OPTION == 6: # Estação GPS

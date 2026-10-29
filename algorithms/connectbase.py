@@ -224,28 +224,28 @@ class ConnectBase(QgsProcessingAlgorithm):
         field= QgsField( 'base_INCRA', QMetaType.Type.QString)
         layer.addExpressionField(
 '''replace('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-			<html>
-			<head>
-				<meta content="text/html; charset=ISO-8859-1"
-				http-equiv="content-type">
-				<title>base_INCRA</title>
-			</head>
-			<body>
-			<a
-			 href="https://sigef.incra.gov.br/geo/exportar/vertice/csv/[ID]/">Clique
-			aqui para baixar CSV v&eacute;rtices (pontos)</a><br>
-			<a
-			 href="https://sigef.incra.gov.br/geo/exportar/limite/shp/[ID]/">Clique
-			aqui para baixar Shapefile dos limites (linhas)</a><br>
-			<a
-			 href="https://sigef.incra.gov.br/geo/exportar/parcela/shp/[ID]/">Clique
-			aqui para baixar Shapefile da parcela (&aacute;rea)</a><br><br>
+                        <html>
+                        <head>
+                                <meta content="text/html; charset=ISO-8859-1"
+                                http-equiv="content-type">
+                                <title>base_INCRA</title>
+                        </head>
+                        <body>
+                        <a
+                         href="https://sigef.incra.gov.br/geo/exportar/vertice/csv/[ID]/">Clique
+                        aqui para baixar CSV v&eacute;rtices (pontos)</a><br>
+                        <a
+                         href="https://sigef.incra.gov.br/geo/exportar/limite/shp/[ID]/">Clique
+                        aqui para baixar Shapefile dos limites (linhas)</a><br>
+                        <a
+                         href="https://sigef.incra.gov.br/geo/exportar/parcela/shp/[ID]/">Clique
+                        aqui para baixar Shapefile da parcela (&aacute;rea)</a><br><br>
             <a
-			 href="https://sigef.incra.gov.br/geo/parcela/detalhe/[ID]/">Clique
-			aqui para saber mais detalhes sobre a parcela (&aacute;rea)</a>
-			</body>
-			</html>','[ID]',  "parcela_codigo" )'''.replace('"parcela_codigo"', '"' + identifier + '"'), field
-			)
+                         href="https://sigef.incra.gov.br/geo/parcela/detalhe/[ID]/">Clique
+                        aqui para saber mais detalhes sobre a parcela (&aacute;rea)</a>
+                        </body>
+                        </html>','[ID]',  "parcela_codigo" )'''.replace('"parcela_codigo"', '"' + identifier + '"'), field
+                        )
 
         layer.setEditorWidgetSetup(layer.fields().indexOf('base_INCRA'), widget_setup)
         return layer

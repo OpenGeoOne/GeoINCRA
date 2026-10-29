@@ -39,7 +39,7 @@ cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)
 
-from .algorithms.expressions import *
+from .algorithms.expressions import areaINCRA, areaINCRA2, perimetroINCRA, perimetroINCRA2
 exprs = (areaINCRA, areaINCRA2, perimetroINCRA, perimetroINCRA2)
 
 

@@ -27,7 +27,38 @@ __date__ = '2025-01-09'
 __copyright__ = '(C) 2025 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication, QMetaType
-from qgis.core import *
+from qgis.core import (
+    Qgis,
+    QgsCategorizedSymbolRenderer,
+    QgsCoordinateReferenceSystem,
+    QgsExpression,
+    QgsExpressionContext,
+    QgsExpressionContextUtils,
+    QgsFeature,
+    QgsFeatureSink,
+    QgsField,
+    QgsFields,
+    QgsFillSymbol,
+    QgsGeometry,
+    QgsLineString,
+    QgsLineSymbol,
+    QgsMarkerSymbol,
+    QgsMultiPolygon,
+    QgsPalLayerSettings,
+    QgsPoint,
+    QgsPolygon,
+    QgsProcessingAlgorithm,
+    QgsProcessingException,
+    QgsProcessingParameterFeatureSink,
+    QgsProcessingParameterFile,
+    QgsProcessingUtils,
+    QgsProject,
+    QgsRendererCategory,
+    QgsSingleSymbolRenderer,
+    QgsTextBufferSettings,
+    QgsTextFormat,
+    QgsVectorLayerSimpleLabeling
+)
 from qgis.PyQt.QtGui import QIcon, QFont, QColor
 from .Funcs import LerPDF
 from datetime import datetime
@@ -303,20 +334,20 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         # Data da certificação
         try:
             dataAss = datetime.strptime(dic['Data Certificação:'], '%d/%m/%Y %H:%M')
-        except:
+        except Exception:
             try:
                 dataAss = datetime.strptime(dic['Data Certificação:'], '%d/%m/%y %H:%M')
-            except:
+            except Exception:
                 dataAss = None
         if dataAss:
             dataCert = dataAss.isoformat()
         else:
             try:
                 dataAss = datetime.strptime(dic['Data da Geração:'], '%d/%m/%Y %H:%M')
-            except:
+            except Exception:
                 try:
                     dataAss = datetime.strptime(dic['Data da Geração:'], '%d/%m/%y %H:%M')
-                except:
+                except Exception:
                     dataAss = None
             if dataAss:
                 dataCert = dataAss.isoformat()

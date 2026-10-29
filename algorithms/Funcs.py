@@ -14,9 +14,11 @@ __author__ = 'Tiago Prudencio and Leandro França'
 __date__ = '2026-01-06'
 __copyright__ = '(C) 2026 by Tiago Prudencio and Leandro França'
 
-from qgis.core import *
+from qgis.core import (
+    QgsPointXY
+)
 import re
-from numpy import radians, arctan, pi, sin, cos, sqrt, degrees, array, diag, ones, zeros, floor
+from numpy import radians, arctan, pi, sin, cos, sqrt, array, diag, ones, zeros, floor
 from qgis.core import QgsEllipsoidUtils
 from datetime import datetime, timedelta
 import numpy as np
@@ -286,7 +288,7 @@ def dd2dms(dd, n_digits):
 
 def str2HTML(texto):
     if texto:
-        dicHTML = {'Á': '&Aacute;',	'á': '&aacute;',	'Â': '&Acirc;',	'â': '&acirc;',	'À': '&Agrave;',	'à': '&agrave;',	'Å': '&Aring;',	'å': '&aring;',	'Ã': '&Atilde;',	'ã': '&atilde;',	'Ä': '&Auml;',	'ä': '&auml;', 'ú': '&uacute;', 'Ú': '&Uacute;', 'Æ': '&AElig;',	'æ': '&aelig;',	'É': '&Eacute;',	'é': '&eacute;',	'Ê': '&Ecirc;',	'ê': '&ecirc;',	'È': '&Egrave;',	'è': '&egrave;',	'Ë': '&Euml;',	'ë': '&Euml;',	'Ð': '&ETH;',	'ð': '&eth;',	'Í': '&Iacute;',	'í': '&iacute;',	'Î': '&Icirc;',	'î': '&icirc;',	'Ì': '&Igrave;',	'ì': '&igrave;',	'Ï': '&Iuml;',	'ï': '&iuml;',	'Ó': '&Oacute;',	'ó': '&oacute;',	'Ô': '&Ocirc;',	'ô': '&ocirc;',	'Ò': '&Ograve;', 'Õ': '&Otilde;', 'õ': '&otilde;',	'ò': '&ograve;',	'Ø': '&Oslash;',	'ø': '&oslash;',	'Ù': '&Ugrave;',	'ù': '&ugrave;',	'Ü': '&Uuml;',	'ü': '&uuml;',	'Ç': '&Ccedil;',	'ç': '&ccedil;',	'Ñ': '&Ntilde;',	'ñ': '&ntilde;',	'Ý': '&Yacute;',	'ý': '&yacute;',	'"': '&quot;', '”': '&quot;',	'<': '&lt;',	'>': '&gt;',	'®': '&reg;',	'©': '&copy;',	'\'': '&apos;', 'ª': '&ordf;', 'º': '&ordm;', '°':'&deg;', '²':'&sup2;', '¿':'&iquest;', '¡':'&iexcl;', '–': '&ndash;'}
+        dicHTML = {'Á': '&Aacute;',     'á': '&aacute;',        'Â': '&Acirc;', 'â': '&acirc;', 'À': '&Agrave;',        'à': '&agrave;',        'Å': '&Aring;', 'å': '&aring;', 'Ã': '&Atilde;',        'ã': '&atilde;',        'Ä': '&Auml;',  'ä': '&auml;', 'ú': '&uacute;', 'Ú': '&Uacute;', 'Æ': '&AElig;',        'æ': '&aelig;', 'É': '&Eacute;',        'é': '&eacute;',        'Ê': '&Ecirc;', 'ê': '&ecirc;', 'È': '&Egrave;',        'è': '&egrave;',        'Ë': '&Euml;',  'ë': '&Euml;',  'Ð': '&ETH;',   'ð': '&eth;',   'Í': '&Iacute;',        'í': '&iacute;',        'Î': '&Icirc;', 'î': '&icirc;', 'Ì': '&Igrave;',        'ì': '&igrave;',        'Ï': '&Iuml;',  'ï': '&iuml;',  'Ó': '&Oacute;',        'ó': '&oacute;',        'Ô': '&Ocirc;', 'ô': '&ocirc;', 'Ò': '&Ograve;', 'Õ': '&Otilde;', 'õ': '&otilde;',      'ò': '&ograve;',        'Ø': '&Oslash;',        'ø': '&oslash;',        'Ù': '&Ugrave;',        'ù': '&ugrave;',        'Ü': '&Uuml;',  'ü': '&uuml;',  'Ç': '&Ccedil;',        'ç': '&ccedil;',        'Ñ': '&Ntilde;',        'ñ': '&ntilde;',        'Ý': '&Yacute;',        'ý': '&yacute;',        '"': '&quot;', '”': '&quot;',   '<': '&lt;',    '>': '&gt;',    '®': '&reg;',   '©': '&copy;',  '\'': '&apos;', 'ª': '&ordf;', 'º': '&ordm;', '°':'&deg;', '²':'&sup2;', '¿':'&iquest;', '¡':'&iexcl;', '–': '&ndash;'}
         for item in dicHTML:
             if item in texto:
                 texto = texto.replace(item, dicHTML[item])
@@ -342,6 +344,7 @@ def LerPDF(pdf_path, feedback = None):
 
     # Dividir o texto em linhas
     lines = text.splitlines()
+    item = None
     sentinela = False
     sentinela2 = False
     cont = 0
@@ -401,7 +404,7 @@ def LerPDF(pdf_path, feedback = None):
                     dic_cod[lista_cod[-1]]['matr'] = matr
                     dic_cod[lista_cod[-1]]['confr'] = confr
                     dic_cod[lista_cod[-1]]['texto_confr'] = line
-                except:
+                except Exception:
                     dic_cod[lista_cod[-1]]['confr'] = line.strip()
                     dic_cod[lista_cod[-1]]['texto_confr'] = line
     

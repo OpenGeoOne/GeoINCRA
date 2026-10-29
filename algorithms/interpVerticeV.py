@@ -34,7 +34,6 @@ from qgis.core import (Qgis, QgsProcessing,
                        QgsProcessingParameterBoolean,
                        QgsGeometry,
                        QgsPoint,
-                       QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterVectorLayer)
 
 from qgis.PyQt.QtGui import QIcon
@@ -115,7 +114,7 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
             QgsProcessingParameterEnum(
                 self.TIPO,
                 self.tr('Interpolar'),
-				options = ['Precisões e cota', 'Apenas precisões', 'Apenas cota'],
+                                options = ['Precisões e cota', 'Apenas precisões', 'Apenas cota'],
                 defaultValue= 0
             )
         )
@@ -165,11 +164,11 @@ class InterpolarVerticeV(QgsProcessingAlgorithm):
         # Verificar se as precisões dos pontos foram preenchidas
         for feat in vertice.getSelectedFeatures() if selecionados else vertice.getFeatures():
             if feat['tipo_verti'] != 'V':
-                if feat['sigma_x'] < 0 or feat['sigma_x'] > 10 or feat['sigma_x'] == None:
+                if feat['sigma_x'] < 0 or feat['sigma_x'] > 10 or feat['sigma_x'] is None:
                     raise QgsProcessingException ('Verifique os valores do atrituto "sigma_x"!')
-                if feat['sigma_y'] < 0 or feat['sigma_y'] > 10  or feat['sigma_y'] == None:
+                if feat['sigma_y'] < 0 or feat['sigma_y'] > 10  or feat['sigma_y'] is None:
                     raise QgsProcessingException ('Verifique os valores do atrituto "sigma_y"!')
-                if feat['sigma_z'] < 0 or feat['sigma_z'] > 10  or feat['sigma_z'] == None:
+                if feat['sigma_z'] < 0 or feat['sigma_z'] > 10  or feat['sigma_z'] is None:
                     raise QgsProcessingException ('Verifique os valores do atrituto "sigma_z"!')
                 if feat['metodo_pos'] not in ('PG1', 'PG2', 'PG3', 'PG4', 'PG5', 'PG6', 'PG7', 'PG8', 'PG9', 'PT1', 'PT2', 'PT3', 'PT4', 'PT5', 'PT6', 'PT7', 'PT8', 'PT9','PA1', 'PA2', 'PA3', 'PS1', 'PS2', 'PS3', 'PS4', 'PB1', 'PB2'):
                     raise QgsProcessingException ('Verifique os valores do atrituto "metodo_pos"!')

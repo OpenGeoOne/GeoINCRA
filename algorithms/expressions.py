@@ -28,7 +28,11 @@ __copyright__ = '(C) 2026 by Leandro Franca'
 __revision__ = '$Format:%H$'
 
 
-from qgis.core import *
+from qgis.core import (
+    QgsCoordinateReferenceSystem,
+    QgsCoordinateTransform,
+    QgsProject
+)
 from qgis.utils import qgsfunction
 from .Funcs import areaSGL, perimetroSGL
 
@@ -66,7 +70,7 @@ def areaINCRA (geometry, layer_crs, feature, parent):
     geomGeo = geom
     try:
         return areaSGL(geomGeo, crsGeo)
-    except:
+    except Exception:
         return 'Verifique o tipo de geometria!'
 
 
@@ -103,7 +107,7 @@ def areaINCRA2 (feature, parent, context):
     geomGeo = geom
     try:
       return areaSGL(geomGeo, crsGeo)
-    except:
+    except Exception:
       return 'Verifique o tipo de geometria!'
 
 
@@ -139,7 +143,7 @@ def perimetroINCRA (geometry, layer_crs, feature, parent):
     geomGeo = geom
     try:
         return perimetroSGL(geomGeo, crsGeo)
-    except:
+    except Exception:
         return 'Verifique o tipo de geometria!'
 
 
@@ -175,5 +179,5 @@ def perimetroINCRA2 (feature, parent, context):
     geomGeo = geom
     try:
         return perimetroSGL(geomGeo, crsGeo)
-    except:
+    except Exception:
         return 'Verifique o tipo de geometria!'

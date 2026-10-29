@@ -120,7 +120,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             QgsProcessingParameterEnum(
                 self.COORD,
                 self.tr('Padrão de Coordenadas'),
-				options = opcoes,
+                                options = opcoes,
                 defaultValue= 5
             )
         )
@@ -135,7 +135,7 @@ class ConversorMemorial(QgsProcessingAlgorithm):
             QgsProcessingParameterEnum(
                 self.CONFRONT,
                 self.tr('Descrição dos confrontantes'),
-				options = confront,
+                                options = confront,
                 defaultValue= 0
             )
         )
@@ -485,20 +485,20 @@ p {
         # Data da certificação
         try:
             dataAss = datetime.strptime(dic['Data Certificação:'], '%d/%m/%Y %H:%M')
-        except:
+        except Exception:
             try:
                 dataAss = datetime.strptime(dic['Data Certificação:'], '%d/%m/%y %H:%M')
-            except:
+            except Exception:
                 dataAss = None
         if dataAss:
             data_formatada = f"{dataAss.day:02d} de {meses[dataAss.month]} de {dataAss.year}"
         else:
             try:
                 dataAss = datetime.strptime(dic['Data da Geração:'], '%d/%m/%Y %H:%M')
-            except:
+            except Exception:
                 try:
                     dataAss = datetime.strptime(dic['Data da Geração:'], '%d/%m/%y %H:%M')
-                except:
+                except Exception:
                     dataAss = None
             if dataAss:
                 data_formatada = f"{dataAss.day:02d} de {meses[dataAss.month]} de {dataAss.year}"

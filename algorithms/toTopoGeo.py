@@ -69,30 +69,6 @@ class ToTopoGeo(QgsProcessingAlgorithm):
 
     def shortHelpString(self):
         txt = '''Esta ferramenta copia as feições das camadas "vértices", "limites" e "parcela" do banco de dados <b>GeoRural</b> para as camdas "ponto limite", "elemento confrontante" e "área do imóvel" do banco <b>TopoGeo</b>, aproveitando-se os atributos em comum.
-        Com a feições no modelo TopoGeo, é possível gerar o Memorial Descritivo e Planta Topográfica automaticamente.'''
-
-        footer = '''<div>
-                      <div align="center">
-                      <img style="width: 100%; height: auto;" src="data:image/jpg;base64,'''+ INCRA_GeoOne +'''
-                      </div>
-                      <div align="right">
-                      <p align="right">
-                      <a href="https://geoone.com.br/ebooks/ebook_gratis/"><span style="font-weight: bold;">Clique aqui para conhecer o modelo <b>TopoGeo</b></span></a><br>
-                      </p>
-                      <p align="right">
-                      <a href="https://geoone.com.br/pvgeoincra/"><span style="font-weight: bold;">Conheça o curso de GeoINCRA no QGIS</span></a>
-                      </p>
-                      <p align="right">
-                      <a href="https://portal.geoone.com.br/m/lessons/geoincra?classId=2241"><span style="font-weight: bold;">Acesse seu curso na GeoOne</span></a>
-                      </p>
-                      <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/"><img height="80" title="GeoOne" src="data:image/png;base64,'''+ GeoOne +'''"></a>
-                      <p><i>"Mapeamento automatizado, fácil e direto ao ponto é na GeoOne!"</i></p>
-                      </div>
-                    </div>'''
-        return txt + footer
-    
-    def shortHelpString(self):
-        txt = '''Esta ferramenta copia as feições das camadas "vértices", "limites" e "parcela" do banco de dados <b>GeoRural</b> para as camdas "ponto limite", "elemento confrontante" e "área do imóvel" do banco <b>TopoGeo</b>, aproveitando-se os atributos em comum.
         Com a feições no modelo TopoGeo, é possível utilizar recursos avançados de geração de Planta Topográfica mais profissionais.'''
 
         footer = '''<div>
@@ -141,13 +117,13 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         )
 
         self.addParameter(
-			QgsProcessingParameterFeatureSource(
-				self.LINHAS_INI,
-				self.tr('Camada Limite (GeoRural)'),
-				[Qgis.ProcessingSourceType.VectorLine],
+                        QgsProcessingParameterFeatureSource(
+                                self.LINHAS_INI,
+                                self.tr('Camada Limite (GeoRural)'),
+                                [Qgis.ProcessingSourceType.VectorLine],
                 optional = True
-			)
-		)
+                        )
+                )
 
         self.addParameter(
             QgsProcessingParameterVectorLayer(
@@ -159,13 +135,13 @@ class ToTopoGeo(QgsProcessingAlgorithm):
         )
 
         self.addParameter(
-			QgsProcessingParameterFeatureSource(
-				self.AREA_INI,
-				self.tr('Camada Parcela (GeoRural)'),
-				[Qgis.ProcessingSourceType.VectorPolygon],
+                        QgsProcessingParameterFeatureSource(
+                                self.AREA_INI,
+                                self.tr('Camada Parcela (GeoRural)'),
+                                [Qgis.ProcessingSourceType.VectorPolygon],
                 optional = True
-			)
-		)
+                        )
+                )
 
         self.addParameter(
             QgsProcessingParameterVectorLayer(

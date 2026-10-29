@@ -112,7 +112,7 @@ class getSpreadsheet(QgsProcessingAlgorithm):
         try:
             shutil.copy(fonte, output)
 
-        except:
+        except Exception:
             try:
                 # Fazendo a requisição GET para obter o conteúdo do arquivo
                 url = "https://sigef.incra.gov.br/static/sigef_planilha_modelo_1.4_rc5.ods"
@@ -133,7 +133,7 @@ class getSpreadsheet(QgsProcessingAlgorithm):
 
         try:
             QDesktopServices.openUrl(QUrl.fromLocalFile(output))
-        except:
+        except Exception:
             feedback.pushInfo('Abra o arquivo de saída na pasta {}'.format(output))
 
         return {self.OUTPUT: output}

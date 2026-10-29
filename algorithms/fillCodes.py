@@ -34,7 +34,6 @@ from qgis.core import (Qgis, QgsProcessing,
                        QgsProcessingParameterNumber,
                        QgsProcessingParameterBoolean,
                        QgsSettings,
-                       QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterVectorLayer)
 
 from qgis.PyQt.QtGui import QIcon
@@ -275,7 +274,7 @@ class FillCodes(QgsProcessingAlgorithm):
         else:
             tipoModel = 'GeoRural'
 
-        if tipoModel is 'notGeoRural':
+        if tipoModel == 'notGeoRural':
             for att in ['type', 'sequence', 'code']: # TopoGeo
                 if att not in field_names:
                     tipoModel = 'notTopoGeo'
@@ -283,7 +282,7 @@ class FillCodes(QgsProcessingAlgorithm):
             else:
                 tipoModel = 'TopoGeo'
 
-        if tipoModel is 'notTopoGeo':
+        if tipoModel == 'notTopoGeo':
             raise QgsProcessingException('Camada de entrada não está no modelo GeoRural e nem no TopoGeo! Verifique a documentação do plugin!')
 
         # Atributos

@@ -27,7 +27,39 @@ __date__ = '2024-08-10'
 __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication, QMetaType
-from qgis.core import *
+from qgis.core import (
+    Qgis,
+    QgsCategorizedSymbolRenderer,
+    QgsCoordinateReferenceSystem,
+    QgsExpression,
+    QgsExpressionContext,
+    QgsExpressionContextUtils,
+    QgsFeature,
+    QgsFeatureSink,
+    QgsField,
+    QgsFields,
+    QgsFillSymbol,
+    QgsGeometry,
+    QgsLineString,
+    QgsLineSymbol,
+    QgsMarkerSymbol,
+    QgsMultiPolygon,
+    QgsPalLayerSettings,
+    QgsPoint,
+    QgsPolygon,
+    QgsProcessingAlgorithm,
+    QgsProcessingException,
+    QgsProcessingParameterFeatureSink,
+    QgsProcessingParameterFile,
+    QgsProcessingUtils,
+    QgsProject,
+    QgsRendererCategory,
+    QgsSingleSymbolRenderer,
+    QgsTextBufferSettings,
+    QgsTextFormat,
+    QgsVectorLayer,
+    QgsVectorLayerSimpleLabeling
+)
 from qgis.PyQt.QtGui import QIcon, QFont, QColor
 import zipfile
 import os
@@ -216,7 +248,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                     SRC = QgsCoordinateReferenceSystem('EPSG:' + str(31960+fuso))
                 elif hemisf[0].upper() == 'N':
                     SRC = QgsCoordinateReferenceSystem('EPSG:' + str(31954+fuso))
-        except:
+        except Exception:
             raise QgsProcessingException("Erro ao carregar a planilha ODS!")
 
         feedback.pushInfo('O SRC da planilha é {}'.format(SRC.authid()))
@@ -253,7 +285,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                 try:
                     municipio = valor.split('-')[0]
                     uf = valor.split('-')[1]
-                except:
+                except Exception:
                     municipio = ''
                     uf = ''
 
@@ -621,6 +653,6 @@ class LayersFromSheet(QgsProcessingAlgorithm):
 
             return {}
         
-        except:
+        except Exception:
             feedback.pushWarning("Não foi possível aplicar estilos na camada!")
             return {}
