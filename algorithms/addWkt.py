@@ -15,7 +15,7 @@ __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 
-from qgis.core import (
+from qgis.core import (Qgis, 
     QgsFeature,
     QgsFeatureSink,
     QgsGeometry,
@@ -243,7 +243,7 @@ class addWkt(QgsProcessingAlgorithm):
         source_wkb = source.wkbType()
         source_geom_type = QgsWkbTypes.geometryType(source_wkb)
 
-        if source_geom_type == QgsWkbTypes.PolygonGeometry:
+        if source_geom_type == Qgis.GeometryType.Polygon:
             raise QgsProcessingException(
                 self.tr(
                     'O CSV possui geometria do tipo {}. '
@@ -251,7 +251,7 @@ class addWkt(QgsProcessingAlgorithm):
                 ).format(self._display_geom(source_wkb))
             )
 
-        if source_geom_type == QgsWkbTypes.LineGeometry:
+        if source_geom_type == Qgis.GeometryType.Line:
             raise QgsProcessingException(
                 self.tr(
                     'O CSV possui geometria do tipo {}. '
@@ -259,13 +259,13 @@ class addWkt(QgsProcessingAlgorithm):
                 ).format(self._display_geom(source_wkb))
             )
 
-        if source_geom_type == QgsWkbTypes.UnknownGeometry:
+        if source_geom_type == Qgis.GeometryType.Unknown:
             feedback.pushInfo(
                 self.tr(
                     'A camada possui tipo geométrico indefinido. Será feita validação feição a feição.'
                 )
             )
-        elif source_geom_type != QgsWkbTypes.PointGeometry:
+        elif source_geom_type != Qgis.GeometryType.Point:
             raise QgsProcessingException(
                 self.tr(
                     'Geometria não suportada: {}. Esta ferramenta aceita apenas POINT.'
@@ -291,7 +291,7 @@ class addWkt(QgsProcessingAlgorithm):
             self.OUTPUT,
             context,
             out_fields,
-            QgsWkbTypes.PointZ,
+            Qgis.WkbType.PointZ,
             source.sourceCrs()
         )
 
@@ -318,7 +318,7 @@ class addWkt(QgsProcessingAlgorithm):
                 continue
 
             feature_geom_type = QgsWkbTypes.geometryType(geom.wkbType())
-            if feature_geom_type != QgsWkbTypes.PointGeometry:
+            if feature_geom_type != Qgis.GeometryType.Point:
                 total_skip += 1
                 feedback.pushInfo(
                     self.tr(
@@ -358,7 +358,7 @@ class addWkt(QgsProcessingAlgorithm):
                 new_feature = QgsFeature(out_fields)
                 new_feature.setAttributes(feature.attributes())
                 new_feature.setGeometry(QgsGeometry(QgsPoint(x, y, z)))
-                sink.addFeature(new_feature, QgsFeatureSink.FastInsert)
+                sink.addFeature(new_feature, QgsFeatureSink.Flag.FastInsert)
                 total_ok += 1
             except Exception as e:
                 total_skip += 1

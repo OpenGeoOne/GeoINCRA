@@ -27,7 +27,7 @@ __date__ = '2024-03-07'
 __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication, QProcess
-from qgis.core import (QgsProcessing,
+from qgis.core import (Qgis, QgsProcessing,
 					   QgsProcessingException,
 					   QgsProcessingParameterNumber,
 					   QgsProcessingParameterBoolean,
@@ -104,7 +104,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 			QgsProcessingParameterFeatureSource(
 				self.VERTICE,
 				self.tr('Camada Vertice'),
-				[QgsProcessing.TypeVectorPoint]
+				[Qgis.ProcessingSourceType.VectorPoint]
 			)
 		)
 
@@ -112,7 +112,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 			QgsProcessingParameterFeatureSource(
 				self.LIMITE,
 				self.tr('Camada Limite'),
-				[QgsProcessing.TypeVectorLine]
+				[Qgis.ProcessingSourceType.VectorLine]
 			)
 		)
 
@@ -120,7 +120,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 			QgsProcessingParameterFeatureSource(
 				self.PARCELA,
 				self.tr('Camada Parcela'),
-				[QgsProcessing.TypeVectorPolygon]
+				[Qgis.ProcessingSourceType.VectorPolygon]
 			)
 		)
 
@@ -354,7 +354,7 @@ class createTemplate2(QgsProcessingAlgorithm):
 		if limite is None:
 			raise QgsProcessingException(self.invalidSourceError(parameters, self.LIMITE))
 
-		context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)
+		context.setInvalidGeometryCheck(Qgis.InvalidGeometryCheck.NoCheck)
 		parcela = self.parameterAsSource(
 			parameters,
 			self.PARCELA,

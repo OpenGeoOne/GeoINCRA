@@ -27,7 +27,7 @@ __date__ = '2022-05-08'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (QgsProcessing,
+from qgis.core import (Qgis, QgsProcessing,
                        QgsProcessingException,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterBoolean,
@@ -126,7 +126,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             QgsProcessingParameterFeatureSource(
                 self.PONTOS_INI,
                 self.tr('Camada Vértice (GeoRural)'),
-                [QgsProcessing.TypeVectorPoint],
+                [Qgis.ProcessingSourceType.VectorPoint],
                 optional = True
                 )
         )
@@ -135,7 +135,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.PONTOS_FIM,
                 self.tr('Pontos Limite (TopoGeo)'),
-                [QgsProcessing.TypeVectorPoint],
+                [Qgis.ProcessingSourceType.VectorPoint],
                 optional = True
             )
         )
@@ -144,7 +144,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
 			QgsProcessingParameterFeatureSource(
 				self.LINHAS_INI,
 				self.tr('Camada Limite (GeoRural)'),
-				[QgsProcessing.TypeVectorLine],
+				[Qgis.ProcessingSourceType.VectorLine],
                 optional = True
 			)
 		)
@@ -153,7 +153,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.LINHAS_FIM,
                 self.tr('Elemento Confrontante (TopoGeo)'),
-                [QgsProcessing.TypeVectorLine],
+                [Qgis.ProcessingSourceType.VectorLine],
                 optional = True
             )
         )
@@ -162,7 +162,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
 			QgsProcessingParameterFeatureSource(
 				self.AREA_INI,
 				self.tr('Camada Parcela (GeoRural)'),
-				[QgsProcessing.TypeVectorPolygon],
+				[Qgis.ProcessingSourceType.VectorPolygon],
                 optional = True
 			)
 		)
@@ -171,7 +171,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.AREA_FIM,
                 self.tr('Área do imóvel (TopoGeo)'),
-                [QgsProcessing.TypeVectorPolygon],
+                [Qgis.ProcessingSourceType.VectorPolygon],
                 optional = True
             )
         )
@@ -208,7 +208,7 @@ class ToTopoGeo(QgsProcessingAlgorithm):
             self.LINHAS_FIM,
             context)
 
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)
+        context.setInvalidGeometryCheck(Qgis.InvalidGeometryCheck.NoCheck)
         origem3 = self.parameterAsSource(
             parameters,
             self.AREA_INI,

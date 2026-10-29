@@ -27,7 +27,7 @@ __date__ = '2022-02-13'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication, QMetaType, QStandardPaths
-from qgis.core import (QgsFields, QgsGeometry, QgsWkbTypes, QgsProject,
+from qgis.core import (Qgis, QgsFields, QgsGeometry, QgsWkbTypes, QgsProject,
                        QgsFeatureRequest,
                        QgsVectorLayer,
                        QgsField,
@@ -189,7 +189,7 @@ class ConnectBase(QgsProcessingAlgorithm):
                     raise QgsProcessingException('Falha ao abrir uma das camadas oficiais do INCRA.')
                 for feature in vlayer.getFeatures(request):
                     self._cancel(feedback)
-                    if not sink.addFeature(feature, QgsFeatureSink.FastInsert):
+                    if not sink.addFeature(feature, QgsFeatureSink.Flag.FastInsert):
                         raise QgsProcessingException('Falha ao gravar a saída: ' + sink.lastError())
         else:
             dest_id, dataset_version, commit = self._geoone(
@@ -396,7 +396,7 @@ class ConnectBase(QgsProcessingAlgorithm):
         if len(entries) > self.HF_MAX_FILES or volume > self.HF_MAX_BYTES:
             raise QgsProcessingException('Consulta muito extensa. Aproxime o mapa ou reduza o retângulo '
                                          '(limite: 100 arquivos ou 512 MiB por consulta).')
-        cache = Path(QStandardPaths.writableLocation(QStandardPaths.CacheLocation)) / 'GeoINCRA' / 'incra-brasil'
+        cache = Path(QStandardPaths.writableLocation(QStandardPaths.StandardLocation.CacheLocation)) / 'GeoINCRA' / 'incra-brasil'
         cache.mkdir(parents=True, exist_ok=True)
         paths = []
         for i, entry in enumerate(entries):
@@ -413,11 +413,11 @@ class ConnectBase(QgsProcessingAlgorithm):
                 raise QgsProcessingException('Tipo de campo não suportado: ' + str(kind))
             fields.append(QgsField(field['nome'], type_map[kind]))
         wkb = QgsWkbTypes.parseType(index['geometria_saida'].replace(' ', ''))
-        if wkb == QgsWkbTypes.Unknown:
+        if wkb == Qgis.WkbType.Unknown:
             # Nomes GDAL como "3D Polygon".
             name = index['geometria_saida'].replace('3D ', '').replace(' ', '')
             wkb = QgsWkbTypes.parseType(name + ('Z' if index['geometria_saida'].startswith('3D ') else ''))
-        if wkb == QgsWkbTypes.Unknown:
+        if wkb == Qgis.WkbType.Unknown:
             raise QgsProcessingException('Tipo geométrico desconhecido no índice.')
         layers = []
         for path in paths:
@@ -442,7 +442,7 @@ class ConnectBase(QgsProcessingAlgorithm):
                 self._cancel(feedback)
                 if feature.hasGeometry() and feature.geometry().intersects(rectangle):
                     feature.setId(-1)  # FIDs locais de arquivos distintos podem coincidir.
-                    if not sink.addFeature(feature, QgsFeatureSink.FastInsert):
+                    if not sink.addFeature(feature, QgsFeatureSink.Flag.FastInsert):
                         raise QgsProcessingException('Falha ao gravar feição na saída: ' + sink.lastError())
                     count += 1
             feedback.setProgress(60 + 40 * (i + 1) / max(1, len(layers)))

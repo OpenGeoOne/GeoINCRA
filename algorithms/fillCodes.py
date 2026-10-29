@@ -27,7 +27,7 @@ __date__ = '2022-07-10'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (QgsProcessing,
+from qgis.core import (Qgis, QgsProcessing,
                        QgsProcessingException,
                        QgsProcessingAlgorithm,
                        QgsProcessingParameterString,
@@ -106,7 +106,7 @@ class FillCodes(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.VERTICES,
                 self.tr('Camada Vértice'),
-                [QgsProcessing.TypeVectorPoint])
+                [Qgis.ProcessingSourceType.VectorPoint])
         )
 
         self.addParameter(

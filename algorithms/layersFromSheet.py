@@ -277,7 +277,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
             self.VERTICE,
             context,
             Fields1,
-            QgsWkbTypes.PointZ,
+            Qgis.WkbType.PointZ,
             SRC
         )
         if sink1 is None:
@@ -300,7 +300,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
             self.LIMITE,
             context,
             Fields2,
-            QgsWkbTypes.LineStringZ,
+            Qgis.WkbType.LineStringZ,
             SRC
         )
         if sink2 is None:
@@ -335,7 +335,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
             self.PARCELA,
             context,
             Fields3,
-            QgsWkbTypes.MultiPolygonZ,
+            Qgis.WkbType.MultiPolygonZ,
             SRC
         )
         if sink3 is None:
@@ -372,7 +372,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                 feat['sigma_y'] = float(item[4].replace(',','.'))
                 feat['sigma_z'] = float(item[6].replace(',','.'))
                 feat['lote'] = str(contagem+1)
-                sink1.addFeature(feat, QgsFeatureSink.FastInsert)
+                sink1.addFeature(feat, QgsFeatureSink.Flag.FastInsert)
                 if feedback.isCanceled():
                     break
 
@@ -398,7 +398,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
                     feat['cns'] = anterior_cns
                     feat['matricula'] = anterior_mat
                     feat['lote'] = str(contagem+1)
-                    sink2.addFeature(feat, QgsFeatureSink.FastInsert)
+                    sink2.addFeature(feat, QgsFeatureSink.Flag.FastInsert)
                     anterior_tipoLim = tipoLim
                     anterior_cns = cns
                     anterior_mat = matricula
@@ -424,7 +424,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
 
             feat['lote'] = str(contagem+1)
             feat.setGeometry(QgsGeometry(QgsLineString(linha)))
-            sink2.addFeature(feat, QgsFeatureSink.FastInsert)
+            sink2.addFeature(feat, QgsFeatureSink.Flag.FastInsert)
 
 
             feedback.pushInfo('Alimentando camada Parcela (polígono) do {}...'.format(perimetro))
@@ -448,7 +448,7 @@ class LayersFromSheet(QgsProcessingAlgorithm):
             mPol.addGeometry(pol)
             newGeom = QgsGeometry(mPol)
             feat.setGeometry(newGeom)
-            sink3.addFeature(feat, QgsFeatureSink.FastInsert)
+            sink3.addFeature(feat, QgsFeatureSink.Flag.FastInsert)
 
             self.SAIDA_VERTICE = dest_id1
             self.SAIDA_LIMITE = dest_id2

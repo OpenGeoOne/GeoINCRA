@@ -48,7 +48,7 @@ class DividedByRoad(QgsProcessingAlgorithm):
 			QgsProcessingParameterVectorLayer(
 				self.PARCELA,
 				self.tr('Camada Parcela (GeoRural)'),
-				[QgsProcessing.TypeVectorPolygon],
+				[Qgis.ProcessingSourceType.VectorPolygon],
                 optional = False
 			)
 		)
@@ -57,7 +57,7 @@ class DividedByRoad(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.VERTICE,
                 self.tr('Camada Vértice (GeoRural)'),
-                [QgsProcessing.TypeVectorPoint],
+                [Qgis.ProcessingSourceType.VectorPoint],
                 optional = True
                 )
         )
@@ -66,7 +66,7 @@ class DividedByRoad(QgsProcessingAlgorithm):
 			QgsProcessingParameterFeatureSource(
 				self.ESTRADA,
 				self.tr('Estrada (Linha ou Polígono)'),
-				[QgsProcessing.TypeVectorPolygon, QgsProcessing.TypeVectorLine],
+				[Qgis.ProcessingSourceType.VectorPolygon, Qgis.ProcessingSourceType.VectorLine],
                 optional = False
 			)
 		)
@@ -138,7 +138,7 @@ class DividedByRoad(QgsProcessingAlgorithm):
 
         # Verificar se camada estrada for do tipo Linha, se a medida da faixa de domínio foi preenchida
         eh_linha = False
-        if estrada.wkbType() in (QgsWkbTypes.LineString, QgsWkbTypes.LineStringZ, QgsWkbTypes.MultiLineString, QgsWkbTypes.MultiLineStringZ):
+        if estrada.wkbType() in (Qgis.WkbType.LineString, Qgis.WkbType.LineStringZ, Qgis.WkbType.MultiLineString, Qgis.WkbType.MultiLineStringZ):
             eh_linha = True
             if not dominio:
                 raise QgsProcessingException('Insira a medida da faixa de domínio!')

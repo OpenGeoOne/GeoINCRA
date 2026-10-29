@@ -27,7 +27,7 @@ __date__ = '2022-02-13'
 __copyright__ = '(C) 2022 by Tiago Prudencio e Leandro França'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.core import (QgsProcessing,
+from qgis.core import (Qgis, QgsProcessing,
                        QgsProcessingParameterField,
                        QgsProcessingParameterBoolean,
                        QgsWkbTypes,
@@ -109,7 +109,7 @@ class addFeat(QgsProcessingAlgorithm):
             QgsProcessingParameterFeatureSource(
                 self.INPUT,
                 self.tr('Camada de pontos a serem carregados'),
-                [QgsProcessing.TypeVectorPoint]
+                [Qgis.ProcessingSourceType.VectorPoint]
             )
         )
 
@@ -117,7 +117,7 @@ class addFeat(QgsProcessingAlgorithm):
             QgsProcessingParameterVectorLayer(
                 self.OUTPUT,
                 self.tr('Camada de vértices do banco de dados GeoRural'),
-                [QgsProcessing.TypeVectorPoint]
+                [Qgis.ProcessingSourceType.VectorPoint]
             )
         )
 
@@ -211,7 +211,7 @@ class addFeat(QgsProcessingAlgorithm):
         if not source_in:
             raise QgsProcessingException(self.invalidSourceError(parameters, self.INPUT))
 
-        if source_in.wkbType() != QgsWkbTypes.PointZ:
+        if source_in.wkbType() != Qgis.WkbType.PointZ:
             raise QgsProcessingException('Camada de pontos de entrada deve ter geometria do tipo PointZ!')
 
         sigma_x = self.parameterAsFields(parameters, self.sigma_x, context)

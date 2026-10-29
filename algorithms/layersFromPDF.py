@@ -150,7 +150,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
             self.VERTICE,
             context,
             Fields1,
-            QgsWkbTypes.PointZ,
+            Qgis.WkbType.PointZ,
             SRC
         )
         if sink1 is None:
@@ -172,7 +172,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
             self.LIMITE,
             context,
             Fields2,
-            QgsWkbTypes.LineStringZ,
+            Qgis.WkbType.LineStringZ,
             SRC
         )
         if sink2 is None:
@@ -205,7 +205,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
             self.PARCELA,
             context,
             Fields3,
-            QgsWkbTypes.MultiPolygonZ,
+            Qgis.WkbType.MultiPolygonZ,
             SRC
         )
         if sink3 is None:
@@ -237,7 +237,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
             feat['sigma_x'] = None
             feat['sigma_y'] = None
             feat['sigma_z'] = None
-            sink1.addFeature(feat, QgsFeatureSink.FastInsert)
+            sink1.addFeature(feat, QgsFeatureSink.Flag.FastInsert)
             if feedback.isCanceled():
                 break
 
@@ -270,7 +270,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
                     feat['confrontan'] = anterior_confr
                     feat['cns'] = anterior_cns
                     feat['matricula'] = anterior_mat
-                    sink2.addFeature(feat, QgsFeatureSink.FastInsert)
+                    sink2.addFeature(feat, QgsFeatureSink.Flag.FastInsert)
                     anterior_mat = matricula
                     anterior_cns = cns
                     anterior_confr = confrontante
@@ -293,7 +293,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
                 feat['cns'] = cns
                 feat['matricula'] = matricula
             feat.setGeometry(QgsGeometry(QgsLineString(linha)))
-            sink2.addFeature(feat, QgsFeatureSink.FastInsert)
+            sink2.addFeature(feat, QgsFeatureSink.Flag.FastInsert)
 
         # Conversões
         dic_nat_ser = {'Particular':1, 'Contrato com Administração Pública':2}
@@ -359,7 +359,7 @@ class LayersFromPDF(QgsProcessingAlgorithm):
         mPol.addGeometry(pol)
         newGeom = QgsGeometry(mPol)
         feat.setGeometry(newGeom)
-        sink3.addFeature(feat, QgsFeatureSink.FastInsert)
+        sink3.addFeature(feat, QgsFeatureSink.Flag.FastInsert)
 
         self.SAIDA_VERTICE = dest_id1
         self.SAIDA_LIMITE = dest_id2
