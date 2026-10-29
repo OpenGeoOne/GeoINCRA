@@ -28,9 +28,16 @@ __copyright__ = '(C) 2024 by Tiago Prudencio e Leandro França'
 
 __revision__ = '$Format:%H$'
 
-from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtCore import QCoreApplication, QMetaType, QStandardPaths
 from qgis.core import *
 import os
+import json
+import re
+import hashlib
+import tempfile
+import urllib.request
+import urllib.parse
+from pathlib import Path, PurePosixPath
 import requests
 from qgis.PyQt.QtGui import QIcon, QFont, QColor
 
@@ -49,10 +56,9 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                4: 'Unidades da Federação 2025 (IBGE)',
                5: 'Municípios 2025 (IBGE)',
                6: 'Estações BDG GPS (IBGE)',
-               7: 'Faixa de domínio 2021 (DNIT)',
+               7: 'Faixas de domínio 2024 (DNIT) — GeoOne',
                8: 'RBMC 2024 (IBGE)',
             }
-
 
     links = {
                   mapping[0]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='ICMBio:limiteucsfederais_a' url='https://geoservicos.inde.gov.br/geoserver/ICMBio/ows?layers=limiteucsfederais_a&styles=&bbox=-73.99121093750001,-32.92391970862839,-25.290946960449205,5.271910667501984&width=329&height=245&tiled=true&srs=EPSG:4326&transparent=true' url='https://geoservicos.inde.gov.br/geoserver/ICMBio/ows?version=1.1.0&layers=limiteucsfederais_a&styles=&bbox=-73.99121093750001,-32.92391970862839,-25.290946960449205,5.271910667501984&width=329&height=245&tiled=true&srs=EPSG:4326&transparent=true' version='auto'",
@@ -61,9 +67,6 @@ class LayersOfInterest(QgsProcessingAlgorithm):
                   mapping[3]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CGEO:andb2022_ct30103' url='https://geoservicos.ibge.gov.br/geoserverCGEO/ows' version='auto'",
                   mapping[4]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CCAR:BC250_2025_lml_unidade_federacao_a' url='https://geoservicos.ibge.gov.br/geoserverCCAR/ows' version='auto'", # antigo: CCAR:BC250_2023_Unidade_Federacao_A
                   mapping[5]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='CCAR:BC250_2025_lml_municipio_a' url='https://geoservicos.ibge.gov.br/geoserverCCAR/ows' version='auto'", # antigo: CCAR:BC250_2023_Municipio_A
-                  mapping[6]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:Estacoes_BDG_GPS_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'", # antigo: CGEO:ANMS2010_09_estacoes_GPS_2010
-                  mapping[7]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:faixa_dominio_dnit_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
-                  mapping[8]: "pagingEnabled='true' preferCoordinatesForWfsT11='false' restrictToRequestBBOX='1' srsname='EPSG:4674' typename='GeoINCRA:RBMC_2024' url='http://geoonecloud.com/geoserver/ows' version='auto'",
             }
 
     def initAlgorithm(self, config):
@@ -82,7 +85,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
             QgsProcessingParameterEnum(
                 self.WFS,
                 self.tr('Camada de interesse'),
-                options = self.links.keys(),
+                options = list(self.mapping.values()),
                 defaultValue= my_user_layer
             )
         )
@@ -96,57 +99,45 @@ class LayersOfInterest(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
 
-        extensao = self.parameterAsExtent(
-        parameters,
-        self.EXTENT,
-        context
-        )
-        if not extensao:
-            raise QgsProcessingException(self.invalidSourceError(parameters, self.EXTENT))
-
-
         option = self.parameterAsEnum(parameters, self.WFS, context)
         self.OPTION = option
         layer = self.mapping[option]
-        link = self.links[layer]
-        my_settings = QgsSettings()
-        my_settings.setValue("GeoINCRA/geoincra_user_layer", option)
-
-        source = QgsVectorLayer(link, "my wfs layer", "WFS")
-        (sink, dest_id) = self.parameterAsSink(
-            parameters,
-            self.OUTPUT,
-            context,
-            source.fields(),
-            source.wkbType(),
-            source.sourceCrs()
-        )
-
-        if sink is None:
-            raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
-
-        crsSrc = QgsCoordinateReferenceSystem(QgsProject().instance().crs())
-        crsDest = source.sourceCrs()
-        proj2geo = QgsCoordinateTransform(crsSrc, crsDest, QgsProject.instance())
-        extensao = proj2geo.transform(extensao)
-
-        request = QgsFeatureRequest().setFilterRect(extensao)
-
-        if option != -1: # quando o request não funcionar
-            for feature in source.getFeatures(request):
-                if feedback.isCanceled():
-                    break
-                sink.addFeature(feature, QgsFeatureSink.FastInsert)
+        QgsSettings().setValue("GeoINCRA/geoincra_user_layer", option)
+        self.HF_METADATA = None
+        if option == 7:
+            extent = self.parameterAsExtent(parameters, self.EXTENT, context,
+                                            QgsCoordinateReferenceSystem('EPSG:4674'))
+            self._validate_extent(extent)
+            dest_id, version, commit = self._geoone(parameters, context, feedback, extent, option)
+            self.HF_METADATA = ('GeoOne/incra-brasil; geração: ' + version + '; commit: ' + commit)
         else:
-            tam = source.featureCount()
-            Percent = 100/tam if tam>0 else 0
-            for current, feature in enumerate(source.getFeatures()):
-                geom = feature.geometry()
-                if geom.intersects(extensao):
-                    sink.addFeature(feature, QgsFeatureSink.FastInsert)
-                if feedback.isCanceled():
-                    break
-                feedback.setProgress(int((current+1) * Percent))
+            if option in self.GPKG_FILES:
+                source, commit = self._point_source(option, feedback)
+                self.HF_METADATA = ('GeoOne/incra-brasil; arquivo: ' + self.GPKG_FILES[option]
+                                    + '; commit: ' + commit)
+            else:
+                source = QgsVectorLayer(self.links[layer], layer, 'WFS')
+                if not source.isValid():
+                    raise QgsProcessingException('Não foi possível abrir a camada: ' + layer)
+            extent = self.parameterAsExtent(parameters, self.EXTENT, context, source.crs())
+            self._validate_extent(extent)
+            sink, dest_id = self.parameterAsSink(parameters, self.OUTPUT, context,
+                                                 source.fields(), source.wkbType(), source.crs())
+            if sink is None:
+                raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
+            rectangle = QgsGeometry.fromRect(extent)
+            count = 0
+            for feature in source.getFeatures(QgsFeatureRequest().setFilterRect(extent)):
+                self._cancel(feedback)
+                if feature.hasGeometry() and feature.geometry().intersects(rectangle):
+                    feature.setId(-1)
+                    if not sink.addFeature(feature, QgsFeatureSink.FastInsert):
+                        raise QgsProcessingException('Falha ao gravar a saída: ' + sink.lastError())
+                    count += 1
+            if hasattr(sink, 'finalize'):
+                sink.finalize()
+            feedback.pushInfo('Consulta concluída: %d feições.' % count)
+        feedback.setProgress(100)
 
         global renamer
         renamer = Renamer(layer)
@@ -154,6 +145,278 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         self.SAIDA = dest_id
         return {self.OUTPUT: dest_id}
 
+
+    # Dataset publico; nao exige token nem bibliotecas adicionais.
+    HF_REPO = 'GeoOne/incra-brasil'
+    HF_REVISION = 'main'
+    HF_MAX_FILES = 100
+    HF_MAX_BYTES = 512 * 1024 * 1024
+    HF_IDS = {7: 'faixa_dominio_dnit'}
+
+    def _cancel(self, feedback):
+        if feedback.isCanceled():
+            raise QgsProcessingException('Consulta cancelada pelo usuário.')
+
+    def _json_url(self, url, feedback):
+        self._cancel(feedback)
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'GeoINCRA/GeoOne'})
+            with urllib.request.urlopen(req, timeout=45) as response:
+                raw = response.read(20 * 1024 * 1024 + 1)
+            if len(raw) > 20 * 1024 * 1024:
+                raise ValueError('Metadados excedem o tamanho permitido.')
+            self._cancel(feedback)
+            return raw, json.loads(raw.decode('utf-8-sig'))
+        except QgsProcessingException:
+            raise
+        except Exception as exc:
+            raise QgsProcessingException('Não foi possível ler os metadados do Hugging Face: ' + str(exc))
+
+    def _url(self, commit, relative):
+        path = PurePosixPath(relative)
+        if path.is_absolute() or '..' in path.parts or '\\' in relative or not relative:
+            raise QgsProcessingException('Caminho inválido no índice: ' + relative)
+        return ('https://huggingface.co/datasets/' + self.HF_REPO + '/resolve/'
+                + commit + '/' + urllib.parse.quote(relative, safe='/'))
+
+    @staticmethod
+    def _intersects(a, b):
+        return a[0] <= b[2] and a[2] >= b[0] and a[1] <= b[3] and a[3] >= b[1]
+
+    def _digest(self, path, feedback):
+        digest = hashlib.sha256()
+        with open(path, 'rb') as stream:
+            while True:
+                self._cancel(feedback)
+                block = stream.read(1024 * 1024)
+                if not block:
+                    break
+                digest.update(block)
+        return digest.hexdigest()
+
+    def _cached_file(self, entry, commit, cache, feedback):
+        expected = entry['sha256']
+        if not re.fullmatch(r'[0-9a-f]{64}', expected):
+            raise QgsProcessingException('SHA-256 inválido no índice.')
+        path = cache / (expected + '.fgb')
+        size = int(entry['bytes'])
+        if path.exists() and path.stat().st_size == size and self._digest(path, feedback) == expected:
+            feedback.pushInfo('Cache: ' + entry['arquivo'])
+            return path
+        feedback.pushInfo('Baixando: ' + entry['arquivo'])
+        fd, tmp = tempfile.mkstemp(prefix='download_', suffix='.part', dir=str(cache))
+        try:
+            with os.fdopen(fd, 'wb') as stream:
+                req = urllib.request.Request(self._url(commit, entry['arquivo']),
+                                             headers={'User-Agent': 'GeoINCRA/GeoOne'})
+                with urllib.request.urlopen(req, timeout=45) as response:
+                    total = 0
+                    while True:
+                        self._cancel(feedback)
+                        block = response.read(1024 * 1024)
+                        if not block:
+                            break
+                        total += len(block)
+                        if total > size:
+                            raise ValueError('Download maior que o tamanho registrado.')
+                        stream.write(block)
+            if total != size or self._digest(tmp, feedback) != expected:
+                raise ValueError('Tamanho ou SHA-256 divergente do índice.')
+            os.replace(tmp, path)
+            return path
+        except QgsProcessingException:
+            raise
+        except Exception as exc:
+            raise QgsProcessingException('Falha ao baixar/verificar ' + entry['arquivo'] + ': ' + str(exc))
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+
+    def _geoone(self, parameters, context, feedback, extent, option):
+        _, meta = self._json_url('https://huggingface.co/api/datasets/' + self.HF_REPO
+                                 + '/revision/' + urllib.parse.quote(self.HF_REVISION, safe=''), feedback)
+        commit = meta.get('sha', '')
+        if not re.fullmatch(r'[0-9a-f]{40}', commit):
+            raise QgsProcessingException('Não foi possível identificar o commit do dataset.')
+        _, catalog = self._json_url(self._url(commit, 'catalogo.json'), feedback)
+        if catalog.get('status') != 'verificado' or catalog.get('versao_formato') != 'geoone-incra-fgb/1':
+            raise QgsProcessingException('Dataset incompleto ou formato de catálogo incompatível.')
+        base = self.HF_IDS[option]
+        layer_entry = next((c for c in catalog['camadas'] if c['id'] == base), None)
+        if layer_entry is None:
+            raise QgsProcessingException('Camada não disponível nesta versão: ' + base)
+        raw, index = self._json_url(self._url(commit, layer_entry['indice']), feedback)
+        if hashlib.sha256(raw).hexdigest() != layer_entry['indice_sha256']:
+            raise QgsProcessingException('Checksum do índice divergente do catálogo.')
+        if (index.get('versao_formato') != 'geoone-incra-fgb/1'
+                or index.get('camada') != base or index.get('crs') != 'EPSG:4674'
+                or index.get('ordem_bbox') != 'xmin,ymin,xmax,ymax'):
+            raise QgsProcessingException('Índice incompatível com esta ferramenta.')
+        bounds = [extent.xMinimum(), extent.yMinimum(), extent.xMaximum(), extent.yMaximum()]
+        entries = [e for e in index['arquivos'] if self._intersects(e['bbox_real'], bounds)]
+        if len({e['arquivo'] for e in entries}) != len(entries):
+            raise QgsProcessingException('Caminhos duplicados no índice.')
+        volume = sum(int(e['bytes']) for e in entries)
+        feedback.pushInfo('Versão da base: ' + catalog['versao_dataset'])
+        feedback.pushInfo('Commit: ' + commit)
+        feedback.pushInfo('Arquivos candidatos: %d; volume integral: %.1f MiB.' % (len(entries), volume / 1048576))
+        if len(entries) > self.HF_MAX_FILES or volume > self.HF_MAX_BYTES:
+            raise QgsProcessingException('Consulta muito extensa. Aproxime o mapa ou reduza o retângulo '
+                                         '(limite: 100 arquivos ou 512 MiB por consulta).')
+        cache = Path(QStandardPaths.writableLocation(QStandardPaths.CacheLocation)) / 'GeoINCRA' / 'incra-brasil'
+        cache.mkdir(parents=True, exist_ok=True)
+        paths = []
+        for i, entry in enumerate(entries):
+            paths.append(self._cached_file(entry, commit, cache, feedback))
+            feedback.setProgress(60 * (i + 1) / max(1, len(entries)))
+        # Obter esquema inclusive quando a consulta nao encontra arquivos.
+        fields = QgsFields()
+        type_map = {4: QMetaType.Type.QString, 0: QMetaType.Type.Int,
+                    12: QMetaType.Type.LongLong, 2: QMetaType.Type.Double,
+                    11: QMetaType.Type.QDateTime, 9: QMetaType.Type.QDate}
+        for field in index['esquema']:
+            kind = field.get('tipo_saida', field.get('tipo'))
+            if kind not in type_map:
+                raise QgsProcessingException('Tipo de campo não suportado: ' + str(kind))
+            fields.append(QgsField(field['nome'], type_map[kind]))
+        wkb = QgsWkbTypes.parseType(index['geometria_saida'].replace(' ', ''))
+        if wkb == QgsWkbTypes.Unknown:
+            # Nomes GDAL como "3D Polygon".
+            name = index['geometria_saida'].replace('3D ', '').replace(' ', '')
+            wkb = QgsWkbTypes.parseType(name + ('Z' if index['geometria_saida'].startswith('3D ') else ''))
+        if wkb == QgsWkbTypes.Unknown:
+            raise QgsProcessingException('Tipo geométrico desconhecido no índice.')
+        layers = []
+        for path in paths:
+            self._cancel(feedback)
+            source = QgsVectorLayer(str(path), base, 'ogr')
+            if not source.isValid() or source.crs() != QgsCoordinateReferenceSystem('EPSG:4674'):
+                raise QgsProcessingException('FGB inválido ou SRC inesperado: ' + str(path))
+            if source.fields().names() != fields.names() or source.wkbType() != wkb:
+                raise QgsProcessingException('Esquema ou geometria divergente: ' + str(path))
+            layers.append(source)
+        if layers:
+            fields = layers[0].fields()
+        sink, dest_id = self.parameterAsSink(parameters, self.OUTPUT, context, fields, wkb,
+                                             QgsCoordinateReferenceSystem('EPSG:4674'))
+        if sink is None:
+            raise QgsProcessingException(self.invalidSinkError(parameters, self.OUTPUT))
+        rectangle = QgsGeometry.fromRect(extent)
+        count = 0
+        for i, source in enumerate(layers):
+            request = QgsFeatureRequest().setFilterRect(extent)
+            for feature in source.getFeatures(request):
+                self._cancel(feedback)
+                if feature.hasGeometry() and feature.geometry().intersects(rectangle):
+                    feature.setId(-1)  # FIDs locais de arquivos distintos podem coincidir.
+                    if not sink.addFeature(feature, QgsFeatureSink.FastInsert):
+                        raise QgsProcessingException('Falha ao gravar feição na saída: ' + sink.lastError())
+                    count += 1
+            feedback.setProgress(60 + 40 * (i + 1) / max(1, len(layers)))
+        if hasattr(sink, 'finalize'):
+            sink.finalize()
+        feedback.pushInfo('Consulta concluída: %d feições.' % count)
+        return dest_id, catalog['versao_dataset'], commit
+
+    @staticmethod
+    def _validate_extent(extent):
+        if extent.isEmpty() or not extent.isFinite():
+            raise QgsProcessingException('Informe uma extensão válida.')
+
+    GPKG_FILES = {6: 'layers/Estacoes_BDG_GPS_2024.gpkg',
+                  8: 'layers/RBMC_2024.gpkg'}
+    # Se houver mais de uma camada de pontos no GPKG, informe seu nome aqui.
+    GPKG_LAYER_NAMES = {6: None, 8: None}
+
+    def _point_source(self, option, feedback):
+        relative = self.GPKG_FILES[option]
+        _, info = self._json_url('https://huggingface.co/api/datasets/' + self.HF_REPO
+                                + '/revision/' + urllib.parse.quote(self.HF_REVISION, safe=''), feedback)
+        commit = info.get('sha', '')
+        if not re.fullmatch(r'[0-9a-f]{40}', commit):
+            raise QgsProcessingException('Commit do dataset inválido.')
+        _, tree = self._json_url('https://huggingface.co/api/datasets/' + self.HF_REPO
+                                 + '/tree/' + commit + '/layers?limit=1000', feedback)
+        item = next((f for f in tree if f.get('path') == relative and f.get('type') == 'file'), None)
+        if item is None:
+            raise QgsProcessingException('Arquivo não encontrado no repositório: ' + relative)
+        lfs = item.get('lfs') or {}
+        expected = lfs.get('oid') or item.get('oid', '')
+        is_sha256 = bool(lfs)
+        if not re.fullmatch(r'[0-9a-f]{%d}' % (64 if is_sha256 else 40), expected):
+            raise QgsProcessingException('Checksum do GeoPackage não disponível na API.')
+        size = int(lfs.get('size', item['size']))
+        if size <= 0 or size > self.HF_MAX_BYTES:
+            raise QgsProcessingException('GeoPackage vazio ou maior que 512 MiB: ' + relative)
+        cache = Path(QStandardPaths.writableLocation(QStandardPaths.CacheLocation)) / 'GeoINCRA' / 'incra-brasil'
+        cache.mkdir(parents=True, exist_ok=True)
+        path = cache / (expected + '.gpkg')
+        def checksum(filename):
+            digest = hashlib.sha256() if is_sha256 else hashlib.sha1()
+            if not is_sha256:
+                digest.update(('blob %d\0' % size).encode('ascii'))
+            with open(filename, 'rb') as stream:
+                while True:
+                    self._cancel(feedback)
+                    block = stream.read(1024 * 1024)
+                    if not block:
+                        break
+                    digest.update(block)
+            return digest.hexdigest()
+        if not (path.exists() and path.stat().st_size == size and checksum(path) == expected):
+            feedback.pushInfo('Baixando GeoPackage nacional: ' + relative)
+            fd, tmp = tempfile.mkstemp(prefix='download_', suffix='.part', dir=str(cache))
+            try:
+                with os.fdopen(fd, 'wb') as stream:
+                    req = urllib.request.Request(self._url(commit, relative),
+                                                 headers={'User-Agent': 'GeoINCRA/GeoOne'})
+                    with urllib.request.urlopen(req, timeout=45) as response:
+                        total = 0
+                        while True:
+                            self._cancel(feedback)
+                            block = response.read(1024 * 1024)
+                            if not block:
+                                break
+                            total += len(block)
+                            if total > size:
+                                raise ValueError('Download maior que o tamanho esperado.')
+                            stream.write(block)
+                if total != size or checksum(tmp) != expected:
+                    raise ValueError('Tamanho ou checksum do GeoPackage divergente.')
+                os.replace(tmp, path)
+            except QgsProcessingException:
+                raise
+            except Exception as exc:
+                raise QgsProcessingException('Falha no download de ' + relative + ': ' + str(exc))
+            finally:
+                if os.path.exists(tmp):
+                    os.remove(tmp)
+        else:
+            feedback.pushInfo('Cache: ' + relative)
+        self._cancel(feedback)
+        from osgeo import ogr
+        dataset = ogr.Open(str(path), 0)
+        if dataset is None:
+            raise QgsProcessingException('GeoPackage inválido: ' + relative)
+        names = []
+        for i in range(dataset.GetLayerCount()):
+            sublayer = dataset.GetLayerByIndex(i)
+            if ogr.GT_Flatten(sublayer.GetGeomType()) in (ogr.wkbPoint, ogr.wkbMultiPoint):
+                names.append(sublayer.GetName())
+        dataset = None
+        chosen = self.GPKG_LAYER_NAMES[option]
+        if chosen is None:
+            if len(names) != 1:
+                raise QgsProcessingException('Informe GPKG_LAYER_NAMES para ' + relative
+                                             + '. Camadas de pontos encontradas: ' + ', '.join(names))
+            chosen = names[0]
+        if chosen not in names:
+            raise QgsProcessingException('Camada de pontos não encontrada: ' + chosen)
+        source = QgsVectorLayer(str(path) + '|layername=' + chosen, self.mapping[option], 'ogr')
+        if not source.isValid() or not source.crs().isValid():
+            raise QgsProcessingException('Camada inválida ou sem SRC: ' + relative)
+        feedback.pushInfo('Commit: ' + commit + '; camada interna: ' + chosen)
+        return source, commit
 
     def name(self):
         return 'LayersOfInterest'.lower()
@@ -180,7 +443,7 @@ class LayersOfInterest(QgsProcessingAlgorithm):
         return 'GeoOne,GeoRural,INCRA,Sigef,IBGE,DNIT,municípios,estados,brasil,UFs,faixa de domínio,RBMC,ICMBio,conservação,embargadas,gps,urbanizadas,rural,regularização,fundiária'.split(',')
     
     def shortHelpString(self):
-        txt = 'Baixar camada de interesse a partir de uma extensão desenhada na tela (retângulo).'
+        txt = 'Baixar camada de interesse a partir de uma extensão desenhada na tela (retângulo). Faixas de domínio do DNIT, estações BDG GPS e RBMC são consultadas na base GeoOne no Hugging Face, com cache local. Os GeoPackages de pontos são baixados integralmente na primeira consulta e filtrados localmente. As demais opções utilizam seus serviços WFS.'
         footer = '''<div>
                       <div align="center">
                       <a target="_blank" rel="noopener noreferrer" href="https://geoone.com.br/pvgeoincra/"><img title="Inscreva-se no curso de GeoINCRA" style="width: 100%; height: auto;" src="'''+ os.path.join(os.path.dirname(os.path.dirname(__file__)), 'images/INCRA_GeoOne.jpg') +'''"></a>
@@ -201,6 +464,12 @@ class LayersOfInterest(QgsProcessingAlgorithm):
 
     def postProcessAlgorithm(self, context, feedback):
         layer = QgsProcessingUtils.mapLayerFromString(self.SAIDA, context)
+        if layer is None:
+            return {}
+        if self.HF_METADATA:
+            metadata = layer.metadata()
+            metadata.setAbstract(self.HF_METADATA)
+            layer.setMetadata(metadata)
         nome = 'nome'
         if layer.featureCount() > 0:
             if self.OPTION == 8: # RBMC
@@ -300,6 +569,8 @@ webbrowser.open(url)""", False)
                 acActor.setActionScopes({'Field', 'Layer', 'Canvas', 'Feature'})
                 acManager.addAction(acActor)
 
+            if layer.fields().indexOf(nome) < 0:
+                return {}
             # Rotulação
             # Configurar as propriedades de rótulo
             label_settings = QgsPalLayerSettings()
